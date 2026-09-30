@@ -40,6 +40,7 @@ const DEF_ROWS: { m: Multiplier; label: MessageKey }[] = [
   { m: 0, label: 'calc.immune' },
 ]
 const defProfile = computed(() => (def.value.length ? defensiveProfile(def.value) : null))
+const defRows = computed(() => DEF_ROWS.filter((r) => defProfile.value?.[r.m].length))
 
 // ---- Offense ----
 const coverage = computed(() => (atk.value.length ? offensiveProfile(atk.value) : null))
@@ -84,13 +85,12 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
   <div v-if="mode === 'def' && defProfile" class="panel">
     <table class="groups">
       <tbody>
-        <tr v-for="row in DEF_ROWS" :key="row.m">
+        <tr v-for="row in defRows" :key="row.m">
           <th>
             <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
             <span class="lbl muted">{{ t(row.label) }}</span>
           </th>
           <td>
-            <span v-if="!defProfile[row.m].length" class="muted">—</span>
             <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" class="gap" />
           </td>
         </tr>
