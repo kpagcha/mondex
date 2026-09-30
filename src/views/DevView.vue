@@ -1,0 +1,229 @@
+<script setup lang="ts">
+// Dev-only settings. Only routed when import.meta.env.DEV is true.
+import { onMounted } from 'vue'
+import {
+  BODY_FONTS,
+  DISPLAY_FONTS,
+  DISPLAY_SCALES,
+  NUM_FONTS,
+  loadAll,
+  picks,
+  resetPicks,
+  type FontOption,
+} from '@/dev/fonts'
+import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
+import TypeIcon from '@/components/TypeIcon.vue'
+
+const GROUPS: { key: 'display' | 'body' | 'num'; title: string; hint: string; options: FontOption[] }[] = [
+  { key: 'display', title: 'Display', hint: 'Logo, headings, nav, tabs.', options: DISPLAY_FONTS },
+  { key: 'body', title: 'Body', hint: 'Everything else.', options: BODY_FONTS },
+  { key: 'num', title: 'Numbers', hint: 'Chart cells, multipliers, quiz answers, stats.', options: NUM_FONTS },
+]
+
+const SAMPLE_EN = 'Which attacking types are super effective against Water/Ground? Grass is 4×, Electric has no effect.'
+const SAMPLE_ES = '¿Qué tipos atacantes son súper eficaces contra Eléctrico? Tierra: 2×. Psíquico, Dragón, Siniestro: ½×.'
+const DIGITS = '0123456789 ½ ¼ × → ↓'
+
+onMounted(loadAll)
+</script>
+
+<template>
+  <div class="panel">
+    <h1>Dev settings</h1>
+    <p class="muted">
+      Only available in <code>npm run dev</code>. Font picks apply across the whole app and are
+      saved in this browser, so you can browse the real pages with them.
+    </p>
+  </div>
+
+  <div class="panel">
+    <div class="head">
+      <h2>Fonts</h2>
+      <div class="controls">
+        <label>
+          Display scale
+          <select v-model.number="picks.displayScale">
+            <option v-for="s in DISPLAY_SCALES" :key="s" :value="s">{{ s * 100 }}%</option>
+          </select>
+        </label>
+        <button type="button" class="btn" @click="resetPicks">Reset</button>
+      </div>
+    </div>
+
+    <div class="groups">
+      <fieldset v-for="g in GROUPS" :key="g.key">
+        <legend>
+          <b>{{ g.title }}</b> <span class="muted">{{ g.hint }}</span>
+        </legend>
+        <label v-for="f in g.options" :key="f.id" class="opt" :class="{ on: picks[g.key] === f.id }">
+          <input v-model="picks[g.key]" type="radio" :name="g.key" :value="f.id" />
+          <span class="opt-text">
+            <span class="opt-name" :style="{ fontFamily: f.stack || undefined }">{{ f.label }}</span>
+            <span class="muted small">{{ f.note }}</span>
+          </span>
+        </label>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Preview</h2>
+    <h1>mondex · Type calculator</h1>
+    <nav class="tabs">
+      <a class="active">Defense</a>
+      <a>Offense / coverage</a>
+    </nav>
+    <p>{{ SAMPLE_EN }}</p>
+    <p>{{ SAMPLE_ES }}</p>
+    <p class="num big">{{ DIGITS }}</p>
+    <div class="mults">
+      <span v-for="m in MULTIPLIERS" :key="m" class="mult-tag" :class="multClass(m)">{{ formatMult(m) }}</span>
+    </div>
+    <table class="mini">
+      <tbody>
+        <tr>
+          <th><TypeIcon type="ground" /></th>
+          <td class="num m-2">2</td>
+          <td class="num m-0_5">½</td>
+          <td class="num m-0">0</td>
+          <td class="num"></td>
+          <td class="num m-2">2</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="answers">
+      <button v-for="m in MULTIPLIERS" :key="m" type="button" class="btn num ans">{{ formatMult(m) }}</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>All display fonts</h2>
+    <div v-for="f in DISPLAY_FONTS" :key="f.id" class="compare">
+      <span class="muted small label">{{ f.label }}</span>
+      <span class="sample" :style="{ fontFamily: f.stack || undefined }">
+        mondex · Tabla de tipos · Súper eficaz ½× ¼×
+      </span>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+code {
+  font-size: 12px;
+}
+.small {
+  font-size: 11px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.head h2 {
+  margin: 0;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--panel-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+fieldset {
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  min-width: 0;
+}
+legend {
+  padding: 0 4px;
+}
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.opt:hover {
+  background: var(--hover);
+}
+.opt.on {
+  background: var(--sel);
+}
+.opt input {
+  margin-top: 3px;
+}
+.opt-text {
+  display: flex;
+  flex-direction: column;
+}
+.opt-name {
+  font-size: 15px;
+}
+
+.big {
+  font-size: 16px;
+}
+.mults,
+.answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.ans {
+  min-width: 52px;
+  min-height: 36px;
+  font-size: 15px;
+  font-weight: bold;
+}
+.mini {
+  border-collapse: collapse;
+  font-weight: bold;
+  margin: 8px 0;
+}
+.mini th,
+.mini td {
+  border: 1px solid var(--border);
+  text-align: center;
+  padding: 2px 4px;
+}
+.mini td {
+  width: 36px;
+  height: 24px;
+}
+
+.compare {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.compare .label {
+  flex: none;
+  width: 140px;
+}
+.sample {
+  font-size: 18px;
+}
+</style>

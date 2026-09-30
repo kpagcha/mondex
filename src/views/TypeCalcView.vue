@@ -114,7 +114,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
       <div class="single-grid">
         <div v-for="e in singles" :key="e.def[0]" class="single" :class="multClass(e.best)">
           <TypeIcon :type="e.def[0]!" />
-          <b>{{ formatMult(e.best) }}</b>
+          <b class="num">{{ formatMult(e.best) }}</b>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
       <div class="counts">
         <div v-for="m in COUNT_ORDER" :key="m" class="count">
           <span class="mult-tag" :class="multClass(m)">{{ formatMult(m) }}</span>
-          <b>{{ counts[m] }}</b>
+          <b class="num">{{ counts[m] }}</b>
         </div>
       </div>
     </div>

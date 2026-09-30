@@ -88,7 +88,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 13px/1.45 Verdana, Geneva, 'DejaVu Sans', Helvetica, Arial, sans-serif;
+  font: 13px/1.45 var(--font-body, Verdana, Geneva, 'DejaVu Sans', Helvetica, Arial, sans-serif);
 }
 
 /* Sticky footer: the app fills the viewport and main takes the free space. */
@@ -113,9 +113,20 @@ h3 {
   margin: 0 0 8px;
   line-height: 1.25;
 }
-h1 { font-size: 18px; }
-h2 { font-size: 15px; }
-h3 { font-size: 13px; }
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display, inherit);
+}
+h1 { font-size: calc(18px * var(--display-scale, 1)); }
+h2 { font-size: calc(15px * var(--display-scale, 1)); }
+h3 { font-size: calc(13px * var(--display-scale, 1)); }
+
+/* Numbers and multipliers. */
+.num {
+  font-family: var(--font-num, inherit);
+}
 
 p {
   margin: 0 0 8px;
@@ -185,6 +196,7 @@ img.pixel {
   margin-bottom: 12px;
 }
 .tabs a {
+  font-family: var(--font-display, inherit);
   padding: 6px 12px;
   border: 1px solid transparent;
   border-bottom: none;
@@ -211,6 +223,7 @@ img.pixel {
 .m-4 { background: var(--m4-bg); color: var(--m4-fg); }
 
 .mult-tag {
+  font-family: var(--font-num, inherit);
   display: inline-block;
   min-width: 34px;
   padding: 1px 4px;

@@ -5,6 +5,7 @@ import { useTheme } from '@/composables/useTheme'
 import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
 
 const { theme, toggle } = useTheme()
+const isDev = import.meta.env.DEV
 const route = useRoute()
 
 watchEffect(() => {
@@ -20,11 +21,12 @@ function onLang(e: Event) {
 <template>
   <header class="site-header">
     <div class="wrap bar">
-      <RouterLink to="/" class="logo">mon<span>dex</span></RouterLink>
-      <nav class="nav">
+      <RouterLink to="/" class="logo font-display">mon<span>dex</span></RouterLink>
+      <nav class="nav font-display">
         <RouterLink to="/types" exact-active-class="active">{{ t('nav.chart') }}</RouterLink>
         <RouterLink to="/types/calc" active-class="active">{{ t('nav.calc') }}</RouterLink>
         <RouterLink to="/types/quiz" active-class="active">{{ t('nav.quiz') }}</RouterLink>
+        <RouterLink v-if="isDev" to="/dev" active-class="active" class="dev">Dev</RouterLink>
       </nav>
       <div class="controls">
         <select class="lang" :value="locale" :aria-label="t('lang.label')" :title="t('lang.label')" @change="onLang">
@@ -73,7 +75,7 @@ function onLang(e: Event) {
 }
 
 .logo {
-  font-size: 20px;
+  font-size: calc(20px * var(--display-scale, 1));
   font-weight: bold;
   letter-spacing: -0.5px;
   color: var(--text);
@@ -99,6 +101,10 @@ function onLang(e: Event) {
 .nav a:hover {
   background: var(--hover);
   text-decoration: none;
+}
+.nav a.dev {
+  color: var(--muted);
+  border: 1px dashed var(--border-strong);
 }
 .nav a.active {
   background: var(--sel);

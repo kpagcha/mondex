@@ -86,6 +86,7 @@ onMounted(async () => {
             </RouterLink>
           </th>
           <td
+            class="num"
             v-for="(cell, j) in rows[i]"
             :key="j"
             :data-r="i"

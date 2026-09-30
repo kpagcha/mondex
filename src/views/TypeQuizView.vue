@@ -200,7 +200,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
             v-for="(m, i) in MULTIPLIERS"
             :key="m"
             type="button"
-            class="btn ans"
+            class="btn ans num"
             :class="{
               right: result && m === current.answer,
               miss: result && m === result.choice && !result.correct,
@@ -253,17 +253,17 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
         <h2>{{ t('quiz.progress') }}</h2>
         <dl class="stats">
           <dt>{{ t('quiz.session') }}</dt>
-          <dd>{{ session.correct }}/{{ session.seen }} <span class="muted">({{ accuracy }}%)</span></dd>
+          <dd class="num">{{ session.correct }}/{{ session.seen }} <span class="muted">({{ accuracy }}%)</span></dd>
           <dt>{{ t('quiz.newToday') }}</dt>
-          <dd>{{ Math.min(deck.newToday, deck.newLimit) }}/{{ deck.newLimit }}</dd>
+          <dd class="num">{{ Math.min(deck.newToday, deck.newLimit) }}/{{ deck.newLimit }}</dd>
           <dt>{{ t('quiz.learning') }}</dt>
-          <dd>{{ stats.learning }}</dd>
+          <dd class="num">{{ stats.learning }}</dd>
           <dt>{{ t('quiz.due') }}</dt>
-          <dd>{{ stats.due }}</dd>
+          <dd class="num">{{ stats.due }}</dd>
           <dt>{{ t('quiz.seen') }}</dt>
-          <dd>{{ stats.seen }}/{{ total }}</dd>
+          <dd class="num">{{ stats.seen }}/{{ total }}</dd>
           <dt>{{ t('quiz.mature') }}</dt>
-          <dd>{{ stats.mature }}</dd>
+          <dd class="num">{{ stats.mature }}</dd>
         </dl>
         <label class="setting">
           {{ t('quiz.dualTypes') }}
