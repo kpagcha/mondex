@@ -87,11 +87,15 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
       <tbody>
         <tr v-for="row in defRows" :key="row.m">
           <th>
-            <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
-            <span class="lbl muted">{{ t(row.label) }}</span>
+            <span class="tier">
+              <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
+              <span class="lbl muted">{{ t(row.label) }}</span>
+            </span>
           </th>
           <td>
-            <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" tip-group="defense" class="gap" />
+            <span class="icons">
+              <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" tip-group="defense" />
+            </span>
           </td>
         </tr>
       </tbody>
@@ -225,13 +229,18 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
   white-space: nowrap;
   font-weight: normal;
 }
-.lbl {
-  display: inline-block;
-  width: 60px;
-  margin-left: 6px;
+.tier {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.gap {
-  margin: 2px 4px 2px 0;
+.lbl {
+  min-width: 60px;
+}
+.icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .single-grid {

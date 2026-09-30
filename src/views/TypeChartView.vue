@@ -60,8 +60,9 @@ onMounted(async () => {
     <h1>{{ t('title.chart') }}</h1>
     <p class="muted">{{ t('chart.intro') }}</p>
     <div class="legend">
-      <span class="mult-tag m-2">2×</span> {{ t('legend.se') }} <span class="mult-tag m-0_5">½×</span>
-      {{ t('legend.nve') }} <span class="mult-tag m-0">0×</span> {{ t('legend.none') }}
+      <span class="legend-item"><span class="mult-tag m-2">2×</span> {{ t('legend.se') }}</span>
+      <span class="legend-item"><span class="mult-tag m-0_5">½×</span> {{ t('legend.nve') }}</span>
+      <span class="legend-item"><span class="mult-tag m-0">0×</span> {{ t('legend.none') }}</span>
     </div>
   </div>
 
@@ -107,14 +108,14 @@ onMounted(async () => {
 .legend {
   display: flex;
   flex-wrap: wrap;
+  gap: 6px 16px;
+}
+/* A multiplier and its label never split across lines. */
+.legend-item {
+  display: inline-flex;
   align-items: center;
-  gap: 6px 8px;
-}
-.legend .mult-tag {
-  margin-left: 8px;
-}
-.legend .mult-tag:first-child {
-  margin-left: 0;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .scroller {

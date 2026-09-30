@@ -350,6 +350,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
   }
 }
 .ans {
+  gap: 8px;
   min-height: 40px;
   font-size: 15px;
   font-weight: bold;
@@ -376,12 +377,10 @@ kbd {
   border: 1px solid var(--border);
   border-radius: 2px;
   color: var(--muted);
-  margin-right: 4px;
 }
 .btn.primary kbd {
   color: inherit;
   border-color: currentColor;
-  margin: 0 0 0 4px;
   opacity: 0.8;
 }
 /* Touch-first devices (phones, tablets) usually have no keyboard. */
