@@ -384,6 +384,12 @@ kbd {
   margin: 0 0 0 4px;
   opacity: 0.8;
 }
+/* Touch-first devices (phones, tablets) usually have no keyboard. */
+@media (hover: none) and (pointer: coarse) {
+  kbd {
+    display: none;
+  }
+}
 
 .actions {
   margin-top: 10px;
