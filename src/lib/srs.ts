@@ -38,6 +38,8 @@ export interface Deck {
   newLimit: number
   /** Dual-type cards: forced on/off, or unset to unlock automatically. */
   duals?: boolean
+  /** Shuffles the order new cards are introduced in; rolled again on reset. */
+  seed?: number
 }
 
 export const DEFAULT_NEW_LIMIT = 20
@@ -46,8 +48,12 @@ export function today(now = Date.now()): string {
   return new Date(now).toISOString().slice(0, 10)
 }
 
+export function newSeed(): number {
+  return Math.floor(Math.random() * 2 ** 32)
+}
+
 export function emptyDeck(): Deck {
-  return { v: 1, tick: 0, cards: {}, day: today(), newToday: 0, newLimit: DEFAULT_NEW_LIMIT }
+  return { v: 1, tick: 0, cards: {}, day: today(), newToday: 0, newLimit: DEFAULT_NEW_LIMIT, seed: newSeed() }
 }
 
 /** Roll the daily new-card counter over when the date changes. */
@@ -186,7 +192,11 @@ export function loadDeck(): Deck {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const d = JSON.parse(raw) as Deck
-      if (d && d.v === 1 && d.cards) return d
+      if (d && d.v === 1 && d.cards) {
+        // Decks saved before seeds existed get one now; their seen cards are unaffected.
+        d.seed ??= newSeed()
+        return d
+      }
     }
   } catch {
     // Storage unavailable or corrupt: start fresh in memory.

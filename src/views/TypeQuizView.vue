@@ -4,7 +4,16 @@ import { TYPES, type Multiplier, type TypeId } from '@/data/types'
 import { t, typeName } from '@/i18n'
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
 import { deckStats, emptyDeck, grade, loadDeck, pickNext, rollDay, saveDeck } from '@/lib/srs'
-import { cardLabel, checkMulti, explain, getCard, getCurriculum, multiPrompt, type Card } from '@/lib/quiz'
+import {
+  cardLabel,
+  checkMulti,
+  explain,
+  getCard,
+  getCurriculum,
+  multiPrompt,
+  newCardOrder,
+  type Card,
+} from '@/lib/quiz'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
 
@@ -33,8 +42,9 @@ const dualsOn = computed(() => {
 })
 
 function* newIds() {
-  for (const c of basic) yield c.id
-  if (dualsOn.value) for (const c of dual) yield c.id
+  const order = newCardOrder(deck.value.seed!)
+  yield* order.basic
+  if (dualsOn.value) yield* order.dual
 }
 
 // ---- Current card ----

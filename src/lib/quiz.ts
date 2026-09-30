@@ -80,7 +80,7 @@ export function cardLabel(c: Card): string {
   return t(PROMPT_KEYS[c.q], { type: typeName(c.type) })
 }
 
-// Deterministic shuffle so the curriculum order is stable across reloads.
+// Seeded shuffle: a deck's order is stable across reloads but differs between decks.
 function shuffle<T>(arr: T[], seed: number): T[] {
   let s = seed >>> 0
   const rand = () => {
@@ -123,19 +123,32 @@ function buildCurriculum() {
   const dualExtreme = duals.filter(extreme)
   const dualOther = duals.filter((c) => !extreme(c))
 
-  const basics: Card[] = shuffle([...notable, ...multis], 1)
-  return {
-    basic: [...basics, ...shuffle(neutral, 2)],
-    dual: [...shuffle(dualExtreme, 3), ...shuffle(dualOther, 4)],
+  const tiers = {
+    basic: [[...notable, ...multis], neutral] as Card[][],
+    dual: [dualExtreme, dualOther] as Card[][],
   }
+  return { tiers, basic: tiers.basic.flat(), dual: tiers.dual.flat() }
 }
 
 let curriculum: ReturnType<typeof buildCurriculum> | null = null
 let byId: Map<string, Card> | null = null
+let order: { seed: number; basic: string[]; dual: string[] } | null = null
 
+/** All quiz cards, grouped into basic and dual. Order here is not the study order. */
 export function getCurriculum() {
   curriculum ??= buildCurriculum()
   return curriculum
+}
+
+/** Study order for new cards: tiers in fixed order, each shuffled by the deck's seed. */
+export function newCardOrder(seed: number) {
+  if (order?.seed !== seed) {
+    const { tiers } = getCurriculum()
+    const ids = (group: Card[][], k: number) =>
+      group.flatMap((tier, i) => shuffle([...tier], seed + k + i).map((c) => c.id))
+    order = { seed, basic: ids(tiers.basic, 0), dual: ids(tiers.dual, 2) }
+  }
+  return order
 }
 
 export function getCard(id: string): Card | undefined {
