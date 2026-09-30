@@ -145,14 +145,14 @@ function onLeave() {
 
 .chart thead th.hl,
 .chart tr.hl .rowh {
-  background: var(--sel);
+  background: var(--hover);
 }
 .chart tr.hl td,
 .chart td.hc {
-  box-shadow: inset 0 0 0 999px rgb(127 160 220 / 0.18);
+  box-shadow: inset 0 0 0 999px rgb(127 160 220 / 0.08);
 }
 .chart td.cur {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
 }
 </style>
