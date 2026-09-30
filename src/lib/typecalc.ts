@@ -50,6 +50,31 @@ export interface CoverageEntry {
   best: Multiplier
 }
 
+export interface RootGroup {
+  /** Single type that walls the coverage on its own. */
+  root: CoverageEntry
+  /** Dual types containing `root`, with the partner type. */
+  combos: { partner: TypeId; entry: CoverageEntry }[]
+}
+
+/**
+ * Group walling entries by the single type responsible, so each combo is
+ * listed once: under the first single type in it that walls on its own, or
+ * in `pairOnly` when only the pairing walls.
+ */
+export function groupByRoot(entries: readonly CoverageEntry[]) {
+  const groups = new Map<TypeId, RootGroup>()
+  for (const e of entries) if (e.def.length === 1) groups.set(e.def[0]!, { root: e, combos: [] })
+  const pairOnly: CoverageEntry[] = []
+  for (const e of entries) {
+    if (e.def.length === 1) continue
+    const root = e.def.find((t) => groups.has(t))
+    if (root) groups.get(root)!.combos.push({ partner: e.def.find((t) => t !== root)!, entry: e })
+    else pairOnly.push(e)
+  }
+  return { groups: [...groups.values()], pairOnly }
+}
+
 /** Best multiplier any of `atks` reaches against every defending type combination. */
 export function offensiveProfile(atks: readonly TypeId[]): CoverageEntry[] {
   return ALL_DEFENDERS.map((def) => {

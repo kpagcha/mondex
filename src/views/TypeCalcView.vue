@@ -5,6 +5,7 @@ import { isType, type Multiplier, type TypeId } from '@/data/types'
 import {
   defensiveProfile,
   formatMult,
+  groupByRoot,
   multClass,
   offensiveProfile,
   typesLabel,
@@ -54,7 +55,10 @@ const counts = computed(() => {
   for (const e of coverage.value ?? []) c[e.best]!++
   return c
 })
-const walled = computed(() => coverage.value?.filter((e) => e.best <= 0.5) ?? [])
+const immune = computed(() => coverage.value?.filter((e) => e.best === 0) ?? [])
+const resisted = computed(() => coverage.value?.filter((e) => e.best > 0 && e.best <= 0.5) ?? [])
+const immuneGroups = computed(() => groupByRoot(immune.value))
+const resistedGroups = computed(() => groupByRoot(resisted.value))
 const neutral = computed(() => coverage.value?.filter((e) => e.best === 1) ?? [])
 const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 </script>
@@ -128,19 +132,68 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
     </div>
 
     <div class="panel">
-      <h2>Resisted or immune ({{ walled.length }})</h2>
-      <p v-if="!walled.length" class="muted">Nothing resists this coverage.</p>
-      <div class="combos">
-        <span v-for="e in walled" :key="e.def.join()" class="chip" :class="multClass(e.best)" :title="`${typesLabel(e.def)}: ${formatMult(e.best)}`">
-          <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
+      <h2>Immune ({{ immune.length }})</h2>
+      <p v-if="!immune.length" class="muted">Nothing is immune to this coverage.</p>
+      <div v-for="g in immuneGroups.groups" :key="g.root.def[0]" class="root-row">
+        <span class="chip" :class="multClass(0)"><TypeIcon :type="g.root.def[0]!" /></span>
+        <span class="muted">and every dual type with it</span>
+      </div>
+      <div v-if="immuneGroups.pairOnly.length" class="root-row">
+        <span class="muted pair-lbl">Combos only</span>
+        <span class="combos">
+          <span v-for="e in immuneGroups.pairOnly" :key="e.def.join()" class="chip" :class="multClass(0)" :title="typesLabel(e.def)">
+            <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
+          </span>
         </span>
       </div>
+    </div>
+
+    <div class="panel">
+      <h2>Resisted ({{ resisted.length }})</h2>
+      <p v-if="!resisted.length" class="muted">Nothing resists this coverage.</p>
+      <div v-for="g in resistedGroups.groups" :key="g.root.def[0]" class="root-row">
+        <span class="chip" :class="multClass(g.root.best)" :title="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`">
+          <TypeIcon :type="g.root.def[0]!" />
+        </span>
+        <template v-if="g.combos.length">
+          <span class="muted">+</span>
+          <span class="combos">
+            <span
+              v-for="c in g.combos"
+              :key="c.partner"
+              class="chip"
+              :class="multClass(c.entry.best)"
+              :title="`${typesLabel(c.entry.def)}: ${formatMult(c.entry.best)}`"
+            >
+              <TypeIcon :type="c.partner" lazy />
+            </span>
+          </span>
+        </template>
+      </div>
+      <div v-if="resistedGroups.pairOnly.length" class="root-row">
+        <span class="muted pair-lbl">Combos only</span>
+        <span class="combos">
+          <span
+            v-for="e in resistedGroups.pairOnly"
+            :key="e.def.join()"
+            class="chip"
+            :class="multClass(e.best)"
+            :title="`${typesLabel(e.def)}: ${formatMult(e.best)}`"
+          >
+            <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
+          </span>
+        </span>
+      </div>
+      <p v-if="resisted.length" class="muted small legend">
+        <span class="mult-tag m-0_5">½×</span> <span class="mult-tag m-0_25">¼×</span>
+        Partners are listed once, under the first type that resists on its own.
+      </p>
     </div>
 
     <details class="panel">
       <summary><h2>Only neutral ({{ neutral.length }})</h2></summary>
       <div class="combos">
-        <span v-for="e in neutral" :key="e.def.join()" class="chip" :title="typesLabel(e.def)">
+        <span v-for="e in neutral" :key="e.def.join()" class="chip plain" :title="typesLabel(e.def)">
           <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
         </span>
       </div>
@@ -230,6 +283,30 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
   padding: 3px;
   border: 1px solid var(--border);
   border-radius: 3px;
+}
+.root-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 5px 0;
+  border-top: 1px solid var(--border);
+}
+.root-row > .muted {
+  line-height: 22px;
+}
+.pair-lbl {
+  white-space: nowrap;
+}
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+.small {
+  font-size: 11px;
+}
+.chip.plain {
   background: var(--panel-alt);
 }
 
