@@ -268,3 +268,20 @@ img.pixel {
   text-align: center;
   font-weight: bold;
 }
+
+/* ---------- Tooltips (tippy.js) ---------- */
+.tippy-box[data-theme~='mondex'] {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.tippy-box[data-theme~='mondex'] > .tippy-content {
+  padding: 3px 6px;
+}
+.tippy-box[data-theme~='mondex'] > .tippy-arrow {
+  color: var(--panel);
+  border-color: var(--border-strong);
+}

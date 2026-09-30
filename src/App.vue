@@ -28,13 +28,13 @@ function onLang(e: Event) {
         <RouterLink to="/types/quiz" active-class="active">{{ t('nav.quiz') }}</RouterLink>
       </nav>
       <div class="controls">
-        <select class="lang" :value="locale" :aria-label="t('lang.label')" :title="t('lang.label')" @change="onLang">
+        <select class="lang" :value="locale" :aria-label="t('lang.label')" v-tip="t('lang.label')" @change="onLang">
           <option v-for="(label, code) in LOCALES" :key="code" :value="code">{{ label }}</option>
         </select>
         <button
           class="btn theme"
           type="button"
-          :title="t(theme === 'dark' ? 'theme.toLight' : 'theme.toDark')"
+          v-tip="t(theme === 'dark' ? 'theme.toLight' : 'theme.toDark')"
           @click="toggle"
         >
           {{ t(theme === 'dark' ? 'theme.dark' : 'theme.light') }}
