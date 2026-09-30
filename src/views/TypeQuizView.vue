@@ -315,12 +315,12 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  font-size: 15px;
+  font-size: calc(15px * var(--text-scale));
   font-weight: bold;
   margin-bottom: 4px;
 }
 .small {
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
 }
 
 .matchup {
@@ -331,7 +331,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
   padding: 20px 0 24px;
 }
 .arrow {
-  font-size: 20px;
+  font-size: calc(20px * var(--text-scale));
   color: var(--muted);
 }
 .defs {
@@ -352,7 +352,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
 .ans {
   gap: 8px;
   min-height: 40px;
-  font-size: 15px;
+  font-size: calc(15px * var(--text-scale));
   font-weight: bold;
 }
 .ans:disabled {

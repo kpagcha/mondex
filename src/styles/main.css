@@ -88,6 +88,18 @@
   --m4-fg: #ffffff;
 }
 
+/* Phones get larger text and type icons. */
+:root {
+  --text-scale: 1;
+  --icon-scale: 1;
+}
+@media (max-width: 720px) {
+  :root {
+    --text-scale: 1.15;
+    --icon-scale: 1.5;
+  }
+}
+
 /* ---------- Base ---------- */
 *,
 *::before,
@@ -103,7 +115,8 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 13px/1.45 var(--font-body, Verdana, Geneva, 'DejaVu Sans', Helvetica, Arial, sans-serif);
+  font: calc(13px * var(--text-scale))/1.45
+    var(--font-body, Verdana, Geneva, 'DejaVu Sans', Helvetica, Arial, sans-serif);
 }
 
 /* Sticky footer: the app fills the viewport and main takes the free space. */
@@ -135,13 +148,13 @@ h3,
   font-family: var(--font-display, inherit);
 }
 h1 {
-  font-size: calc(18px * var(--display-scale, 1));
+  font-size: calc(18px * var(--display-scale, 1) * var(--text-scale));
 }
 h2 {
-  font-size: calc(15px * var(--display-scale, 1));
+  font-size: calc(15px * var(--display-scale, 1) * var(--text-scale));
 }
 h3 {
-  font-size: calc(13px * var(--display-scale, 1));
+  font-size: calc(13px * var(--display-scale, 1) * var(--text-scale));
 }
 
 /* Numbers and multipliers. */
@@ -261,8 +274,8 @@ img.pixel {
 .mult-tag {
   font-family: var(--font-num, inherit);
   display: inline-block;
-  min-width: 34px;
-  padding: 1px 4px;
+  min-width: 2.6em;
+  padding: 0.08em 0.3em;
   border-radius: 3px;
   border: 1px solid var(--border);
   text-align: center;
@@ -275,7 +288,7 @@ img.pixel {
   color: var(--text);
   border: 1px solid var(--border-strong);
   border-radius: 3px;
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
   line-height: 1.4;
 }
 .tippy-box[data-theme~='mondex'] > .tippy-content {

@@ -305,7 +305,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
   margin: 8px 0 0;
 }
 .small {
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
 }
 .chip.plain {
   background: var(--panel-alt);

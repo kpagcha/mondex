@@ -161,7 +161,7 @@ main {
 .footer {
   padding-top: 8px;
   padding-bottom: 24px;
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
   display: flex;
   align-items: center;
   gap: 8px;

@@ -125,6 +125,8 @@ onMounted(async () => {
 }
 
 .chart {
+  /* Keep the dense chart compact: icons stay 1× on phones. */
+  --icon-scale: 1;
   border-collapse: collapse;
   margin: 0 auto;
   font-weight: bold;
@@ -161,7 +163,7 @@ onMounted(async () => {
   position: sticky;
   left: calc(-1 * var(--pad));
   z-index: 2;
-  font-size: 9px;
+  font-size: calc(9px * var(--text-scale));
   font-weight: normal;
   color: var(--muted);
   line-height: 1.2;

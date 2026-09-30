@@ -12,6 +12,7 @@ withDefaults(defineProps<{ type: TypeId; scale?: 1 | 2; lazy?: boolean; tip?: bo
 <template>
   <img
     class="pixel type-icon"
+    :class="{ s1: scale === 1 }"
     :src="iconUrl(type)"
     :alt="typeName(type)"
     v-tip:[tipGroup]="tip && typeName(type)"
@@ -27,5 +28,9 @@ withDefaults(defineProps<{ type: TypeId; scale?: 1 | 2; lazy?: boolean; tip?: bo
 .type-icon {
   display: inline-block;
   vertical-align: middle;
+}
+.type-icon.s1 {
+  width: calc(32px * var(--icon-scale, 1));
+  height: calc(14px * var(--icon-scale, 1));
 }
 </style>
