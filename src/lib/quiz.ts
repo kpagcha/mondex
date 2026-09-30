@@ -1,4 +1,5 @@
-import { TYPES, TYPE_NAMES, chart, type Multiplier, type TypeId } from '@/data/types'
+import { TYPES, chart, type Multiplier, type TypeId } from '@/data/types'
+import { t, tSplit, typeName, type MessageKey } from '@/i18n'
 import { effectiveness, formatMult, typesLabel } from '@/lib/typecalc'
 
 /** "Fire → Water/Ground": pick one multiplier. */
@@ -48,30 +49,32 @@ function multiCard(q: MultiQuestion, type: TypeId): MultiCard | null {
   return { id: `ms:${q}:${type}`, kind: 'multi', q, type, answer }
 }
 
+const PROMPT_KEYS = {
+  weak: 'quiz.q.weak',
+  resist: 'quiz.q.resist',
+  immune: 'quiz.q.immune',
+  se: 'quiz.q.se',
+  nve: 'quiz.q.nve',
+  noeff: 'quiz.q.noeff',
+} as const satisfies Record<MultiQuestion, MessageKey>
+
+/** The question text split around the type, so a type badge can go in between. */
 export function multiPrompt(c: MultiCard): [before: string, after: string] {
-  switch (c.q) {
-    case 'weak': return ['Which attacking types are super effective against', '?']
-    case 'resist': return ['Which attacking types are resisted by', '?']
-    case 'immune': return ['Which attacking types have no effect on', '?']
-    case 'se': return ['', 'attacks are super effective against which types?']
-    case 'nve': return ['', 'attacks are not very effective against which types?']
-    case 'noeff': return ['', 'attacks have no effect on which types?']
-  }
+  return tSplit(PROMPT_KEYS[c.q], 'type')
 }
 
 /** One-line breakdown of a multiplier card, e.g. "Fire→Water ½× · Fire→Ground 2× = 1×". */
 export function explain(c: MultCard): string {
   const parts = c.def.map(
-    (d) => `${TYPE_NAMES[c.atk]}→${TYPE_NAMES[d]} ${formatMult(chart(c.atk, d))}`,
+    (d) => `${typeName(c.atk)}→${typeName(d)} ${formatMult(chart(c.atk, d))}`,
   )
   if (c.def.length === 1) return parts[0]!
   return `${parts.join(' · ')} = ${formatMult(c.answer)}`
 }
 
 export function cardLabel(c: Card): string {
-  if (c.kind === 'mult') return `${TYPE_NAMES[c.atk]} → ${typesLabel(c.def)}`
-  const [a, b] = multiPrompt(c)
-  return `${a} ${TYPE_NAMES[c.type]} ${b}`.replace(/\s+\?/, '?').trim()
+  if (c.kind === 'mult') return `${typeName(c.atk)} → ${typesLabel(c.def)}`
+  return t(PROMPT_KEYS[c.q], { type: typeName(c.type) })
 }
 
 // Deterministic shuffle so the curriculum order is stable across reloads.

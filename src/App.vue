@@ -1,7 +1,20 @@
 <script setup lang="ts">
+import { watchEffect } from 'vue'
+import { useRoute } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
+import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
 
 const { theme, toggle } = useTheme()
+const route = useRoute()
+
+watchEffect(() => {
+  const key = route.meta.titleKey
+  document.title = key ? `${t(key)} · mondex` : 'mondex'
+})
+
+function onLang(e: Event) {
+  setLocale((e.target as HTMLSelectElement).value as Locale)
+}
 </script>
 
 <template>
@@ -9,26 +22,31 @@ const { theme, toggle } = useTheme()
     <div class="wrap bar">
       <RouterLink to="/" class="logo">mon<span>dex</span></RouterLink>
       <nav class="nav">
-        <RouterLink to="/types" exact-active-class="active">Type chart</RouterLink>
-        <RouterLink to="/types/calc" active-class="active">Calculator</RouterLink>
-        <RouterLink to="/types/quiz" active-class="active">Quiz</RouterLink>
+        <RouterLink to="/types" exact-active-class="active">{{ t('nav.chart') }}</RouterLink>
+        <RouterLink to="/types/calc" active-class="active">{{ t('nav.calc') }}</RouterLink>
+        <RouterLink to="/types/quiz" active-class="active">{{ t('nav.quiz') }}</RouterLink>
       </nav>
-      <button
-        class="btn theme"
-        type="button"
-        :title="`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`"
-        @click="toggle"
-      >
-        {{ theme === 'dark' ? 'Dark' : 'Light' }}
-      </button>
+      <div class="controls">
+        <select class="lang" :value="locale" :aria-label="t('lang.label')" :title="t('lang.label')" @change="onLang">
+          <option v-for="(label, code) in LOCALES" :key="code" :value="code">{{ label }}</option>
+        </select>
+        <button
+          class="btn theme"
+          type="button"
+          :title="t(theme === 'dark' ? 'theme.toLight' : 'theme.toDark')"
+          @click="toggle"
+        >
+          {{ t(theme === 'dark' ? 'theme.dark' : 'theme.light') }}
+        </button>
+      </div>
     </div>
   </header>
   <main class="wrap">
     <RouterView />
   </main>
   <footer class="wrap footer muted">
-    Type icons from <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
-    Pokémon © Nintendo, Game Freak, The Pokémon Company.
+    {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
+    {{ t('footer.copyright') }}
   </footer>
 </template>
 
@@ -87,8 +105,25 @@ const { theme, toggle } = useTheme()
   font-weight: bold;
 }
 
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lang {
+  min-height: 26px;
+  padding: 2px 4px;
+  font: inherit;
+  color: inherit;
+  background: var(--panel-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
 .theme {
-  min-width: 56px;
+  min-width: 64px;
 }
 
 main {

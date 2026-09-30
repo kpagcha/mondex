@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef } from 'vue'
-import { TYPES, TYPE_NAMES, type Multiplier, type TypeId } from '@/data/types'
+import { TYPES, type Multiplier, type TypeId } from '@/data/types'
+import { t, typeName } from '@/i18n'
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
 import {
   deckStats,
@@ -104,7 +105,7 @@ const marks = computed(() => {
 })
 
 function names(ts: TypeId[]) {
-  return ts.map((t) => TYPE_NAMES[t]).join(', ')
+  return ts.map(typeName).join(', ')
 }
 
 // ---- Keyboard: 1–6 answer, Enter submits / continues ----
@@ -171,7 +172,7 @@ function setDuals(e: Event) {
 }
 
 function reset() {
-  if (!confirm('Reset all quiz progress?')) return
+  if (!confirm(t('quiz.resetConfirm'))) return
   deck.value = emptyDeck()
   saveDeck(deck.value)
   session.value = { seen: 0, correct: 0 }
@@ -186,7 +187,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
   <div class="layout">
     <section class="panel card">
       <template v-if="current?.kind === 'mult'">
-        <p class="muted q">How effective is this attack?</p>
+        <p class="muted q">{{ t('quiz.howEffective') }}</p>
         <div class="matchup">
           <TypeIcon :type="current.atk" :scale="2" />
           <span class="arrow">→</span>
@@ -218,68 +219,67 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
           <TypeIcon :type="current.type" :scale="2" />
           <span>{{ multiPrompt(current)[1] }}</span>
         </p>
-        <p class="muted small">Tick all that apply.</p>
+        <p class="muted small">{{ t('quiz.tickAll') }}</p>
         <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
         <div v-if="!result" class="actions">
-          <button type="button" class="btn primary" @click="submitMulti">Submit <kbd>Enter</kbd></button>
+          <button type="button" class="btn primary" @click="submitMulti">{{ t('quiz.submit') }} <kbd>Enter</kbd></button>
         </div>
       </template>
 
       <div v-else class="done">
-        <h2>All caught up</h2>
-        <p class="muted">
-          No cards are due and today's {{ deck.newLimit }} new cards are done. Come back later for
-          reviews, or keep going.
-        </p>
-        <button type="button" class="btn primary" @click="learnMore">Learn 10 more</button>
+        <h2>{{ t('quiz.caughtUp') }}</h2>
+        <p class="muted">{{ t('quiz.caughtUpText', { n: deck.newLimit }) }}</p>
+        <button type="button" class="btn primary" @click="learnMore">{{ t('quiz.learnMore') }}</button>
       </div>
 
       <div v-if="result && current" class="feedback" :class="result.correct ? 'ok' : 'bad'">
         <div class="verdict">
-          <b>{{ result.correct ? 'Correct' : 'Wrong' }}</b>
+          <b>{{ t(result.correct ? 'quiz.correct' : 'quiz.wrong') }}</b>
           <template v-if="current.kind === 'mult'">
             <span class="mult-tag" :class="multClass(current.answer)">{{ formatMult(current.answer) }}</span>
             <span class="muted">{{ explain(current) }}</span>
           </template>
           <template v-else-if="!result.correct">
-            <span v-if="result.missed.length">Missed: {{ names(result.missed) }}.</span>
-            <span v-if="result.wrong.length">Shouldn't include: {{ names(result.wrong) }}.</span>
+            <span v-if="result.missed.length">{{ t('quiz.missed', { list: names(result.missed) }) }}</span>
+            <span v-if="result.wrong.length">{{ t('quiz.extra', { list: names(result.wrong) }) }}</span>
           </template>
         </div>
-        <button type="button" class="btn primary" @click="next()">Next <kbd>Enter</kbd></button>
+        <button type="button" class="btn primary" @click="next()">{{ t('quiz.next') }} <kbd>Enter</kbd></button>
       </div>
     </section>
 
     <aside>
       <div class="panel">
-        <h2>Progress</h2>
+        <h2>{{ t('quiz.progress') }}</h2>
         <dl class="stats">
-          <dt>Session</dt>
+          <dt>{{ t('quiz.session') }}</dt>
           <dd>{{ session.correct }}/{{ session.seen }} <span class="muted">({{ accuracy }}%)</span></dd>
-          <dt>New today</dt>
+          <dt>{{ t('quiz.newToday') }}</dt>
           <dd>{{ Math.min(deck.newToday, deck.newLimit) }}/{{ deck.newLimit }}</dd>
-          <dt>Learning</dt>
+          <dt>{{ t('quiz.learning') }}</dt>
           <dd>{{ stats.learning }}</dd>
-          <dt>Due</dt>
+          <dt>{{ t('quiz.due') }}</dt>
           <dd>{{ stats.due }}</dd>
-          <dt>Seen</dt>
+          <dt>{{ t('quiz.seen') }}</dt>
           <dd>{{ stats.seen }}/{{ total }}</dd>
-          <dt>Mature</dt>
+          <dt>{{ t('quiz.mature') }}</dt>
           <dd>{{ stats.mature }}</dd>
         </dl>
         <label class="setting">
-          Dual types
+          {{ t('quiz.dualTypes') }}
           <select :value="deck.duals === undefined ? 'auto' : deck.duals ? 'on' : 'off'" @change="setDuals">
-            <option value="auto">Auto ({{ dualsAuto ? 'unlocked' : `${graduated}/${Math.ceil(basic.length * DUAL_UNLOCK)}` }})</option>
-            <option value="on">On</option>
-            <option value="off">Off</option>
+            <option value="auto">
+              {{ t('quiz.auto', { s: dualsAuto ? t('quiz.unlocked') : `${graduated}/${Math.ceil(basic.length * DUAL_UNLOCK)}` }) }}
+            </option>
+            <option value="on">{{ t('quiz.on') }}</option>
+            <option value="off">{{ t('quiz.off') }}</option>
           </select>
         </label>
       </div>
 
       <div class="panel">
-        <h2>Weak spots</h2>
-        <p v-if="!weakSpots.length" class="muted small">Matchups you miss show up here.</p>
+        <h2>{{ t('quiz.weakSpots') }}</h2>
+        <p v-if="!weakSpots.length" class="muted small">{{ t('quiz.weakEmpty') }}</p>
         <ol class="weak">
           <li v-for="w in weakSpots" :key="w.id">
             <span>{{ cardLabel(w.card!) }}</span>
@@ -289,13 +289,9 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
       </div>
 
       <div class="panel about small muted">
-        <p>
-          Scheduling uses <b>SM-2</b> spaced repetition. A miss is re-asked after
-          3 and then 8 more cards; correct answers come back after 1 day, 6 days, and then
-          increasingly longer gaps. Hesitant answers grow the gaps more slowly.
-        </p>
-        <p>{{ TYPES.length }}×{{ TYPES.length }} single-type matchups and tick-all questions come first; dual types unlock after that.</p>
-        <button type="button" class="btn" @click="reset">Reset progress</button>
+        <p>{{ t('quiz.about1') }}</p>
+        <p>{{ t('quiz.about2', { n: TYPES.length }) }}</p>
+        <button type="button" class="btn" @click="reset">{{ t('quiz.reset') }}</button>
       </div>
     </aside>
   </div>

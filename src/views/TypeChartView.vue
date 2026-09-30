@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { TYPES, TYPE_NAMES, chart } from '@/data/types'
+import { TYPES, chart } from '@/data/types'
+import { t, typeName } from '@/i18n'
 import { multClass } from '@/lib/typecalc'
 import TypeIcon from '@/components/TypeIcon.vue'
 
@@ -27,15 +28,12 @@ function onLeave() {
 
 <template>
   <div class="panel">
-    <h1>Type chart</h1>
-    <p class="muted">
-      Rows are the attacking move's type, columns the defending Pokémon's type. Click a type to
-      open it in the calculator.
-    </p>
+    <h1>{{ t('title.chart') }}</h1>
+    <p class="muted">{{ t('chart.intro') }}</p>
     <div class="legend">
-      <span class="mult-tag m-2">2×</span> super effective
-      <span class="mult-tag m-0_5">½×</span> not very effective
-      <span class="mult-tag m-0">0×</span> no effect
+      <span class="mult-tag m-2">2×</span> {{ t('legend.se') }}
+      <span class="mult-tag m-0_5">½×</span> {{ t('legend.nve') }}
+      <span class="mult-tag m-0">0×</span> {{ t('legend.none') }}
     </div>
   </div>
 
@@ -43,9 +41,9 @@ function onLeave() {
     <table class="chart" @mouseover="onOver" @mouseleave="onLeave">
       <thead>
         <tr>
-          <th class="corner"><span>Atk ↓</span><span>Def →</span></th>
+          <th class="corner"><span>{{ t('chart.atk') }} ↓</span><span>{{ t('chart.def') }} →</span></th>
           <th v-for="(def, j) in TYPES" :key="def" :class="{ hl: hc === j }">
-            <RouterLink :to="{ path: '/types/calc', query: { def } }" :title="`${TYPE_NAMES[def]} (defending)`">
+            <RouterLink :to="{ path: '/types/calc', query: { def } }">
               <TypeIcon :type="def" />
             </RouterLink>
           </th>
@@ -54,10 +52,7 @@ function onLeave() {
       <tbody>
         <tr v-for="(atk, i) in TYPES" :key="atk" :class="{ hl: hr === i }">
           <th class="rowh">
-            <RouterLink
-              :to="{ path: '/types/calc', query: { mode: 'atk', atk } }"
-              :title="`${TYPE_NAMES[atk]} (attacking)`"
-            >
+            <RouterLink :to="{ path: '/types/calc', query: { mode: 'atk', atk } }">
               <TypeIcon :type="atk" />
             </RouterLink>
           </th>
@@ -67,7 +62,7 @@ function onLeave() {
             :data-r="i"
             :data-c="j"
             :class="[cell.cls, { hc: hc === j, cur: hr === i && hc === j }]"
-            :title="`${TYPE_NAMES[atk]} → ${TYPE_NAMES[TYPES[j]!]}: ${cell.m}×`"
+            :title="`${typeName(atk)} → ${typeName(TYPES[j]!)}: ${cell.m}×`"
           >
             {{ cell.text }}
           </td>

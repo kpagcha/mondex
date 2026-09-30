@@ -10,7 +10,8 @@ export type TypeId = (typeof TYPES)[number]
 
 export type Multiplier = 0 | 0.25 | 0.5 | 1 | 2 | 4
 
-export const TYPE_NAMES: Record<TypeId, string> = {
+// Showdown sprite file names (English, regardless of UI language).
+const SPRITE_NAMES: Record<TypeId, string> = {
   normal: 'Normal', fire: 'Fire', water: 'Water', electric: 'Electric',
   grass: 'Grass', ice: 'Ice', fighting: 'Fighting', poison: 'Poison',
   ground: 'Ground', flying: 'Flying', psychic: 'Psychic', bug: 'Bug',
@@ -58,5 +59,5 @@ export function isType(s: string): s is TypeId {
 }
 
 export function iconUrl(t: TypeId): string {
-  return `https://play.pokemonshowdown.com/sprites/types/${TYPE_NAMES[t]}.png`
+  return `https://play.pokemonshowdown.com/sprites/types/${SPRITE_NAMES[t]}.png`
 }

@@ -1,20 +1,24 @@
+<script setup lang="ts">
+import { t } from '@/i18n'
+</script>
+
 <template>
   <div class="panel">
     <h1>mondex</h1>
-    <p class="muted">A competitive Pokémon dex. The Pokémon, moves and formats dex is on the way; the type tools are ready now.</p>
+    <p class="muted">{{ t('home.intro') }}</p>
   </div>
   <div class="tools">
     <RouterLink to="/types" class="panel tool">
-      <h2>Type chart</h2>
-      <p class="muted">Every attacking type against every defending type.</p>
+      <h2>{{ t('title.chart') }}</h2>
+      <p class="muted">{{ t('home.chartDesc') }}</p>
     </RouterLink>
     <RouterLink to="/types/calc" class="panel tool">
-      <h2>Type calculator</h2>
-      <p class="muted">Weaknesses and resistances for any type combination, and the coverage of a moveset.</p>
+      <h2>{{ t('title.calc') }}</h2>
+      <p class="muted">{{ t('home.calcDesc') }}</p>
     </RouterLink>
     <RouterLink to="/types/quiz" class="panel tool">
-      <h2>Type quiz</h2>
-      <p class="muted">Learn the chart with spaced repetition. Matchups you miss come back until you know them.</p>
+      <h2>{{ t('title.quiz') }}</h2>
+      <p class="muted">{{ t('home.quizDesc') }}</p>
     </RouterLink>
   </div>
 </template>

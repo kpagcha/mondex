@@ -1,4 +1,5 @@
-import { TYPES, TYPE_NAMES, chart, type Multiplier, type TypeId } from '@/data/types'
+import { TYPES, chart, type Multiplier, type TypeId } from '@/data/types'
+import { typeName } from '@/i18n'
 
 export const MULTIPLIERS: Multiplier[] = [0, 0.25, 0.5, 1, 2, 4]
 
@@ -20,7 +21,7 @@ export function multClass(m: number): string {
 }
 
 export function typesLabel(types: readonly TypeId[]): string {
-  return types.map((t) => TYPE_NAMES[t]).join('/')
+  return types.map(typeName).join('/')
 }
 
 export type Profile = Record<Multiplier, TypeId[]>

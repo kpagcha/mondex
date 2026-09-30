@@ -9,7 +9,8 @@ Currently implemented:
 - **Type calculator** (`/types/calc`): defensive matchups for 1–2 types, and offensive coverage for up to 4 attacking types.
 - **Type quiz** (`/types/quiz`): a matchup quiz that schedules questions with SM-2 spaced repetition, so the matchups you miss come back more often.
 
-Type icons are loaded from the Pokémon Showdown sprite CDN.
+Available in English and Spanish, with the official type names in each language. Add a language
+by creating `src/i18n/<code>.ts` (the compiler flags missing keys) and listing it in `src/i18n/index.ts`.
 
 ## Scripts
 
