@@ -119,7 +119,8 @@ onMounted(async () => {
 
 .scroller {
   overflow-x: auto;
-  padding: 8px;
+  --pad: 8px;
+  padding: var(--pad);
 }
 
 .chart {
@@ -149,7 +150,7 @@ onMounted(async () => {
 
 .rowh {
   position: sticky;
-  left: 0;
+  left: calc(-1 * var(--pad));
   z-index: 1;
   padding: 2px 4px;
   background: var(--panel-alt);
@@ -157,7 +158,7 @@ onMounted(async () => {
 
 .corner {
   position: sticky;
-  left: 0;
+  left: calc(-1 * var(--pad));
   z-index: 2;
   font-size: 9px;
   font-weight: normal;
