@@ -3,11 +3,24 @@ import type { messages as en } from './en'
 
 // Official Spanish type names, as used in the games.
 export const types: Record<TypeId, string> = {
-  normal: 'Normal', fire: 'Fuego', water: 'Agua', electric: 'Eléctrico',
-  grass: 'Planta', ice: 'Hielo', fighting: 'Lucha', poison: 'Veneno',
-  ground: 'Tierra', flying: 'Volador', psychic: 'Psíquico', bug: 'Bicho',
-  rock: 'Roca', ghost: 'Fantasma', dragon: 'Dragón', dark: 'Siniestro',
-  steel: 'Acero', fairy: 'Hada',
+  normal: 'Normal',
+  fire: 'Fuego',
+  water: 'Agua',
+  electric: 'Eléctrico',
+  grass: 'Planta',
+  ice: 'Hielo',
+  fighting: 'Lucha',
+  poison: 'Veneno',
+  ground: 'Tierra',
+  flying: 'Volador',
+  psychic: 'Psíquico',
+  bug: 'Bicho',
+  rock: 'Roca',
+  ghost: 'Fantasma',
+  dragon: 'Dragón',
+  dark: 'Siniestro',
+  steel: 'Acero',
+  fairy: 'Hada',
 }
 
 export const messages: Record<keyof typeof en, string> = {
@@ -23,16 +36,20 @@ export const messages: Record<keyof typeof en, string> = {
   'theme.toDark': 'Cambiar al tema oscuro',
   'lang.label': 'Idioma',
 
-  'home.intro': 'Una Pokédex competitiva. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
+  'home.intro':
+    'Una Pokédex competitiva. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
   'home.chartDesc': 'Cada tipo atacante contra cada tipo defensor.',
-  'home.calcDesc': 'Debilidades y resistencias de cualquier combinación de tipos, y la cobertura de un set de movimientos.',
-  'home.quizDesc': 'Aprende la tabla con repetición espaciada. Los enfrentamientos que falles vuelven hasta que te los sepas.',
+  'home.calcDesc':
+    'Debilidades y resistencias de cualquier combinación de tipos, y la cobertura de un set de movimientos.',
+  'home.quizDesc':
+    'Aprende la tabla con repetición espaciada. Los enfrentamientos que falles vuelven hasta que te los sepas.',
 
   'legend.se': 'súper eficaz',
   'legend.nve': 'poco eficaz',
   'legend.none': 'no afecta',
 
-  'chart.intro': 'Las filas son el tipo del movimiento atacante; las columnas, el tipo del Pokémon defensor. Haz clic en un tipo para abrirlo en la calculadora.',
+  'chart.intro':
+    'Las filas son el tipo del movimiento atacante; las columnas, el tipo del Pokémon defensor. Haz clic en un tipo para abrirlo en la calculadora.',
   'chart.atk': 'Atq',
   'chart.def': 'Def',
 
@@ -67,7 +84,8 @@ export const messages: Record<keyof typeof en, string> = {
   'quiz.submit': 'Enviar',
   'quiz.next': 'Siguiente',
   'quiz.caughtUp': 'Todo al día',
-  'quiz.caughtUpText': 'No hay tarjetas pendientes y ya has hecho las {n} nuevas de hoy. Vuelve más tarde para repasar o sigue practicando.',
+  'quiz.caughtUpText':
+    'No hay tarjetas pendientes y ya has hecho las {n} nuevas de hoy. Vuelve más tarde para repasar o sigue practicando.',
   'quiz.learnMore': 'Aprender 10 más',
   'quiz.correct': 'Correcto',
   'quiz.wrong': 'Incorrecto',
@@ -87,8 +105,10 @@ export const messages: Record<keyof typeof en, string> = {
   'quiz.off': 'No',
   'quiz.weakSpots': 'Puntos débiles',
   'quiz.weakEmpty': 'Aquí aparecen los enfrentamientos que falles.',
-  'quiz.about1': 'La planificación usa repetición espaciada SM-2. Un fallo se vuelve a preguntar tras 3 y luego 8 tarjetas más; los aciertos vuelven al cabo de 1 día, 6 días y después a intervalos cada vez mayores. Las respuestas dudosas alargan los intervalos más despacio.',
-  'quiz.about2': 'Primero van los {n}×{n} enfrentamientos de tipo simple y las preguntas de marcar; después se desbloquean los tipos dobles.',
+  'quiz.about1':
+    'La planificación usa repetición espaciada SM-2. Un fallo se vuelve a preguntar tras 3 y luego 8 tarjetas más; los aciertos vuelven al cabo de 1 día, 6 días y después a intervalos cada vez mayores. Las respuestas dudosas alargan los intervalos más despacio.',
+  'quiz.about2':
+    'Primero van los {n}×{n} enfrentamientos de tipo simple y las preguntas de marcar; después se desbloquean los tipos dobles.',
   'quiz.reset': 'Reiniciar progreso',
   'quiz.resetConfirm': '¿Reiniciar todo el progreso del test?',
 

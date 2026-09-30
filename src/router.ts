@@ -11,13 +11,26 @@ export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: () => import('@/views/HomeView.vue') },
-    { path: '/types', name: 'chart', component: () => import('@/views/TypeChartView.vue'), meta: { titleKey: 'title.chart' } },
-    { path: '/types/calc', name: 'calc', component: () => import('@/views/TypeCalcView.vue'), meta: { titleKey: 'title.calc' } },
-    { path: '/types/quiz', name: 'quiz', component: () => import('@/views/TypeQuizView.vue'), meta: { titleKey: 'title.quiz' } },
+    {
+      path: '/types',
+      name: 'chart',
+      component: () => import('@/views/TypeChartView.vue'),
+      meta: { titleKey: 'title.chart' },
+    },
+    {
+      path: '/types/calc',
+      name: 'calc',
+      component: () => import('@/views/TypeCalcView.vue'),
+      meta: { titleKey: 'title.calc' },
+    },
+    {
+      path: '/types/quiz',
+      name: 'quiz',
+      component: () => import('@/views/TypeQuizView.vue'),
+      meta: { titleKey: 'title.quiz' },
+    },
     // Dev-only tools; the import is dropped from production builds.
-    ...(import.meta.env.DEV
-      ? [{ path: '/dev', name: 'dev', component: () => import('@/views/DevView.vue') }]
-      : []),
+    ...(import.meta.env.DEV ? [{ path: '/dev', name: 'dev', component: () => import('@/views/DevView.vue') }] : []),
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

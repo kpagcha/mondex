@@ -1,11 +1,24 @@
 import type { TypeId } from '@/data/types'
 
 export const types: Record<TypeId, string> = {
-  normal: 'Normal', fire: 'Fire', water: 'Water', electric: 'Electric',
-  grass: 'Grass', ice: 'Ice', fighting: 'Fighting', poison: 'Poison',
-  ground: 'Ground', flying: 'Flying', psychic: 'Psychic', bug: 'Bug',
-  rock: 'Rock', ghost: 'Ghost', dragon: 'Dragon', dark: 'Dark',
-  steel: 'Steel', fairy: 'Fairy',
+  normal: 'Normal',
+  fire: 'Fire',
+  water: 'Water',
+  electric: 'Electric',
+  grass: 'Grass',
+  ice: 'Ice',
+  fighting: 'Fighting',
+  poison: 'Poison',
+  ground: 'Ground',
+  flying: 'Flying',
+  psychic: 'Psychic',
+  bug: 'Bug',
+  rock: 'Rock',
+  ghost: 'Ghost',
+  dragon: 'Dragon',
+  dark: 'Dark',
+  steel: 'Steel',
+  fairy: 'Fairy',
 }
 
 export const messages = {
@@ -21,7 +34,8 @@ export const messages = {
   'theme.toDark': 'Switch to dark theme',
   'lang.label': 'Language',
 
-  'home.intro': 'A competitive Pokémon dex. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
+  'home.intro':
+    'A competitive Pokémon dex. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
   'home.chartDesc': 'Every attacking type against every defending type.',
   'home.calcDesc': 'Weaknesses and resistances for any type combination, and the coverage of a moveset.',
   'home.quizDesc': 'Learn the chart with spaced repetition. Matchups you miss come back until you know them.',
@@ -30,7 +44,8 @@ export const messages = {
   'legend.nve': 'not very effective',
   'legend.none': 'no effect',
 
-  'chart.intro': "Rows are the attacking move's type, columns the defending Pokémon's type. Click a type to open it in the calculator.",
+  'chart.intro':
+    "Rows are the attacking move's type, columns the defending Pokémon's type. Click a type to open it in the calculator.",
   'chart.atk': 'Atk',
   'chart.def': 'Def',
 
@@ -65,7 +80,8 @@ export const messages = {
   'quiz.submit': 'Submit',
   'quiz.next': 'Next',
   'quiz.caughtUp': 'All caught up',
-  'quiz.caughtUpText': "No cards are due and today's {n} new cards are done. Come back later for reviews, or keep going.",
+  'quiz.caughtUpText':
+    "No cards are due and today's {n} new cards are done. Come back later for reviews, or keep going.",
   'quiz.learnMore': 'Learn 10 more',
   'quiz.correct': 'Correct',
   'quiz.wrong': 'Wrong',
@@ -85,7 +101,8 @@ export const messages = {
   'quiz.off': 'Off',
   'quiz.weakSpots': 'Weak spots',
   'quiz.weakEmpty': 'Matchups you miss show up here.',
-  'quiz.about1': 'Scheduling uses SM-2 spaced repetition. A miss is re-asked after 3 and then 8 more cards; correct answers come back after 1 day, 6 days, and then increasingly longer gaps. Hesitant answers grow the gaps more slowly.',
+  'quiz.about1':
+    'Scheduling uses SM-2 spaced repetition. A miss is re-asked after 3 and then 8 more cards; correct answers come back after 1 day, 6 days, and then increasingly longer gaps. Hesitant answers grow the gaps more slowly.',
   'quiz.about2': '{n}×{n} single-type matchups and tick-all questions come first; dual types unlock after that.',
   'quiz.reset': 'Reset progress',
   'quiz.resetConfirm': 'Reset all quiz progress?',

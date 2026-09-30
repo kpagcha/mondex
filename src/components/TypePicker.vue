@@ -20,7 +20,10 @@ function toggle(t: TypeId) {
   if (props.disabled) return
   const cur = props.modelValue
   if (cur.includes(t)) {
-    emit('update:modelValue', cur.filter((x) => x !== t))
+    emit(
+      'update:modelValue',
+      cur.filter((x) => x !== t),
+    )
   } else {
     const next = [...cur, t]
     emit('update:modelValue', next.length > props.max ? next.slice(next.length - props.max) : next)

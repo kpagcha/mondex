@@ -39,7 +39,12 @@ const MULTI_FILTERS: Record<MultiQuestion, (atk: TypeId, def: TypeId) => boolean
 
 /** Defensive questions ask about attackers; offensive ones about defenders. */
 const DEFENSIVE: Record<MultiQuestion, boolean> = {
-  weak: true, resist: true, immune: true, se: false, nve: false, noeff: false,
+  weak: true,
+  resist: true,
+  immune: true,
+  se: false,
+  nve: false,
+  noeff: false,
 }
 
 function multiCard(q: MultiQuestion, type: TypeId): MultiCard | null {
@@ -65,9 +70,7 @@ export function multiPrompt(c: MultiCard): [before: string, after: string] {
 
 /** One-line breakdown of a multiplier card, e.g. "Fire→Water ½× · Fire→Ground 2× = 1×". */
 export function explain(c: MultCard): string {
-  const parts = c.def.map(
-    (d) => `${typeName(c.atk)}→${typeName(d)} ${formatMult(chart(c.atk, d))}`,
-  )
+  const parts = c.def.map((d) => `${typeName(c.atk)}→${typeName(d)} ${formatMult(chart(c.atk, d))}`)
   if (c.def.length === 1) return parts[0]!
   return `${parts.join(' · ')} = ${formatMult(c.answer)}`
 }

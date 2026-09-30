@@ -16,11 +16,16 @@
   --good: #2c7a2c;
   --bad: #b3261e;
 
-  --m0-bg: #2f2f2f;     --m0-fg: #ffffff;
-  --m025-bg: #c0392b;   --m025-fg: #ffffff;
-  --m05-bg: #f4b6b0;    --m05-fg: #6b1510;
-  --m2-bg: #a9dba0;     --m2-fg: #134a13;
-  --m4-bg: #3a9a3a;     --m4-fg: #ffffff;
+  --m0-bg: #2f2f2f;
+  --m0-fg: #ffffff;
+  --m025-bg: #c0392b;
+  --m025-fg: #ffffff;
+  --m05-bg: #f4b6b0;
+  --m05-fg: #6b1510;
+  --m2-bg: #a9dba0;
+  --m2-fg: #134a13;
+  --m4-bg: #3a9a3a;
+  --m4-fg: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,11 +46,16 @@
     --good: #7fd07f;
     --bad: #ff8a80;
 
-    --m0-bg: #000000;   --m0-fg: #bbbbbb;
-    --m025-bg: #a1302a; --m025-fg: #ffffff;
-    --m05-bg: #5c2a28;  --m05-fg: #f4b6b0;
-    --m2-bg: #2b5a2b;   --m2-fg: #c3ecbc;
-    --m4-bg: #3e923e;   --m4-fg: #ffffff;
+    --m0-bg: #000000;
+    --m0-fg: #bbbbbb;
+    --m025-bg: #a1302a;
+    --m025-fg: #ffffff;
+    --m05-bg: #5c2a28;
+    --m05-fg: #f4b6b0;
+    --m2-bg: #2b5a2b;
+    --m2-fg: #c3ecbc;
+    --m4-bg: #3e923e;
+    --m4-fg: #ffffff;
   }
 }
 
@@ -66,11 +76,16 @@
   --good: #7fd07f;
   --bad: #ff8a80;
 
-  --m0-bg: #000000;   --m0-fg: #bbbbbb;
-  --m025-bg: #a1302a; --m025-fg: #ffffff;
-  --m05-bg: #5c2a28;  --m05-fg: #f4b6b0;
-  --m2-bg: #2b5a2b;   --m2-fg: #c3ecbc;
-  --m4-bg: #3e923e;   --m4-fg: #ffffff;
+  --m0-bg: #000000;
+  --m0-fg: #bbbbbb;
+  --m025-bg: #a1302a;
+  --m025-fg: #ffffff;
+  --m05-bg: #5c2a28;
+  --m05-fg: #f4b6b0;
+  --m2-bg: #2b5a2b;
+  --m2-fg: #c3ecbc;
+  --m4-bg: #3e923e;
+  --m4-fg: #ffffff;
 }
 
 /* ---------- Base ---------- */
@@ -119,9 +134,15 @@ h3,
 .font-display {
   font-family: var(--font-display, inherit);
 }
-h1 { font-size: calc(18px * var(--display-scale, 1)); }
-h2 { font-size: calc(15px * var(--display-scale, 1)); }
-h3 { font-size: calc(13px * var(--display-scale, 1)); }
+h1 {
+  font-size: calc(18px * var(--display-scale, 1));
+}
+h2 {
+  font-size: calc(15px * var(--display-scale, 1));
+}
+h3 {
+  font-size: calc(13px * var(--display-scale, 1));
+}
 
 /* Numbers and multipliers. */
 .num {
@@ -216,11 +237,26 @@ img.pixel {
 }
 
 /* Multiplier cells */
-.m-0 { background: var(--m0-bg); color: var(--m0-fg); }
-.m-0_25 { background: var(--m025-bg); color: var(--m025-fg); }
-.m-0_5 { background: var(--m05-bg); color: var(--m05-fg); }
-.m-2 { background: var(--m2-bg); color: var(--m2-fg); }
-.m-4 { background: var(--m4-bg); color: var(--m4-fg); }
+.m-0 {
+  background: var(--m0-bg);
+  color: var(--m0-fg);
+}
+.m-0_25 {
+  background: var(--m025-bg);
+  color: var(--m025-fg);
+}
+.m-0_5 {
+  background: var(--m05-bg);
+  color: var(--m05-fg);
+}
+.m-2 {
+  background: var(--m2-bg);
+  color: var(--m2-fg);
+}
+.m-4 {
+  background: var(--m4-bg);
+  color: var(--m4-fg);
+}
 
 .mult-tag {
   font-family: var(--font-num, inherit);

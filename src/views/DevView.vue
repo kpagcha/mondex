@@ -21,7 +21,8 @@ const GROUPS: { key: 'display' | 'body' | 'num'; title: string; hint: string; op
 ]
 
 const SAMPLE_EN = 'Which attacking types are super effective against Water/Ground? Grass is 4×, Electric has no effect.'
-const SAMPLE_ES = '¿Qué tipos atacantes son súper eficaces contra Eléctrico? Tierra: 2×. Psíquico, Dragón, Siniestro: ½×.'
+const SAMPLE_ES =
+  '¿Qué tipos atacantes son súper eficaces contra Eléctrico? Tierra: 2×. Psíquico, Dragón, Siniestro: ½×.'
 const DIGITS = '0123456789 ½ ¼ × → ↓'
 
 onMounted(loadAll)
@@ -31,8 +32,8 @@ onMounted(loadAll)
   <div class="panel">
     <h1>Dev settings</h1>
     <p class="muted">
-      Only available in <code>npm run dev</code>. Font picks apply across the whole app and are
-      saved in this browser, so you can browse the real pages with them.
+      Only available in <code>npm run dev</code>. Font picks apply across the whole app and are saved in this browser,
+      so you can browse the real pages with them.
     </p>
   </div>
 

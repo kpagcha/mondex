@@ -3,14 +3,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isType, type Multiplier, type TypeId } from '@/data/types'
 import { t, type MessageKey } from '@/i18n'
-import {
-  defensiveProfile,
-  formatMult,
-  groupByRoot,
-  multClass,
-  offensiveProfile,
-  typesLabel,
-} from '@/lib/typecalc'
+import { defensiveProfile, formatMult, groupByRoot, multClass, offensiveProfile, typesLabel } from '@/lib/typecalc'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
 
@@ -51,9 +44,7 @@ const defProfile = computed(() => (def.value.length ? defensiveProfile(def.value
 // ---- Offense ----
 const coverage = computed(() => (atk.value.length ? offensiveProfile(atk.value) : null))
 // Most to least effective, immunities last; ties keep type order (stable sort).
-const singles = computed(
-  () => coverage.value?.filter((e) => e.def.length === 1).sort((a, b) => b.best - a.best) ?? [],
-)
+const singles = computed(() => coverage.value?.filter((e) => e.def.length === 1).sort((a, b) => b.best - a.best) ?? [])
 const counts = computed(() => {
   const c: Record<number, number> = { 0: 0, 0.25: 0, 0.5: 0, 1: 0, 2: 0, 4: 0 }
   for (const e of coverage.value ?? []) c[e.best]!++
@@ -137,7 +128,13 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
       <div v-if="immuneGroups.pairOnly.length" class="root-row">
         <span class="muted pair-lbl">{{ t('calc.combosOnly') }}</span>
         <span class="combos">
-          <span v-for="e in immuneGroups.pairOnly" :key="e.def.join()" class="chip" :class="multClass(0)" :title="typesLabel(e.def)">
+          <span
+            v-for="e in immuneGroups.pairOnly"
+            :key="e.def.join()"
+            class="chip"
+            :class="multClass(0)"
+            :title="typesLabel(e.def)"
+          >
             <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
           </span>
         </span>
@@ -148,7 +145,11 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
       <h2>{{ t('calc.resistedTitle', { n: resisted.length }) }}</h2>
       <p v-if="!resisted.length" class="muted">{{ t('calc.noResist') }}</p>
       <div v-for="g in resistedGroups.groups" :key="g.root.def[0]" class="root-row">
-        <span class="chip" :class="multClass(g.root.best)" :title="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`">
+        <span
+          class="chip"
+          :class="multClass(g.root.best)"
+          :title="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`"
+        >
           <TypeIcon :type="g.root.def[0]!" />
         </span>
         <template v-if="g.combos.length">
@@ -187,7 +188,9 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
     </div>
 
     <details class="panel">
-      <summary><h2>{{ t('calc.neutralTitle', { n: neutral.length }) }}</h2></summary>
+      <summary>
+        <h2>{{ t('calc.neutralTitle', { n: neutral.length }) }}</h2>
+      </summary>
       <div class="combos">
         <span v-for="e in neutral" :key="e.def.join()" class="chip plain" :title="typesLabel(e.def)">
           <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />

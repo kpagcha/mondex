@@ -15,8 +15,12 @@ by creating `src/i18n/<code>.ts` (the compiler flags missing keys) and listing i
 ## Scripts
 
 ```sh
-npm install
-npm run dev      # dev server
-npm run build    # type-check + production build
-npm run preview  # serve the production build
+npm install        # also installs the git pre-commit hook
+npm run dev        # dev server
+npm run build      # type-check + production build
+npm run preview    # serve the production build
+npm run lint       # ESLint
+npm run lint:fix   # ESLint with autofix
 ```
+
+A pre-commit hook lints the staged `.ts` and `.vue` files and blocks the commit on any problem.

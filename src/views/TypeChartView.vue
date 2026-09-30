@@ -60,9 +60,8 @@ onMounted(async () => {
     <h1>{{ t('title.chart') }}</h1>
     <p class="muted">{{ t('chart.intro') }}</p>
     <div class="legend">
-      <span class="mult-tag m-2">2×</span> {{ t('legend.se') }}
-      <span class="mult-tag m-0_5">½×</span> {{ t('legend.nve') }}
-      <span class="mult-tag m-0">0×</span> {{ t('legend.none') }}
+      <span class="mult-tag m-2">2×</span> {{ t('legend.se') }} <span class="mult-tag m-0_5">½×</span>
+      {{ t('legend.nve') }} <span class="mult-tag m-0">0×</span> {{ t('legend.none') }}
     </div>
   </div>
 
@@ -70,7 +69,9 @@ onMounted(async () => {
     <table ref="table" class="chart" @mouseover="onOver" @mouseleave="onLeave" @click="onClick">
       <thead>
         <tr>
-          <th class="corner"><span>{{ t('chart.atk') }} ↓</span><span>{{ t('chart.def') }} →</span></th>
+          <th class="corner">
+            <span>{{ t('chart.atk') }} ↓</span><span>{{ t('chart.def') }} →</span>
+          </th>
           <th v-for="(def, j) in TYPES" :key="def" :class="{ hl: hc === j }">
             <RouterLink :to="{ path: '/types/calc', query: { def } }">
               <TypeIcon :type="def" />

@@ -3,24 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef } fro
 import { TYPES, type Multiplier, type TypeId } from '@/data/types'
 import { t, typeName } from '@/i18n'
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
-import {
-  deckStats,
-  emptyDeck,
-  grade,
-  loadDeck,
-  pickNext,
-  rollDay,
-  saveDeck,
-} from '@/lib/srs'
-import {
-  cardLabel,
-  checkMulti,
-  explain,
-  getCard,
-  getCurriculum,
-  multiPrompt,
-  type Card,
-} from '@/lib/quiz'
+import { deckStats, emptyDeck, grade, loadDeck, pickNext, rollDay, saveDeck } from '@/lib/srs'
+import { cardLabel, checkMulti, explain, getCard, getCurriculum, multiPrompt, type Card } from '@/lib/quiz'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
 
@@ -208,7 +192,8 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
             :disabled="!!result"
             @click="answerMult(m)"
           >
-            <kbd>{{ KEYS[i] }}</kbd>{{ formatMult(m) }}
+            <kbd>{{ KEYS[i] }}</kbd
+            >{{ formatMult(m) }}
           </button>
         </div>
       </template>
@@ -222,7 +207,9 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
         <p class="muted small">{{ t('quiz.tickAll') }}</p>
         <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
         <div v-if="!result" class="actions">
-          <button type="button" class="btn primary" @click="submitMulti">{{ t('quiz.submit') }} <kbd>Enter</kbd></button>
+          <button type="button" class="btn primary" @click="submitMulti">
+            {{ t('quiz.submit') }} <kbd>Enter</kbd>
+          </button>
         </div>
       </template>
 
@@ -253,7 +240,9 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
         <h2>{{ t('quiz.progress') }}</h2>
         <dl class="stats">
           <dt>{{ t('quiz.session') }}</dt>
-          <dd class="num">{{ session.correct }}/{{ session.seen }} <span class="muted">({{ accuracy }}%)</span></dd>
+          <dd class="num">
+            {{ session.correct }}/{{ session.seen }} <span class="muted">({{ accuracy }}%)</span>
+          </dd>
           <dt>{{ t('quiz.newToday') }}</dt>
           <dd class="num">{{ Math.min(deck.newToday, deck.newLimit) }}/{{ deck.newLimit }}</dd>
           <dt>{{ t('quiz.learning') }}</dt>
@@ -269,7 +258,11 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
           {{ t('quiz.dualTypes') }}
           <select :value="deck.duals === undefined ? 'auto' : deck.duals ? 'on' : 'off'" @change="setDuals">
             <option value="auto">
-              {{ t('quiz.auto', { s: dualsAuto ? t('quiz.unlocked') : `${graduated}/${Math.ceil(basic.length * DUAL_UNLOCK)}` }) }}
+              {{
+                t('quiz.auto', {
+                  s: dualsAuto ? t('quiz.unlocked') : `${graduated}/${Math.ceil(basic.length * DUAL_UNLOCK)}`,
+                })
+              }}
             </option>
             <option value="on">{{ t('quiz.on') }}</option>
             <option value="off">{{ t('quiz.off') }}</option>
@@ -376,7 +369,9 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
 }
 
 kbd {
-  font: 10px/1 Verdana, sans-serif;
+  font:
+    10px/1 Verdana,
+    sans-serif;
   padding: 2px 3px;
   border: 1px solid var(--border);
   border-radius: 2px;
