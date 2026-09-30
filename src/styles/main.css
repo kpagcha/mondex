@@ -91,6 +91,14 @@ body {
   font: 13px/1.45 Verdana, Geneva, 'DejaVu Sans', Helvetica, Arial, sans-serif;
 }
 
+/* Sticky footer: the app fills the viewport and main takes the free space. */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 a {
   color: var(--link);
   text-decoration: none;

@@ -33,6 +33,7 @@ const themeLabel = computed(
 
 <style scoped>
 .wrap {
+  width: 100%;
   max-width: 960px;
   margin: 0 auto;
   padding: 0 16px;
@@ -87,6 +88,10 @@ const themeLabel = computed(
 
 .theme {
   min-width: 56px;
+}
+
+main {
+  flex: 1 0 auto;
 }
 
 .footer {
