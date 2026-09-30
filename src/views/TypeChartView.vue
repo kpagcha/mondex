@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { TYPES, chart } from '@/data/types'
+import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { TYPES, chart, isType } from '@/data/types'
 import { t, typeName } from '@/i18n'
 import { multClass } from '@/lib/typecalc'
 import TypeIcon from '@/components/TypeIcon.vue'
@@ -12,18 +13,46 @@ const rows = TYPES.map((atk) =>
   }),
 )
 
-const hr = ref(-1)
-const hc = ref(-1)
+// Selected cell lives in the URL (?atk=fire&def=water) so it can be shared.
+const route = useRoute()
+const router = useRouter()
+const sel = computed(() => {
+  const { atk, def } = route.query
+  if (typeof atk !== 'string' || typeof def !== 'string' || !isType(atk) || !isType(def)) return null
+  return { r: TYPES.indexOf(atk), c: TYPES.indexOf(def) }
+})
 
-function onOver(e: MouseEvent) {
+// Hover wins while the pointer is over a cell; otherwise the selection shows.
+const hover = ref<{ r: number; c: number } | null>(null)
+const hr = computed(() => hover.value?.r ?? sel.value?.r ?? -1)
+const hc = computed(() => hover.value?.c ?? sel.value?.c ?? -1)
+
+function cellAt(e: Event) {
   const td = (e.target as HTMLElement).closest<HTMLElement>('[data-r]')
-  hr.value = td ? Number(td.dataset.r) : -1
-  hc.value = td ? Number(td.dataset.c) : -1
+  return td ? { r: Number(td.dataset.r), c: Number(td.dataset.c) } : null
+}
+function onOver(e: MouseEvent) {
+  hover.value = cellAt(e)
 }
 function onLeave() {
-  hr.value = -1
-  hc.value = -1
+  hover.value = null
 }
+function onClick(e: MouseEvent) {
+  const cell = cellAt(e)
+  if (!cell) return
+  const same = sel.value?.r === cell.r && sel.value?.c === cell.c
+  router.replace({ query: same ? {} : { atk: TYPES[cell.r], def: TYPES[cell.c] } })
+}
+
+// On a shared link, bring the selected cell into view (the chart scrolls on phones).
+const table = useTemplateRef<HTMLTableElement>('table')
+onMounted(async () => {
+  if (!sel.value) return
+  await nextTick()
+  table.value
+    ?.querySelector(`[data-r="${sel.value.r}"][data-c="${sel.value.c}"]`)
+    ?.scrollIntoView({ block: 'nearest', inline: 'center' })
+})
 </script>
 
 <template>
@@ -38,7 +67,7 @@ function onLeave() {
   </div>
 
   <div class="panel scroller">
-    <table class="chart" @mouseover="onOver" @mouseleave="onLeave">
+    <table ref="table" class="chart" @mouseover="onOver" @mouseleave="onLeave" @click="onClick">
       <thead>
         <tr>
           <th class="corner"><span>{{ t('chart.atk') }} ↓</span><span>{{ t('chart.def') }} →</span></th>
@@ -61,7 +90,7 @@ function onLeave() {
             :key="j"
             :data-r="i"
             :data-c="j"
-            :class="[cell.cls, { hc: hc === j, cur: hr === i && hc === j }]"
+            :class="[cell.cls, { hc: hc === j, cur: hr === i && hc === j, selected: sel?.r === i && sel?.c === j }]"
             :title="`${typeName(atk)} → ${typeName(TYPES[j]!)}: ${cell.m}×`"
           >
             {{ cell.text }}
@@ -113,7 +142,7 @@ function onLeave() {
   width: 36px;
   min-width: 36px;
   height: 24px;
-  cursor: default;
+  cursor: pointer;
 }
 
 .rowh {
@@ -154,5 +183,9 @@ function onLeave() {
 .chart td.cur {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
+}
+.chart td.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 </style>
