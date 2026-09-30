@@ -1,38 +1,37 @@
-import { ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
-export type ThemeMode = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark'
 
 const KEY = 'mondex.theme'
 
-function read(): ThemeMode {
+function readChoice(): Theme | null {
   try {
     const t = localStorage.getItem(KEY)
     if (t === 'light' || t === 'dark') return t
   } catch {
     // Storage unavailable.
   }
-  return 'system'
+  return null
 }
 
-const mode = ref<ThemeMode>(read())
+// Until the user picks a theme, follow the OS preference (live).
+const choice = ref<Theme | null>(readChoice())
+const media = window.matchMedia('(prefers-color-scheme: dark)')
+const systemDark = ref(media.matches)
+media.addEventListener('change', (e) => (systemDark.value = e.matches))
 
-watch(mode, (m) => {
-  const root = document.documentElement
-  if (m === 'system') delete root.dataset.theme
-  else root.dataset.theme = m
-  try {
-    if (m === 'system') localStorage.removeItem(KEY)
-    else localStorage.setItem(KEY, m)
-  } catch {
-    // Storage unavailable: the choice lasts for this page load.
-  }
-})
-
-const ORDER: ThemeMode[] = ['light', 'dark', 'system']
+const theme = computed<Theme>(() => choice.value ?? (systemDark.value ? 'dark' : 'light'))
 
 export function useTheme() {
-  const cycle = () => {
-    mode.value = ORDER[(ORDER.indexOf(mode.value) + 1) % ORDER.length]!
+  const toggle = () => {
+    const next: Theme = theme.value === 'dark' ? 'light' : 'dark'
+    choice.value = next
+    document.documentElement.dataset.theme = next
+    try {
+      localStorage.setItem(KEY, next)
+    } catch {
+      // Storage unavailable: the choice lasts for this page load.
+    }
   }
-  return { mode, cycle }
+  return { theme, toggle }
 }

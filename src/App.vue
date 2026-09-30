@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 
-const { mode, cycle } = useTheme()
-const themeLabel = computed(
-  () => ({ light: 'Light', dark: 'Dark', system: 'Auto' })[mode.value],
-)
+const { theme, toggle } = useTheme()
 </script>
 
 <template>
@@ -17,8 +13,13 @@ const themeLabel = computed(
         <RouterLink to="/types/calc" active-class="active">Calculator</RouterLink>
         <RouterLink to="/types/quiz" active-class="active">Quiz</RouterLink>
       </nav>
-      <button class="btn theme" type="button" :title="`Theme: ${themeLabel}`" @click="cycle">
-        {{ themeLabel }}
+      <button
+        class="btn theme"
+        type="button"
+        :title="`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`"
+        @click="toggle"
+      >
+        {{ theme === 'dark' ? 'Dark' : 'Light' }}
       </button>
     </div>
   </header>
