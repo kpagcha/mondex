@@ -26,7 +26,6 @@ function onLang(e: Event) {
         <RouterLink to="/types" exact-active-class="active">{{ t('nav.chart') }}</RouterLink>
         <RouterLink to="/types/calc" active-class="active">{{ t('nav.calc') }}</RouterLink>
         <RouterLink to="/types/quiz" active-class="active">{{ t('nav.quiz') }}</RouterLink>
-        <RouterLink v-if="isDev" to="/dev" active-class="active" class="dev">Dev</RouterLink>
       </nav>
       <div class="controls">
         <select class="lang" :value="locale" :aria-label="t('lang.label')" :title="t('lang.label')" @change="onLang">
@@ -47,8 +46,11 @@ function onLang(e: Event) {
     <RouterView />
   </main>
   <footer class="wrap footer muted">
-    {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
-    {{ t('footer.copyright') }}
+    <span>
+      {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
+      {{ t('footer.copyright') }}
+    </span>
+    <RouterLink v-if="isDev" to="/dev" class="dev">Dev</RouterLink>
   </footer>
 </template>
 
@@ -102,10 +104,6 @@ function onLang(e: Event) {
   background: var(--hover);
   text-decoration: none;
 }
-.nav a.dev {
-  color: var(--muted);
-  border: 1px dashed var(--border-strong);
-}
 .nav a.active {
   background: var(--sel);
   font-weight: bold;
@@ -132,6 +130,30 @@ function onLang(e: Event) {
   min-width: 64px;
 }
 
+/* Phones: logo + controls on the first row, nav on its own full-width row. */
+@media (max-width: 720px) {
+  .bar {
+    gap: 8px 12px;
+    padding-top: 8px;
+  }
+  .controls {
+    margin-left: auto;
+  }
+  .nav {
+    order: 1;
+    flex: 1 0 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -16px;
+    padding: 0 16px 8px;
+  }
+  .nav a {
+    flex: none;
+    white-space: nowrap;
+  }
+}
+
 main {
   flex: 1 0 auto;
 }
@@ -140,5 +162,21 @@ main {
   padding-top: 8px;
   padding-bottom: 24px;
   font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer .dev {
+  padding: 0 4px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 3px;
+  color: var(--muted);
+}
+@media (max-width: 720px) {
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
 }
 </style>
