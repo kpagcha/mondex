@@ -96,16 +96,6 @@ onMounted(loadAll)
       <button v-for="m in MULTIPLIERS" :key="m" type="button" class="btn num ans">{{ formatMult(m) }}</button>
     </div>
   </div>
-
-  <div class="panel">
-    <h2>All display fonts</h2>
-    <div v-for="f in DISPLAY_FONTS" :key="f.id" class="compare">
-      <span class="muted small label">{{ f.label }}</span>
-      <span class="sample" :style="{ fontFamily: f.stack || undefined }">
-        mondex · Tabla de tipos · Súper eficaz ½× ¼×
-      </span>
-    </div>
-  </div>
 </template>
 
 <style scoped>
@@ -211,20 +201,5 @@ legend {
 .mini td {
   width: 36px;
   height: 24px;
-}
-
-.compare {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 6px 0;
-  border-top: 1px solid var(--border);
-}
-.compare .label {
-  flex: none;
-  width: 140px;
-}
-.sample {
-  font-size: 18px;
 }
 </style>
