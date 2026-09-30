@@ -2,7 +2,7 @@
 import { iconUrl, type TypeId } from '@/data/types'
 import { typeName } from '@/i18n'
 
-withDefaults(defineProps<{ type: TypeId; scale?: 1 | 2; lazy?: boolean; tip?: boolean }>(), {
+withDefaults(defineProps<{ type: TypeId; scale?: 1 | 2; lazy?: boolean; tip?: boolean; tipGroup?: string }>(), {
   scale: 1,
   lazy: false,
   tip: true,
@@ -14,7 +14,7 @@ withDefaults(defineProps<{ type: TypeId; scale?: 1 | 2; lazy?: boolean; tip?: bo
     class="pixel type-icon"
     :src="iconUrl(type)"
     :alt="typeName(type)"
-    v-tip="tip && typeName(type)"
+    v-tip:[tipGroup]="tip && typeName(type)"
     :width="32 * scale"
     :height="14 * scale"
     :loading="lazy ? 'lazy' : undefined"

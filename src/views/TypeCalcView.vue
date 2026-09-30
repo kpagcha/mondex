@@ -91,7 +91,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
             <span class="lbl muted">{{ t(row.label) }}</span>
           </th>
           <td>
-            <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" class="gap" />
+            <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" tip-group="defense" class="gap" />
           </td>
         </tr>
       </tbody>
@@ -133,7 +133,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
             :key="e.def.join()"
             class="chip"
             :class="multClass(0)"
-            v-tip="typesLabel(e.def)"
+            v-tip:chips="typesLabel(e.def)"
           >
             <TypeIcon v-for="t in e.def" :key="t" :type="t" :tip="false" lazy />
           </span>
@@ -148,7 +148,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
         <span
           class="chip"
           :class="multClass(g.root.best)"
-          v-tip="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`"
+          v-tip:chips="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`"
         >
           <TypeIcon :type="g.root.def[0]!" :tip="false" />
         </span>
@@ -160,7 +160,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
               :key="c.partner"
               class="chip"
               :class="multClass(c.entry.best)"
-              v-tip="`${typesLabel(c.entry.def)}: ${formatMult(c.entry.best)}`"
+              v-tip:chips="`${typesLabel(c.entry.def)}: ${formatMult(c.entry.best)}`"
             >
               <TypeIcon :type="c.partner" :tip="false" lazy />
             </span>
@@ -175,7 +175,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
             :key="e.def.join()"
             class="chip"
             :class="multClass(e.best)"
-            v-tip="`${typesLabel(e.def)}: ${formatMult(e.best)}`"
+            v-tip:chips="`${typesLabel(e.def)}: ${formatMult(e.best)}`"
           >
             <TypeIcon v-for="t in e.def" :key="t" :type="t" :tip="false" lazy />
           </span>
@@ -192,7 +192,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
         <h2>{{ t('calc.neutralTitle', { n: neutral.length }) }}</h2>
       </summary>
       <div class="combos">
-        <span v-for="e in neutral" :key="e.def.join()" class="chip plain" v-tip="typesLabel(e.def)">
+        <span v-for="e in neutral" :key="e.def.join()" class="chip plain" v-tip:chips="typesLabel(e.def)">
           <TypeIcon v-for="t in e.def" :key="t" :type="t" :tip="false" lazy />
         </span>
       </div>

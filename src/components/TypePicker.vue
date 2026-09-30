@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TYPES, type TypeId } from '@/data/types'
+import { typeName } from '@/i18n'
 import TypeIcon from '@/components/TypeIcon.vue'
 
 const props = withDefaults(
@@ -41,9 +42,10 @@ function toggle(t: TypeId) {
       :class="[{ on: modelValue.includes(t) }, marks?.[t]]"
       :aria-pressed="modelValue.includes(t)"
       :disabled="disabled"
+      v-tip:picker="typeName(t)"
       @click="toggle(t)"
     >
-      <TypeIcon :type="t" :scale="2" />
+      <TypeIcon :type="t" :scale="2" :tip="false" />
     </button>
   </div>
 </template>

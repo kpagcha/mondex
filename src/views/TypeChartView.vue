@@ -93,7 +93,7 @@ onMounted(async () => {
             :data-r="i"
             :data-c="j"
             :class="[cell.cls, { hc: hc === j, cur: hr === i && hc === j, selected: sel?.r === i && sel?.c === j }]"
-            v-tip="`${typeName(atk)} → ${typeName(TYPES[j]!)}: ${cell.m}×`"
+            v-tip:chart="`${typeName(atk)} → ${typeName(TYPES[j]!)}: ${cell.m}×`"
           >
             {{ cell.text }}
           </td>
