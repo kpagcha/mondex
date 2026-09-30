@@ -1,0 +1,213 @@
+/* ---------- Tokens ---------- */
+:root {
+  color-scheme: light;
+  --bg: #eef0f3;
+  --panel: #ffffff;
+  --panel-alt: #f6f7f9;
+  --text: #1a1a1a;
+  --muted: #666b73;
+  --border: #c4c9d2;
+  --border-strong: #9aa2ae;
+  --link: #1f5bb5;
+  --accent: #2f6fd0;
+  --accent-text: #ffffff;
+  --hover: #e6eefb;
+  --sel: #d3e2fa;
+  --good: #2c7a2c;
+  --bad: #b3261e;
+
+  --m0-bg: #2f2f2f;     --m0-fg: #ffffff;
+  --m025-bg: #c0392b;   --m025-fg: #ffffff;
+  --m05-bg: #f4b6b0;    --m05-fg: #6b1510;
+  --m2-bg: #a9dba0;     --m2-fg: #134a13;
+  --m4-bg: #3a9a3a;     --m4-fg: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #1b1c1e;
+    --panel: #26272a;
+    --panel-alt: #2d2e32;
+    --text: #e2e2e2;
+    --muted: #9a9ea6;
+    --border: #3f4146;
+    --border-strong: #5a5d64;
+    --link: #82b1ff;
+    --accent: #4d86e0;
+    --accent-text: #ffffff;
+    --hover: #313745;
+    --sel: #2f4466;
+    --good: #7fd07f;
+    --bad: #ff8a80;
+
+    --m0-bg: #000000;   --m0-fg: #bbbbbb;
+    --m025-bg: #a1302a; --m025-fg: #ffffff;
+    --m05-bg: #5c2a28;  --m05-fg: #f4b6b0;
+    --m2-bg: #2b5a2b;   --m2-fg: #c3ecbc;
+    --m4-bg: #3e923e;   --m4-fg: #ffffff;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1b1c1e;
+  --panel: #26272a;
+  --panel-alt: #2d2e32;
+  --text: #e2e2e2;
+  --muted: #9a9ea6;
+  --border: #3f4146;
+  --border-strong: #5a5d64;
+  --link: #82b1ff;
+  --accent: #4d86e0;
+  --accent-text: #ffffff;
+  --hover: #313745;
+  --sel: #2f4466;
+  --good: #7fd07f;
+  --bad: #ff8a80;
+
+  --m0-bg: #000000;   --m0-fg: #bbbbbb;
+  --m025-bg: #a1302a; --m025-fg: #ffffff;
+  --m05-bg: #5c2a28;  --m05-fg: #f4b6b0;
+  --m2-bg: #2b5a2b;   --m2-fg: #c3ecbc;
+  --m4-bg: #3e923e;   --m4-fg: #ffffff;
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.45 Verdana, Geneva, 'DejaVu Sans', Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+h1 { font-size: 18px; }
+h2 { font-size: 15px; }
+h3 { font-size: 13px; }
+
+p {
+  margin: 0 0 8px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+img.pixel {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ---------- Components ---------- */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 26px;
+  padding: 2px 10px;
+  background: var(--panel-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: var(--hover);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+.btn.primary:hover {
+  filter: brightness(1.08);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.tabs a {
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  margin-bottom: -1px;
+  color: var(--muted);
+}
+.tabs a:hover {
+  text-decoration: none;
+  color: var(--text);
+}
+.tabs a.active {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+  font-weight: bold;
+}
+
+/* Multiplier cells */
+.m-0 { background: var(--m0-bg); color: var(--m0-fg); }
+.m-0_25 { background: var(--m025-bg); color: var(--m025-fg); }
+.m-0_5 { background: var(--m05-bg); color: var(--m05-fg); }
+.m-2 { background: var(--m2-bg); color: var(--m2-fg); }
+.m-4 { background: var(--m4-bg); color: var(--m4-fg); }
+
+.mult-tag {
+  display: inline-block;
+  min-width: 34px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  text-align: center;
+  font-weight: bold;
+}

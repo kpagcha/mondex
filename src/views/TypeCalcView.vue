@@ -1,0 +1,249 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { isType, type Multiplier, type TypeId } from '@/data/types'
+import {
+  defensiveProfile,
+  formatMult,
+  multClass,
+  offensiveProfile,
+  typesLabel,
+} from '@/lib/typecalc'
+import TypeIcon from '@/components/TypeIcon.vue'
+import TypePicker from '@/components/TypePicker.vue'
+
+const route = useRoute()
+const router = useRouter()
+
+function parseTypes(v: unknown, max: number): TypeId[] {
+  const s = typeof v === 'string' ? v : ''
+  return [...new Set(s.split(',').filter(isType))].slice(0, max)
+}
+
+const mode = computed(() => (route.query.mode === 'atk' ? 'atk' : 'def'))
+const def = computed(() => parseTypes(route.query.def, 2))
+const atk = computed(() => parseTypes(route.query.atk, 4))
+
+function setQuery(patch: Record<string, string | undefined>) {
+  const q: Record<string, string> = {}
+  for (const [k, v] of Object.entries({ ...route.query, ...patch })) {
+    if (typeof v === 'string' && v) q[k] = v
+  }
+  router.replace({ query: q })
+}
+
+const setDef = (v: TypeId[]) => setQuery({ def: v.join(',') })
+const setAtk = (v: TypeId[]) => setQuery({ atk: v.join(',') })
+
+// ---- Defense ----
+const DEF_ROWS: { m: Multiplier; label: string }[] = [
+  { m: 4, label: 'Weak' },
+  { m: 2, label: 'Weak' },
+  { m: 1, label: 'Neutral' },
+  { m: 0.5, label: 'Resists' },
+  { m: 0.25, label: 'Resists' },
+  { m: 0, label: 'Immune' },
+]
+const defProfile = computed(() => (def.value.length ? defensiveProfile(def.value) : null))
+
+// ---- Offense ----
+const coverage = computed(() => (atk.value.length ? offensiveProfile(atk.value) : null))
+const singles = computed(() => coverage.value?.filter((e) => e.def.length === 1) ?? [])
+const counts = computed(() => {
+  const c: Record<number, number> = { 0: 0, 0.25: 0, 0.5: 0, 1: 0, 2: 0, 4: 0 }
+  for (const e of coverage.value ?? []) c[e.best]!++
+  return c
+})
+const walled = computed(() => coverage.value?.filter((e) => e.best <= 0.5) ?? [])
+const neutral = computed(() => coverage.value?.filter((e) => e.best === 1) ?? [])
+const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
+</script>
+
+<template>
+  <div class="panel">
+    <h1>Type calculator</h1>
+    <nav class="tabs">
+      <RouterLink :to="{ query: { ...route.query, mode: undefined } }" :class="{ active: mode === 'def' }">
+        Defense
+      </RouterLink>
+      <RouterLink :to="{ query: { ...route.query, mode: 'atk' } }" :class="{ active: mode === 'atk' }">
+        Offense / coverage
+      </RouterLink>
+    </nav>
+
+    <template v-if="mode === 'def'">
+      <p class="muted">Pick one or two defending types.</p>
+      <TypePicker :model-value="def" :max="2" @update:model-value="setDef" />
+    </template>
+    <template v-else>
+      <p class="muted">Pick up to four attacking types (a moveset) to see what they hit.</p>
+      <TypePicker :model-value="atk" :max="4" @update:model-value="setAtk" />
+    </template>
+  </div>
+
+  <!-- Defense results -->
+  <div v-if="mode === 'def' && defProfile" class="panel">
+    <h2 class="combo">
+      <TypeIcon v-for="t in def" :key="t" :type="t" :scale="2" />
+      <span>{{ typesLabel(def) }} defending</span>
+    </h2>
+    <table class="groups">
+      <tbody>
+        <tr v-for="row in DEF_ROWS" :key="row.m">
+          <th>
+            <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
+            <span class="lbl muted">{{ row.label }}</span>
+          </th>
+          <td>
+            <span v-if="!defProfile[row.m].length" class="muted">—</span>
+            <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" class="gap" />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Offense results -->
+  <template v-if="mode === 'atk' && coverage">
+    <div class="panel">
+      <h2 class="combo">
+        <TypeIcon v-for="t in atk" :key="t" :type="t" :scale="2" />
+        <span>coverage</span>
+      </h2>
+      <p class="muted">Best multiplier against each single type:</p>
+      <div class="single-grid">
+        <div v-for="e in singles" :key="e.def[0]" class="single" :class="multClass(e.best)">
+          <TypeIcon :type="e.def[0]!" />
+          <b>{{ formatMult(e.best) }}</b>
+        </div>
+      </div>
+
+      <p class="muted counts-title">Across all {{ coverage.length }} single and dual types:</p>
+      <div class="counts">
+        <div v-for="m in COUNT_ORDER" :key="m" class="count">
+          <span class="mult-tag" :class="multClass(m)">{{ formatMult(m) }}</span>
+          <b>{{ counts[m] }}</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Resisted or immune ({{ walled.length }})</h2>
+      <p v-if="!walled.length" class="muted">Nothing resists this coverage.</p>
+      <div class="combos">
+        <span v-for="e in walled" :key="e.def.join()" class="chip" :class="multClass(e.best)" :title="`${typesLabel(e.def)}: ${formatMult(e.best)}`">
+          <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
+        </span>
+      </div>
+    </div>
+
+    <details class="panel">
+      <summary><h2>Only neutral ({{ neutral.length }})</h2></summary>
+      <div class="combos">
+        <span v-for="e in neutral" :key="e.def.join()" class="chip" :title="typesLabel(e.def)">
+          <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
+        </span>
+      </div>
+    </details>
+  </template>
+
+  <p v-if="(mode === 'def' && !def.length) || (mode === 'atk' && !atk.length)" class="muted hint">
+    Select a type above to see results.
+  </p>
+</template>
+
+<style scoped>
+.combo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.groups {
+  border-collapse: collapse;
+  width: 100%;
+}
+.groups th,
+.groups td {
+  border-top: 1px solid var(--border);
+  padding: 6px 4px;
+  vertical-align: middle;
+  text-align: left;
+}
+.groups tr:first-child th,
+.groups tr:first-child td {
+  border-top: none;
+}
+.groups th {
+  width: 1%;
+  white-space: nowrap;
+  font-weight: normal;
+}
+.lbl {
+  display: inline-block;
+  width: 60px;
+  margin-left: 6px;
+}
+.gap {
+  margin: 2px 4px 2px 0;
+}
+
+.single-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.single {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 3px 5px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.counts-title {
+  margin-bottom: 4px;
+}
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.combos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.chip {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--panel-alt);
+}
+
+summary {
+  cursor: pointer;
+}
+summary h2 {
+  display: inline;
+}
+details[open] summary {
+  margin-bottom: 8px;
+}
+
+.hint {
+  text-align: center;
+}
+</style>
