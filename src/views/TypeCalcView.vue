@@ -49,7 +49,10 @@ const defProfile = computed(() => (def.value.length ? defensiveProfile(def.value
 
 // ---- Offense ----
 const coverage = computed(() => (atk.value.length ? offensiveProfile(atk.value) : null))
-const singles = computed(() => coverage.value?.filter((e) => e.def.length === 1) ?? [])
+// Most to least effective, immunities last; ties keep type order (stable sort).
+const singles = computed(
+  () => coverage.value?.filter((e) => e.def.length === 1).sort((a, b) => b.best - a.best) ?? [],
+)
 const counts = computed(() => {
   const c: Record<number, number> = { 0: 0, 0.25: 0, 0.5: 0, 1: 0, 2: 0, 4: 0 }
   for (const e of coverage.value ?? []) c[e.best]!++
@@ -87,10 +90,6 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 
   <!-- Defense results -->
   <div v-if="mode === 'def' && defProfile" class="panel">
-    <h2 class="combo">
-      <TypeIcon v-for="t in def" :key="t" :type="t" :scale="2" />
-      <span>{{ typesLabel(def) }} defending</span>
-    </h2>
     <table class="groups">
       <tbody>
         <tr v-for="row in DEF_ROWS" :key="row.m">
@@ -110,11 +109,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
   <!-- Offense results -->
   <template v-if="mode === 'atk' && coverage">
     <div class="panel">
-      <h2 class="combo">
-        <TypeIcon v-for="t in atk" :key="t" :type="t" :scale="2" />
-        <span>coverage</span>
-      </h2>
-      <p class="muted">Best multiplier against each single type:</p>
+      <p class="muted">Against each type:</p>
       <div class="single-grid">
         <div v-for="e in singles" :key="e.def[0]" class="single" :class="multClass(e.best)">
           <TypeIcon :type="e.def[0]!" />
@@ -206,13 +201,6 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 </template>
 
 <style scoped>
-.combo {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
 .groups {
   border-collapse: collapse;
   width: 100%;
