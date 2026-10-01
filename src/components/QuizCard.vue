@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // One quiz card: the question, answering it, and the result with its hints. Used by study and practice;
 // the parent decides what an answer means (grading it, or only counting it).
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { AnimatePresence, motion } from 'motion-v'
 import type { Multiplier, TypeId } from '@/data/types'
 import { t, typeName } from '@/i18n'
@@ -9,6 +9,7 @@ import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
 import { FADE, PRESS } from '@/lib/motion'
 import { checkMulti, explain, matchups, multiPrompt, type Card } from '@/lib/quiz'
 import { hintFor } from '@/lib/hints'
+import { reveal } from '@/lib/scroll'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
 
@@ -47,8 +48,19 @@ watch(
   { immediate: true },
 )
 
+// Keep what comes next on screen (phones have little room): the result and Next button after answering, and the
+// new question after moving on.
+const questionEl = useTemplateRef<HTMLElement>('question')
+const afterEl = useTemplateRef<HTMLElement>('after')
+watch(
+  () => props.round,
+  () => reveal(questionEl.value, afterEl.value),
+  { flush: 'post' },
+)
+
 function finish(correct: boolean, ms = performance.now() - shownAt) {
   emit('answered', correct, ms)
+  nextTick(() => reveal(afterEl.value))
 }
 
 function answerMult(m: Multiplier) {
@@ -141,101 +153,105 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
 <template>
   <!-- Each question slides in as the previous one slides out. -->
-  <AnimatePresence mode="wait" :initial="false">
+  <div ref="question">
+    <AnimatePresence mode="wait" :initial="false">
+      <motion.div
+        :key="round"
+        :initial="{ opacity: 0, x: 12 }"
+        :animate="{ opacity: 1, x: 0 }"
+        :exit="{ opacity: 0, x: -12 }"
+        :transition="FADE"
+      >
+        <template v-if="card.kind === 'mult'">
+          <p class="muted q">{{ t('quiz.howEffective') }}</p>
+          <div class="matchup">
+            <TypeIcon :type="card.atk" :scale="2" />
+            <span class="arrow">→</span>
+            <span class="defs">
+              <TypeIcon v-for="d in card.def" :key="d" :type="d" :scale="2" />
+            </span>
+          </div>
+          <!-- One row of buttons, or two rows on phones. -->
+          <div class="answers" :style="{ '--cols': options.length, '--cols-narrow': options.length / 2 }">
+            <motion.button
+              v-for="(m, i) in options"
+              :key="m"
+              type="button"
+              class="btn ans num"
+              :class="{
+                right: result && m === card.answer,
+                miss: result && m === result.choice && !result.correct,
+              }"
+              :disabled="!!result"
+              :while-press="result ? undefined : PRESS"
+              :animate="ansAnimate(m)"
+              :transition="{ duration: 0.3 }"
+              @click="answerMult(m)"
+            >
+              <kbd>{{ KEYS[i] }}</kbd
+              >{{ formatMult(m) }}
+            </motion.button>
+          </div>
+        </template>
+
+        <template v-else>
+          <p class="q prompt">
+            <span v-if="multiPrompt(card)[0]">{{ multiPrompt(card)[0] }}</span>
+            <TypeIcon :type="card.type" :scale="2" />
+            <span>{{ multiPrompt(card)[1] }}</span>
+          </p>
+          <p class="muted small">{{ t('quiz.tickAll') }}</p>
+          <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
+        </template>
+      </motion.div>
+    </AnimatePresence>
+  </div>
+
+  <div ref="after">
+    <!-- Result message, then the Submit/Next button. -->
     <motion.div
-      :key="round"
-      :initial="{ opacity: 0, x: 12 }"
-      :animate="{ opacity: 1, x: 0 }"
-      :exit="{ opacity: 0, x: -12 }"
+      v-if="result"
+      class="feedback"
+      :class="result.correct ? 'ok' : 'bad'"
+      :initial="{ opacity: 0, y: 6 }"
+      :animate="{ opacity: 1, y: 0 }"
       :transition="FADE"
     >
-      <template v-if="card.kind === 'mult'">
-        <p class="muted q">{{ t('quiz.howEffective') }}</p>
-        <div class="matchup">
-          <TypeIcon :type="card.atk" :scale="2" />
-          <span class="arrow">→</span>
-          <span class="defs">
-            <TypeIcon v-for="d in card.def" :key="d" :type="d" :scale="2" />
+      <div class="verdict">
+        <b>{{ t(result.correct ? 'quiz.correct' : 'quiz.wrong') }}</b>
+        <template v-if="card.kind === 'mult'">
+          <span class="mult-tag" :class="multClass(card.answer)">{{ formatMult(card.answer) }}</span>
+          <span class="muted">{{ explain(card) }}</span>
+        </template>
+        <template v-else-if="!result.correct">
+          <span v-if="result.missed.length">{{ t('quiz.missed', { list: names(result.missed) }) }}</span>
+          <span v-if="result.wrong.length">{{ t('quiz.extra', { list: names(result.wrong) }) }}</span>
+        </template>
+      </div>
+      <!-- Memory hooks to reinforce the answer (Advanced settings > Show hints). -->
+      <ul v-if="hintLines.length" class="hints">
+        <li v-for="h in hintLines" :key="h.atk + h.def">
+          <span class="pair">
+            <TypeIcon :type="h.atk" />
+            <span class="muted">→</span>
+            <TypeIcon :type="h.def" />
           </span>
-        </div>
-        <!-- One row of buttons, or two rows on phones. -->
-        <div class="answers" :style="{ '--cols': options.length, '--cols-narrow': options.length / 2 }">
-          <motion.button
-            v-for="(m, i) in options"
-            :key="m"
-            type="button"
-            class="btn ans num"
-            :class="{
-              right: result && m === card.answer,
-              miss: result && m === result.choice && !result.correct,
-            }"
-            :disabled="!!result"
-            :while-press="result ? undefined : PRESS"
-            :animate="ansAnimate(m)"
-            :transition="{ duration: 0.3 }"
-            @click="answerMult(m)"
-          >
-            <kbd>{{ KEYS[i] }}</kbd
-            >{{ formatMult(m) }}
-          </motion.button>
-        </div>
-      </template>
-
-      <template v-else>
-        <p class="q prompt">
-          <span v-if="multiPrompt(card)[0]">{{ multiPrompt(card)[0] }}</span>
-          <TypeIcon :type="card.type" :scale="2" />
-          <span>{{ multiPrompt(card)[1] }}</span>
-        </p>
-        <p class="muted small">{{ t('quiz.tickAll') }}</p>
-        <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
-      </template>
+          <span>{{ h.text }}</span>
+        </li>
+      </ul>
     </motion.div>
-  </AnimatePresence>
-
-  <!-- Result message, then the Submit/Next button. -->
-  <motion.div
-    v-if="result"
-    class="feedback"
-    :class="result.correct ? 'ok' : 'bad'"
-    :initial="{ opacity: 0, y: 6 }"
-    :animate="{ opacity: 1, y: 0 }"
-    :transition="FADE"
-  >
-    <div class="verdict">
-      <b>{{ t(result.correct ? 'quiz.correct' : 'quiz.wrong') }}</b>
-      <template v-if="card.kind === 'mult'">
-        <span class="mult-tag" :class="multClass(card.answer)">{{ formatMult(card.answer) }}</span>
-        <span class="muted">{{ explain(card) }}</span>
-      </template>
-      <template v-else-if="!result.correct">
-        <span v-if="result.missed.length">{{ t('quiz.missed', { list: names(result.missed) }) }}</span>
-        <span v-if="result.wrong.length">{{ t('quiz.extra', { list: names(result.wrong) }) }}</span>
-      </template>
+    <div class="actions">
+      <button v-if="result" type="button" class="btn primary" @click="emit('next')">
+        {{ t('quiz.next') }} <kbd>Enter</kbd>
+      </button>
+      <button v-else-if="card.kind === 'multi'" type="button" class="btn primary" @click="submitMulti">
+        {{ t('quiz.submit') }} <kbd>Enter</kbd>
+      </button>
+      <!-- Multiplier cards are answered by their buttons; this keeps the row's height. -->
+      <button v-else type="button" class="btn primary placeholder" tabindex="-1" aria-hidden="true">
+        {{ t('quiz.next') }} <kbd>Enter</kbd>
+      </button>
     </div>
-    <!-- Memory hooks to reinforce the answer (Advanced settings > Show hints). -->
-    <ul v-if="hintLines.length" class="hints">
-      <li v-for="h in hintLines" :key="h.atk + h.def">
-        <span class="pair">
-          <TypeIcon :type="h.atk" />
-          <span class="muted">→</span>
-          <TypeIcon :type="h.def" />
-        </span>
-        <span>{{ h.text }}</span>
-      </li>
-    </ul>
-  </motion.div>
-  <div class="actions">
-    <button v-if="result" type="button" class="btn primary" @click="emit('next')">
-      {{ t('quiz.next') }} <kbd>Enter</kbd>
-    </button>
-    <button v-else-if="card.kind === 'multi'" type="button" class="btn primary" @click="submitMulti">
-      {{ t('quiz.submit') }} <kbd>Enter</kbd>
-    </button>
-    <!-- Multiplier cards are answered by their buttons; this keeps the row's height. -->
-    <button v-else type="button" class="btn primary placeholder" tabindex="-1" aria-hidden="true">
-      {{ t('quiz.next') }} <kbd>Enter</kbd>
-    </button>
   </div>
 </template>
 

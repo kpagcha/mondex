@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, useTemplateRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isType, type Multiplier, type TypeId } from '@/data/types'
 import { t, type MessageKey } from '@/i18n'
 import { defensiveProfile, formatMult, groupByRoot, multClass, offensiveProfile, typesLabel } from '@/lib/typecalc'
+import { reveal } from '@/lib/scroll'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
 
@@ -24,11 +25,18 @@ function setQuery(patch: Record<string, string | undefined>) {
   for (const [k, v] of Object.entries({ ...route.query, ...patch })) {
     if (typeof v === 'string' && v) q[k] = v
   }
-  router.replace({ query: q })
+  return router.replace({ query: q })
 }
 
-const setDef = (v: TypeId[]) => setQuery({ def: v.join(',') })
-const setAtk = (v: TypeId[]) => setQuery({ atk: v.join(',') })
+// Each pick brings the results below the picker into view (on phones they start off screen).
+const results = useTemplateRef<HTMLElement>('results')
+async function pick(patch: Record<string, string>) {
+  await setQuery(patch)
+  await nextTick()
+  reveal(results.value)
+}
+const setDef = (v: TypeId[]) => pick({ def: v.join(',') })
+const setAtk = (v: TypeId[]) => pick({ atk: v.join(',') })
 
 // ---- Defense ----
 const DEF_ROWS: { m: Multiplier; label: MessageKey }[] = [
@@ -81,7 +89,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
   </div>
 
   <!-- Defense results -->
-  <div v-if="mode === 'def' && defProfile" class="panel">
+  <div v-if="mode === 'def' && defProfile" ref="results" class="panel">
     <table class="groups">
       <tbody>
         <tr v-for="row in defRows" :key="row.m">
@@ -103,7 +111,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 
   <!-- Offense results -->
   <template v-if="mode === 'atk' && coverage">
-    <div class="panel">
+    <div ref="results" class="panel">
       <p class="muted">{{ t('calc.againstEach') }}</p>
       <div class="single-grid">
         <div v-for="e in singles" :key="e.def[0]" class="single" :class="multClass(e.best)">

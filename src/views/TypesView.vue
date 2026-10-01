@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, motion } from 'motion-v'
 import { TYPES, isType, type Multiplier, type TypeId } from '@/data/types'
@@ -8,6 +8,7 @@ import { t, typeName, type MessageKey } from '@/i18n'
 import { attackProfile, defensiveProfile, formatMult, multClass, type Profile } from '@/lib/typecalc'
 import { FADE, PRESS, SPRING } from '@/lib/motion'
 import { hintFor } from '@/lib/hints'
+import { reveal } from '@/lib/scroll'
 import TypeIcon from '@/components/TypeIcon.vue'
 import InfoRows, { type InfoRow } from '@/components/InfoRows.vue'
 
@@ -55,6 +56,16 @@ const sections = computed(() => {
 })
 
 const more = computed(() => infoRows(MORE_ROWS))
+
+// Picking a type brings its matchups into view (on phones they start below the list).
+const detail = useTemplateRef<HTMLElement>('detail')
+watch(
+  type,
+  (ty) => {
+    if (ty) reveal(detail.value, detail.value?.querySelector('.groups'))
+  },
+  { flush: 'post' },
+)
 
 /** Remembered per viewer, and kept on while moving between types. */
 const LEARN_KEY = 'mondex.types.learn'
@@ -125,60 +136,62 @@ function onToggle(e: Event) {
     </nav>
   </div>
 
-  <AnimatePresence mode="wait" :initial="false">
-    <motion.div
-      v-if="type"
-      :key="type"
-      :initial="{ opacity: 0, y: 6 }"
-      :animate="{ opacity: 1, y: 0 }"
-      :exit="{ opacity: 0, y: -4 }"
-      :transition="FADE"
-    >
-      <div class="panel">
-        <h2 class="name">
-          <TypeIcon :type="type" :scale="2" />
-          {{ typeName(type) }}
-          <button type="button" class="btn learn" :class="{ on: learn }" :aria-pressed="learn" @click="toggleLearn">
-            {{ t('types.learn') }}
-          </button>
-        </h2>
-        <div class="sides">
-          <section v-for="s in sections" :key="s.title">
-            <h3>{{ t(s.title) }}</h3>
-            <table class="groups">
-              <tbody>
-                <tr v-for="row in s.rows" :key="row.m">
-                  <th>
-                    <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
-                  </th>
-                  <td>
-                    <!-- Learn mode: one line per matchup, with its memory hook. -->
-                    <ul v-if="learn" class="hints">
-                      <li v-for="x in row.types" :key="x">
-                        <RouterLink :to="`/types/${x}`"><TypeIcon :type="x" /></RouterLink>
-                        <span>{{ hint(s.side, x) }}</span>
-                      </li>
-                    </ul>
-                    <span v-else class="icons">
-                      <RouterLink v-for="x in row.types" :key="x" :to="`/types/${x}`">
-                        <TypeIcon :type="x" />
-                      </RouterLink>
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <InfoRows v-if="s.info.length" :rows="s.info" class="info" />
-          </section>
+  <div ref="detail">
+    <AnimatePresence mode="wait" :initial="false">
+      <motion.div
+        v-if="type"
+        :key="type"
+        :initial="{ opacity: 0, y: 6 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :exit="{ opacity: 0, y: -4 }"
+        :transition="FADE"
+      >
+        <div class="panel">
+          <h2 class="name">
+            <TypeIcon :type="type" :scale="2" />
+            {{ typeName(type) }}
+            <button type="button" class="btn learn" :class="{ on: learn }" :aria-pressed="learn" @click="toggleLearn">
+              {{ t('types.learn') }}
+            </button>
+          </h2>
+          <div class="sides">
+            <section v-for="s in sections" :key="s.title">
+              <h3>{{ t(s.title) }}</h3>
+              <table class="groups">
+                <tbody>
+                  <tr v-for="row in s.rows" :key="row.m">
+                    <th>
+                      <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
+                    </th>
+                    <td>
+                      <!-- Learn mode: one line per matchup, with its memory hook. -->
+                      <ul v-if="learn" class="hints">
+                        <li v-for="x in row.types" :key="x">
+                          <RouterLink :to="`/types/${x}`"><TypeIcon :type="x" /></RouterLink>
+                          <span>{{ hint(s.side, x) }}</span>
+                        </li>
+                      </ul>
+                      <span v-else class="icons">
+                        <RouterLink v-for="x in row.types" :key="x" :to="`/types/${x}`">
+                          <TypeIcon :type="x" />
+                        </RouterLink>
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <InfoRows v-if="s.info.length" :rows="s.info" class="info" />
+            </section>
+          </div>
+          <!-- Interactions with specific moves and abilities: useful, but secondary. -->
+          <details v-if="more.length" class="more" :open="moreOpen" @toggle="onToggle">
+            <summary class="muted">{{ t('info.more') }}</summary>
+            <InfoRows :rows="more" />
+          </details>
         </div>
-        <!-- Interactions with specific moves and abilities: useful, but secondary. -->
-        <details v-if="more.length" class="more" :open="moreOpen" @toggle="onToggle">
-          <summary class="muted">{{ t('info.more') }}</summary>
-          <InfoRows :rows="more" />
-        </details>
-      </div>
-    </motion.div>
-  </AnimatePresence>
+      </motion.div>
+    </AnimatePresence>
+  </div>
 
   <p v-if="!type" class="muted hint">{{ t('types.selectHint') }}</p>
 </template>
