@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef } from 'vue'
 import { TYPES, type Multiplier, type TypeId } from '@/data/types'
 import { t, typeName } from '@/i18n'
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
@@ -18,6 +18,9 @@ import {
 } from '@/lib/quiz'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
+
+// Dev-only controls to fast-forward the quiz; left out of production builds.
+const QuizDevTools = import.meta.env.DEV ? defineAsyncComponent(() => import('@/dev/QuizDevTools.vue')) : null
 
 /** Dual-type cards unlock once this share of the basic cards has graduated. */
 const DUAL_UNLOCK = 0.6
@@ -78,9 +81,9 @@ function next(ignoreLimit = false) {
   shownAt = performance.now()
 }
 
-function record(correct: boolean) {
+function record(correct: boolean, slow?: boolean) {
   const c = current.value!
-  const slow = performance.now() - shownAt > SLOW_MS[c.kind]
+  slow ??= performance.now() - shownAt > SLOW_MS[c.kind]
   grade(deck.value, c.id, correct ? (slow ? 3 : 4) : 1)
   saveDeck(deck.value)
   triggerRef(deck)
@@ -102,6 +105,29 @@ function submitMulti() {
   const r = checkMulti(c, picked.value)
   result.value = r
   record(r.correct)
+}
+
+/** Dev: answer the current card as if right (quick or slow) or wrong, without picking. */
+function simulate(correct: boolean, slow = false) {
+  const c = current.value
+  if (!c || result.value) return
+  if (c.kind === 'mult') {
+    const choice = correct ? c.answer : options.value.find((m) => m !== c.answer)!
+    result.value = { correct, choice, missed: [], wrong: [] }
+  } else {
+    picked.value = correct ? [...c.answer] : c.answer.slice(1)
+    result.value = checkMulti(c, picked.value)
+  }
+  record(correct, slow)
+}
+
+/** Dev: the card the quiz would show next, ignoring the daily limit. */
+const devPick = (avoid?: string) => pickNext(deck.value, { newIds: newIds(), avoid, ignoreLimit: true, skip })
+const devBasicIds = computed(() => newCardOrder(deck.value.seed!).basic)
+function devDone() {
+  saveDeck(deck.value)
+  triggerRef(deck)
+  next()
 }
 
 const marks = computed(() => {
@@ -129,6 +155,10 @@ function onKey(e: KeyboardEvent) {
       e.preventDefault()
       next()
     }
+    return
+  }
+  if (import.meta.env.DEV && (e.key === 'c' || e.key === 'x')) {
+    simulate(e.key === 'c')
     return
   }
   if (c.kind === 'mult') {
@@ -292,6 +322,18 @@ function ansAnimate(m: Multiplier) {
     </section>
 
     <aside>
+      <component
+        :is="QuizDevTools"
+        v-if="QuizDevTools"
+        :deck="deck"
+        :can-answer="!!current && !result"
+        :simulate="simulate"
+        :pick="devPick"
+        :basic-ids="devBasicIds"
+        :graduated="graduated"
+        :unlock-at="Math.ceil(basic.length * DUAL_UNLOCK)"
+        :done="devDone"
+      />
       <div class="panel">
         <h2>{{ t('quiz.progress') }}</h2>
         <dl class="stats">
