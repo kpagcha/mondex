@@ -77,6 +77,32 @@
   box-shadow: var(--hard-sm);
 }
 
+:root[data-style='retro'] .quick-links .quick {
+  border: 2px solid var(--ink);
+  box-shadow: var(--hard-sm);
+  transition:
+    transform 0.08s ease-out,
+    box-shadow 0.08s ease-out;
+}
+/* Quick links lift like buttons, keeping their ink border. */
+:root[data-style='retro'] .quick-links .quick:hover {
+  border-color: var(--ink);
+  transform: translate(-1px, -1px);
+  box-shadow: var(--hard);
+}
+:root[data-style='retro'] .quick-links .quick:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-style='retro'] .quick-links .quick {
+    transition: none;
+  }
+  :root[data-style='retro'] .quick-links .quick:is(:hover, :active) {
+    transform: none;
+  }
+}
+
 :root[data-style='retro'] .confirm .panel {
   box-shadow: 6px 6px 0 var(--ink);
 }

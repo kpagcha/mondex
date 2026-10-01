@@ -204,13 +204,11 @@ export const messages: Record<keyof typeof en, string> = {
   'home.intro':
     'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
   'home.typesDesc': 'Cada tipo con sus debilidades, resistencias e inmunidades.',
-  'home.chartDesc': 'Cada tipo atacante contra cada tipo defensor.',
-  'home.calcDesc':
-    'Debilidades y resistencias de cualquier combinación de tipos, y la cobertura de un set de movimientos.',
-  'home.quizDesc':
-    'Aprende la tabla con repetición espaciada. Los enfrentamientos que falles vuelven hasta que te los sepas.',
 
   'types.intro': 'Elige un tipo.',
+  'quick.chart': 'Cada tipo contra cada tipo.',
+  'quick.calc': 'Debilidades, resistencias, cobertura.',
+  'quick.quiz': 'Repetición espaciada para la tabla.',
   'types.defending': 'Al defender',
   'types.attacking': 'Al atacar',
   'types.selectHint': 'Selecciona un tipo arriba para ver sus enfrentamientos.',

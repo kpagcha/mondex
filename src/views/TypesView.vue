@@ -10,6 +10,7 @@ import { FADE, PRESS, SPRING } from '@/lib/motion'
 import { hintFor } from '@/lib/hints'
 import { reveal } from '@/lib/scroll'
 import TypeIcon from '@/components/TypeIcon.vue'
+import QuickLinks from '@/components/QuickLinks.vue'
 import InfoRows, { type InfoRow } from '@/components/InfoRows.vue'
 
 // The selected type is the route param (`/types/fire`), validated by the route itself.
@@ -112,6 +113,7 @@ function onToggle(e: Event) {
 </script>
 
 <template>
+  <QuickLinks class="tools" />
   <div class="panel">
     <h1>{{ t('title.types') }}</h1>
     <p class="muted">{{ t('types.intro') }}</p>
@@ -201,6 +203,9 @@ function onToggle(e: Event) {
 </template>
 
 <style scoped>
+.tools {
+  margin-bottom: 12px;
+}
 .list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));

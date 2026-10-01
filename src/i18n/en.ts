@@ -202,11 +202,11 @@ export const messages = {
   'home.intro':
     'A competitive dex for {game}, up to date with Regulation {reg}. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
   'home.typesDesc': 'Every type with its weaknesses, resistances and immunities.',
-  'home.chartDesc': 'Every attacking type against every defending type.',
-  'home.calcDesc': 'Weaknesses and resistances for any type combination, and the coverage of a moveset.',
-  'home.quizDesc': 'Learn the chart with spaced repetition. Matchups you miss come back until you know them.',
 
   'types.intro': 'Pick a type.',
+  'quick.chart': 'Every type against every type.',
+  'quick.calc': 'Weaknesses, resistances, coverage.',
+  'quick.quiz': 'Spaced repetition for the chart.',
   'types.defending': 'Defending',
   'types.attacking': 'Attacking',
   'types.selectHint': 'Select a type above to see its matchups.',

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, MotionConfig, motion } from 'motion-v'
 import { FADE, PAGE, SPRING } from '@/lib/motion'
@@ -14,7 +14,18 @@ watchEffect(() => {
   document.title = key ? `${t(key)} · ${GAME_NAME} · mondex` : `mondex · ${GAME_NAME} dex`
 })
 
-// Same query as the phone-only styles below.
+// Pages under Types that get a back link to it.
+const isTool = (name: unknown) => name === 'chart' || name === 'calc' || name === 'quiz'
+
+// The header link to highlight: the dex section the current page belongs to.
+const section = computed(() => {
+  const name = route.name
+  if (name === 'types' || name === 'chart' || name === 'calc') return 'types'
+  if (name === 'quiz' || name === 'settings') return name
+  return null
+})
+
+// Phones (touch, narrow): pages slide instead of fading.
 const phoneQuery = window.matchMedia('(max-width: 720px) and (hover: none) and (pointer: coarse)')
 const isPhone = ref(phoneQuery.matches)
 phoneQuery.addEventListener('change', (e) => (isPhone.value = e.matches))
@@ -49,24 +60,17 @@ const fadeVariants = {
         <span class="format muted">{{ t('format.label', { game: GAME_NAME, reg: REGULATION }) }}</span>
         <nav class="nav font-display">
           <!-- The active highlight is one element that slides between links. -->
-          <RouterLink v-slot="{ isActive }" to="/types" active-class="active">
-            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+          <!-- Types covers its tools too (chart, calculator); the quiz has its own link. -->
+          <RouterLink to="/types" :class="{ active: section === 'types' }">
+            <motion.span v-if="section === 'types'" layout-id="nav-pill" class="pill" :transition="SPRING" />
             <span class="label">{{ t('nav.types') }}</span>
           </RouterLink>
-          <RouterLink v-slot="{ isActive }" to="/types/chart" active-class="active">
-            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
-            <span class="label">{{ t('nav.chart') }}</span>
-          </RouterLink>
-          <RouterLink v-slot="{ isActive }" to="/types/calc" active-class="active">
-            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
-            <span class="label">{{ t('nav.calc') }}</span>
-          </RouterLink>
-          <RouterLink v-slot="{ isActive }" to="/types/quiz" active-class="active">
-            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+          <RouterLink to="/types/quiz" :class="{ active: section === 'quiz' }">
+            <motion.span v-if="section === 'quiz'" layout-id="nav-pill" class="pill" :transition="SPRING" />
             <span class="label">{{ t('nav.quiz') }}</span>
           </RouterLink>
-          <RouterLink v-slot="{ isActive }" to="/settings" active-class="active" class="end">
-            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+          <RouterLink to="/settings" class="end" :class="{ active: section === 'settings' }">
+            <motion.span v-if="section === 'settings'" layout-id="nav-pill" class="pill" :transition="SPRING" />
             <span class="label">{{ t('nav.settings') }}</span>
           </RouterLink>
         </nav>
@@ -86,8 +90,8 @@ const fadeVariants = {
             exit="exit"
             :transition="isPhone ? PAGE : FADE"
           >
-            <!-- Mobile replaces the header links with a way back to the home page. -->
-            <RouterLink v-if="r.name !== 'home'" to="/" class="back font-display">
+            <!-- The type tools lead back to the Types page. -->
+            <RouterLink v-if="isTool(r.name)" to="/types" class="back font-display">
               <span class="chevron" aria-hidden="true">‹</span> {{ t('nav.back') }}
             </RouterLink>
             <component :is="Component" />
@@ -101,8 +105,6 @@ const fadeVariants = {
           {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
           {{ t('footer.copyright') }}
         </span>
-        <!-- Phones hide the header links, so settings are also reachable from here. -->
-        <RouterLink to="/settings" class="settings-link">{{ t('nav.settings') }}</RouterLink>
       </div>
     </footer>
     <ConfirmDialog />
@@ -186,7 +188,7 @@ const fadeVariants = {
 }
 
 .back {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 5px;
   width: fit-content;
@@ -209,13 +211,17 @@ const fadeVariants = {
   text-decoration: none;
 }
 
-/* Phones only: a narrow desktop window keeps the header links. */
-@media (max-width: 720px) and (hover: none) and (pointer: coarse) {
-  .nav {
+/* Narrow screens: the logo and the links share one row, so the format label goes. */
+@media (max-width: 560px) {
+  .format {
     display: none;
   }
-  .back {
-    display: flex;
+  .nav {
+    flex: 0 1 auto;
+    margin-left: auto;
+  }
+  .nav .end {
+    margin-left: 0;
   }
 }
 
@@ -239,9 +245,5 @@ main {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-.credits .settings-link {
-  margin-left: auto;
-  white-space: nowrap;
 }
 </style>
