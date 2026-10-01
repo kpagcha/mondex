@@ -1,28 +1,21 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef, watch } from 'vue'
-import { TYPES, type Multiplier, type TypeId } from '@/data/types'
-import { t, typeName } from '@/i18n'
-import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
+import { computed, defineAsyncComponent, ref, shallowRef, triggerRef, useTemplateRef, watch } from 'vue'
+import { TYPES } from '@/data/types'
+import { t } from '@/i18n'
 import { deckStats, emptyDeck, grade, loadDeck, pickNext, rollDay, saveDeck } from '@/lib/srs'
-import { AnimatePresence, motion } from 'motion-v'
-import { FADE, PRESS } from '@/lib/motion'
 import {
   MULTI_QUESTIONS,
   cardKind,
   cardLabel,
-  checkMulti,
-  explain,
   getCard,
   getCurriculum,
-  matchups,
-  multiPrompt,
   multiQuestion,
   newCardOrder,
   type Card,
 } from '@/lib/quiz'
 import { CHOICES, LIMITS, defaultSettings, loadSettings, normalize, saveSettings } from '@/lib/quizSettings'
-import { hintFor } from '@/lib/hints'
-import TypeIcon from '@/components/TypeIcon.vue'
+import { loadPractice, pickPractice, practicePool, savePractice } from '@/lib/practice'
+import QuizCard from '@/components/QuizCard.vue'
 import TypePicker from '@/components/TypePicker.vue'
 import { confirmDialog } from '@/composables/useConfirm'
 
@@ -58,7 +51,7 @@ const dualsOn = computed(() => {
 
 /**
  * Cards switched off in the settings (dual types, tick-all cards or some of their questions) are left out
- * entirely, reviews included; they resume, schedules intact, when switched back on.
+ * of study entirely, reviews included; they resume, schedules intact, when switched back on.
  */
 function skip(id: string): boolean {
   const kind = cardKind(id)
@@ -84,32 +77,51 @@ function* newIds() {
   yield* order.dual
 }
 
+// ---- Mode: study follows the schedule; practice is endless random cards that are never recorded ----
+const practicing = ref(false)
+const practice = ref(loadPractice())
+const pool = computed(() => {
+  void deck.value.tick
+  return practicePool(practice.value, deck.value, settings.value.questions)
+})
+const hasWeak = computed(() => {
+  void deck.value.tick
+  return Object.values(deck.value.cards).some((c) => c.lapses > 0)
+})
+let recent: string[] = []
+
 // ---- Current card ----
 const current = ref<Card | null>(null)
-
-// A single type can't take 4× or ¼×, so those are only offered against dual types.
-const SINGLE_MULTIPLIERS = MULTIPLIERS.filter((m) => m !== 0.25 && m !== 4)
-const options = computed(() =>
-  current.value?.kind === 'mult' && current.value.def.length === 1 ? SINGLE_MULTIPLIERS : MULTIPLIERS,
-)
-const picked = ref<TypeId[]>([])
-const result = ref<{ correct: boolean; choice?: Multiplier; missed: TypeId[]; wrong: TypeId[] } | null>(null)
-let shownAt = 0
-
-const session = ref({ seen: 0, correct: 0 })
+/** Bumped for every card shown, so QuizCard starts fresh even when a card is asked twice in a row. */
+const round = ref(0)
+const answered = ref(false)
+const cardRef = useTemplateRef<InstanceType<typeof QuizCard>>('card')
 
 function next(ignoreLimit = false) {
-  const id = pickNext(deck.value, { newIds: newIds(), avoid: current.value?.id, ignoreLimit, skip })
+  const id = practicing.value
+    ? pickPractice(pool.value, recent)
+    : pickNext(deck.value, { newIds: newIds(), avoid: current.value?.id, ignoreLimit, skip })
+  if (id && practicing.value) recent = [...recent.slice(-30), id]
   current.value = id ? (getCard(id) ?? null) : null
-  picked.value = []
-  result.value = null
-  shownAt = performance.now()
+  answered.value = false
+  round.value++
 }
 
-function record(correct: boolean, slow?: boolean) {
+const session = ref({ seen: 0, correct: 0 })
+const practiceStats = ref({ seen: 0, correct: 0, streak: 0 })
+
+function onAnswered(correct: boolean, ms: number) {
+  answered.value = true
   const c = current.value!
+  if (practicing.value) {
+    const p = practiceStats.value
+    p.seen++
+    if (correct) p.correct++
+    p.streak = correct ? p.streak + 1 : 0
+    return
+  }
   const secs = c.kind === 'mult' ? settings.value.slowMult : settings.value.slowMulti
-  slow ??= secs > 0 && performance.now() - shownAt > secs * 1000
+  const slow = secs > 0 && ms > secs * 1000
   grade(deck.value, c.id, correct ? (slow ? 3 : 4) : 1)
   saveDeck(deck.value)
   triggerRef(deck)
@@ -117,36 +129,22 @@ function record(correct: boolean, slow?: boolean) {
   if (correct) session.value.correct++
 }
 
-function answerMult(m: Multiplier) {
-  const c = current.value
-  if (!c || c.kind !== 'mult' || result.value) return
-  const correct = m === c.answer
-  result.value = { correct, choice: m, missed: [], wrong: [] }
-  record(correct)
+function startPractice() {
+  practicing.value = true
+  practiceStats.value = { seen: 0, correct: 0, streak: 0 }
+  recent = []
+  next()
+}
+function stopPractice() {
+  practicing.value = false
+  current.value = null
+  next()
 }
 
-function submitMulti() {
-  const c = current.value
-  if (!c || c.kind !== 'multi' || result.value) return
-  const r = checkMulti(c, picked.value)
-  result.value = r
-  record(r.correct)
-}
+next()
 
-/** Dev: answer the current card as if right (quick or slow) or wrong, without picking. */
-function simulate(correct: boolean, slow = false) {
-  const c = current.value
-  if (!c || result.value) return
-  if (c.kind === 'mult') {
-    const choice = correct ? c.answer : options.value.find((m) => m !== c.answer)!
-    result.value = { correct, choice, missed: [], wrong: [] }
-  } else {
-    picked.value = correct ? [...c.answer] : c.answer.slice(1)
-    result.value = checkMulti(c, picked.value)
-  }
-  record(correct, slow)
-}
-
+/** Dev: answer the current card as if right (quick or slow) or wrong. */
+const simulate = (correct: boolean, slow?: boolean) => cardRef.value?.simulate(correct, slow)
 /** Dev: the card the quiz would show next, ignoring the daily limit. */
 const devPick = (avoid?: string) => pickNext(deck.value, { newIds: newIds(), avoid, ignoreLimit: true, skip })
 const devBasicIds = computed(() => {
@@ -159,71 +157,13 @@ function devDone() {
   next()
 }
 
-/** After answering: the memory hook for each matchup the card is about. */
-const hints = computed(() => {
-  const c = current.value
-  if (!result.value || !c || !settings.value.hints) return []
-  return matchups(c).flatMap(([atk, def]) => {
-    const text = hintFor(atk, def)
-    return text ? [{ atk, def, text }] : []
-  })
-})
-
-const marks = computed(() => {
-  const c = current.value
-  if (!result.value || !c || c.kind !== 'multi') return undefined
-  const m: Partial<Record<TypeId, 'ok' | 'missed' | 'wrong'>> = {}
-  for (const t of c.answer) m[t] = picked.value.includes(t) ? 'ok' : 'missed'
-  for (const t of result.value.wrong) m[t] = 'wrong'
-  return m
-})
-
-function names(ts: TypeId[]) {
-  return ts.map(typeName).join(', ')
-}
-
-// ---- Keyboard: 1–6 answer, Enter submits / continues ----
-function onKey(e: KeyboardEvent) {
-  if (e.ctrlKey || e.metaKey || e.altKey) return
-  const tag = (e.target as HTMLElement | null)?.tagName
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-  const c = current.value
-  if (!c) return
-  if (result.value) {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      next()
-    }
-    return
-  }
-  if (import.meta.env.DEV && (e.key === 'c' || e.key === 'x')) {
-    simulate(e.key === 'c')
-    return
-  }
-  if (c.kind === 'mult') {
-    const i = Number(e.key) - 1
-    if (i >= 0 && i < options.value.length) answerMult(options.value[i]!)
-  } else if (e.key === 'Enter') {
-    e.preventDefault()
-    submitMulti()
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', onKey)
-  next()
-})
-onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
-
 // ---- Stats & settings ----
 const stats = computed(() => {
   void deck.value.tick
   return deckStats(deck.value, Date.now(), skip)
 })
 const total = computed(() => [...basic, ...dual].filter((c) => !skip(c.id)).length)
-const accuracy = computed(() =>
-  session.value.seen ? Math.round((100 * session.value.correct) / session.value.seen) : 0,
-)
+const percent = (n: number, of: number) => (of ? Math.round((100 * n) / of) : 0)
 const weakSpots = computed(() => {
   void deck.value.tick
   return Object.entries(deck.value.cards)
@@ -239,6 +179,13 @@ function learnMore() {
   saveDeck(deck.value)
   triggerRef(deck)
   next()
+}
+
+/** Whether the unanswered card on screen is no longer allowed by the settings or practice options. */
+function currentExcluded(): boolean {
+  const c = current.value
+  if (!c || answered.value) return false
+  return practicing.value ? !pool.value.some((w) => w.id === c.id) : skip(c.id)
 }
 
 // Settings apply from the next card; an unanswered card that was just switched off is replaced now.
@@ -260,7 +207,16 @@ watch(
       triggerRef(deck)
     }
     saveSettings(s)
-    if (!current.value || (!result.value && skip(current.value.id))) next()
+    if (!current.value || currentExcluded()) next()
+  },
+  { deep: true },
+)
+
+watch(
+  practice,
+  (o) => {
+    savePractice(o)
+    if (practicing.value && (!current.value || currentExcluded())) next()
   },
   { deep: true },
 )
@@ -286,137 +242,46 @@ async function reset() {
   current.value = null
   next()
 }
-
-const KEYS = ['1', '2', '3', '4', '5', '6']
-
-// After answering: the right answer pops, a wrong pick gives a small shake.
-function ansAnimate(m: Multiplier) {
-  if (!result.value || current.value?.kind !== 'mult') return {}
-  if (m === current.value.answer) return { scale: [1, 1.06, 1] }
-  if (m === result.value.choice) return { x: [0, -4, 4, -2, 0] }
-  return {}
-}
 </script>
 
 <template>
   <div class="layout">
     <section class="panel card">
-      <!-- Each question slides in as the previous one slides out. -->
-      <AnimatePresence mode="wait" :initial="false">
-        <motion.div
-          :key="current?.id ?? 'done'"
-          :initial="{ opacity: 0, x: 12 }"
-          :animate="{ opacity: 1, x: 0 }"
-          :exit="{ opacity: 0, x: -12 }"
-          :transition="FADE"
-        >
-          <template v-if="current?.kind === 'mult'">
-            <p class="muted q">{{ t('quiz.howEffective') }}</p>
-            <div class="matchup">
-              <TypeIcon :type="current.atk" :scale="2" />
-              <span class="arrow">→</span>
-              <span class="defs">
-                <TypeIcon v-for="t in current.def" :key="t" :type="t" :scale="2" />
-              </span>
-            </div>
-            <!-- One row of buttons, or two rows on phones. -->
-            <div class="answers" :style="{ '--cols': options.length, '--cols-narrow': options.length / 2 }">
-              <motion.button
-                v-for="(m, i) in options"
-                :key="m"
-                type="button"
-                class="btn ans num"
-                :class="{
-                  right: result && m === current.answer,
-                  miss: result && m === result.choice && !result.correct,
-                }"
-                :disabled="!!result"
-                :while-press="result ? undefined : PRESS"
-                :animate="ansAnimate(m)"
-                :transition="{ duration: 0.3 }"
-                @click="answerMult(m)"
-              >
-                <kbd>{{ KEYS[i] }}</kbd
-                >{{ formatMult(m) }}
-              </motion.button>
-            </div>
-          </template>
+      <div v-if="practicing" class="practice-bar small">
+        <span class="muted">{{ t('practice.bar') }}</span>
+        <button type="button" class="link" @click="stopPractice">{{ t('practice.back') }}</button>
+      </div>
 
-          <template v-else-if="current?.kind === 'multi'">
-            <p class="q prompt">
-              <span v-if="multiPrompt(current)[0]">{{ multiPrompt(current)[0] }}</span>
-              <TypeIcon :type="current.type" :scale="2" />
-              <span>{{ multiPrompt(current)[1] }}</span>
-            </p>
-            <p class="muted small">{{ t('quiz.tickAll') }}</p>
-            <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
-          </template>
-
-          <div v-else class="done">
-            <h2>{{ t('quiz.caughtUp') }}</h2>
-            <p class="muted">{{ t('quiz.caughtUpText', { n: deck.newLimit }) }}</p>
-            <button type="button" class="btn primary" @click="learnMore">
-              {{ t('quiz.learnMore', { n: settings.learnMoreStep }) }}
-            </button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-
-      <!-- The button sits right under the question, in the same place before and after answering;
-           feedback appears below it, so its length never moves the button. -->
-      <div v-if="current" class="bottom">
-        <div class="actions">
-          <button v-if="result" type="button" class="btn primary" @click="next()">
-            {{ t('quiz.next') }} <kbd>Enter</kbd>
+      <QuizCard
+        v-if="current"
+        ref="card"
+        :card="current"
+        :round="round"
+        :hints="settings.hints"
+        @answered="onAnswered"
+        @next="next()"
+      />
+      <div v-else-if="practicing" class="done">
+        <p class="muted">{{ t('practice.empty') }}</p>
+      </div>
+      <div v-else class="done">
+        <h2>{{ t('quiz.caughtUp') }}</h2>
+        <p class="muted">{{ t('quiz.caughtUpText', { n: deck.newLimit }) }}</p>
+        <div class="buttons">
+          <button type="button" class="btn primary" @click="learnMore">
+            {{ t('quiz.learnMore', { n: settings.learnMoreStep }) }}
           </button>
-          <button v-else-if="current.kind === 'multi'" type="button" class="btn primary" @click="submitMulti">
-            {{ t('quiz.submit') }} <kbd>Enter</kbd>
-          </button>
-          <!-- Multiplier cards are answered by their buttons; this keeps the row's height. -->
-          <button v-else type="button" class="btn primary placeholder" tabindex="-1" aria-hidden="true">
-            {{ t('quiz.next') }} <kbd>Enter</kbd>
-          </button>
+          <button type="button" class="btn" @click="startPractice">{{ t('practice.start') }}</button>
         </div>
-        <motion.div
-          v-if="result"
-          class="feedback"
-          :class="result.correct ? 'ok' : 'bad'"
-          :initial="{ opacity: 0, y: 6 }"
-          :animate="{ opacity: 1, y: 0 }"
-          :transition="FADE"
-        >
-          <div class="verdict">
-            <b>{{ t(result.correct ? 'quiz.correct' : 'quiz.wrong') }}</b>
-            <template v-if="current.kind === 'mult'">
-              <span class="mult-tag" :class="multClass(current.answer)">{{ formatMult(current.answer) }}</span>
-              <span class="muted">{{ explain(current) }}</span>
-            </template>
-            <template v-else-if="!result.correct">
-              <span v-if="result.missed.length">{{ t('quiz.missed', { list: names(result.missed) }) }}</span>
-              <span v-if="result.wrong.length">{{ t('quiz.extra', { list: names(result.wrong) }) }}</span>
-            </template>
-          </div>
-          <!-- Memory hooks to reinforce the answer (Advanced settings > Show hints). -->
-          <ul v-if="hints.length" class="hints">
-            <li v-for="h in hints" :key="h.atk + h.def">
-              <span class="pair">
-                <TypeIcon :type="h.atk" />
-                <span class="muted">→</span>
-                <TypeIcon :type="h.def" />
-              </span>
-              <span>{{ h.text }}</span>
-            </li>
-          </ul>
-        </motion.div>
       </div>
     </section>
 
     <aside>
       <component
         :is="QuizDevTools"
-        v-if="QuizDevTools"
+        v-if="QuizDevTools && !practicing"
         :deck="deck"
-        :can-answer="!!current && !result"
+        :can-answer="!!current && !answered"
         :simulate="simulate"
         :pick="devPick"
         :basic-ids="devBasicIds"
@@ -424,12 +289,40 @@ function ansAnimate(m: Multiplier) {
         :unlock-at="unlockAt"
         :done="devDone"
       />
-      <div class="panel">
+
+      <div v-if="practicing" class="panel practice small">
+        <h2>{{ t('practice.title') }}</h2>
+        <dl class="stats">
+          <dt>{{ t('practice.answered') }}</dt>
+          <dd class="num">
+            {{ practiceStats.correct }}/{{ practiceStats.seen }}
+            <span class="muted">({{ percent(practiceStats.correct, practiceStats.seen) }}%)</span>
+          </dd>
+          <dt>{{ t('practice.streak') }}</dt>
+          <dd class="num">{{ practiceStats.streak }}</dd>
+        </dl>
+
+        <h3>{{ t('practice.cards') }}</h3>
+        <label class="check"><input v-model="practice.single" type="checkbox" /> {{ t('practice.single') }}</label>
+        <label class="check"><input v-model="practice.multi" type="checkbox" /> {{ t('practice.multi') }}</label>
+        <label class="check"><input v-model="practice.dual" type="checkbox" /> {{ t('practice.dual') }}</label>
+        <label class="check">
+          <input v-model="practice.weakOnly" type="checkbox" :disabled="!hasWeak && !practice.weakOnly" />
+          {{ t('practice.weakOnly') }}
+        </label>
+
+        <h3>{{ t('practice.focus') }}</h3>
+        <TypePicker v-model="practice.focus" />
+        <p class="muted note">{{ t('practice.focusNote') }}</p>
+      </div>
+
+      <div v-else class="panel">
         <h2>{{ t('quiz.progress') }}</h2>
         <dl class="stats">
           <dt>{{ t('quiz.session') }}</dt>
           <dd class="num">
-            {{ session.correct }}/{{ session.seen }} <span class="muted">({{ accuracy }}%)</span>
+            {{ session.correct }}/{{ session.seen }}
+            <span class="muted">({{ percent(session.correct, session.seen) }}%)</span>
           </dd>
           <dt>{{ t('quiz.newToday') }}</dt>
           <dd class="num">{{ Math.min(deck.newToday, deck.newLimit) }}/{{ deck.newLimit }}</dd>
@@ -442,6 +335,8 @@ function ansAnimate(m: Multiplier) {
           <dt>{{ t('quiz.mature') }}</dt>
           <dd class="num">{{ stats.mature }}</dd>
         </dl>
+        <button type="button" class="btn" @click="startPractice">{{ t('practice.start') }}</button>
+        <p class="muted small side-note">{{ t('practice.note') }}</p>
       </div>
 
       <details class="panel settings small">
@@ -574,136 +469,61 @@ function ansAnimate(m: Multiplier) {
 .card {
   min-height: 260px;
 }
-
-.q {
-  margin-bottom: 12px;
-}
-.prompt {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: calc(15px * var(--text-scale));
-  font-weight: bold;
-  margin-bottom: 4px;
-}
 .small {
   font-size: calc(11px * var(--text-scale));
-}
-
-.matchup {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 20px 0 24px;
-}
-.arrow {
-  font-size: calc(20px * var(--text-scale));
-  color: var(--muted);
-}
-.defs {
-  display: inline-flex;
-  gap: 4px;
-}
-
-.answers {
-  display: grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
-  gap: 6px;
-}
-@media (max-width: 480px) {
-  .answers {
-    grid-template-columns: repeat(var(--cols-narrow), 1fr);
-  }
-}
-.ans {
-  gap: 8px;
-  min-height: 40px;
-  font-size: calc(15px * var(--text-scale));
-  font-weight: bold;
-}
-.ans:disabled {
-  opacity: 0.55;
-}
-.ans.right {
-  opacity: 1;
-  border-color: var(--good);
-  box-shadow: inset 0 0 0 2px var(--good);
-}
-.ans.miss {
-  opacity: 1;
-  border-color: var(--bad);
-  box-shadow: inset 0 0 0 2px var(--bad);
-}
-
-kbd {
-  font:
-    10px/1 Verdana,
-    sans-serif;
-  padding: 2px 3px;
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  color: var(--muted);
-}
-.btn.primary kbd {
-  color: inherit;
-  border-color: currentColor;
-  opacity: 0.8;
-}
-/* Touch-first devices (phones, tablets) usually have no keyboard. */
-@media (hover: none) and (pointer: coarse) {
-  kbd {
-    display: none;
-  }
-}
-
-.actions {
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
-.actions .placeholder {
-  visibility: hidden;
-}
-/* Phones: one full-width button at the bottom of the card. */
-@media (max-width: 760px) {
-  .actions .btn {
-    flex: 1;
-    min-height: 44px;
-  }
-}
-
-.feedback {
-  margin-top: 14px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-left-width: 4px;
-  border-radius: 3px;
-  background: var(--panel-alt);
-}
-.feedback.ok {
-  border-left-color: var(--good);
-}
-.feedback.ok b {
-  color: var(--good);
-}
-.feedback.bad {
-  border-left-color: var(--bad);
-}
-.feedback.bad b {
-  color: var(--bad);
-}
-.verdict {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 10px;
 }
 
 .done {
   text-align: center;
   padding: 40px 0;
+}
+.done .buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Practice: a slim bar above the card, and its options in the sidebar. */
+.practice-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: -12px -12px 12px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 4px 4px 0 0;
+  background: var(--panel-alt);
+}
+.link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--link);
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.practice h3 {
+  margin: 10px 0 6px;
+  font-size: inherit;
+  color: var(--muted);
+}
+.practice .check,
+.settings .check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.practice .note {
+  margin: 6px 0 0;
+}
+.side-note {
+  margin: 6px 0 0;
 }
 
 .stats {
@@ -736,12 +556,6 @@ kbd {
   gap: 8px;
   margin-bottom: 6px;
 }
-.settings .check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-}
 .settings input[type='number'] {
   width: 4.5em;
   font: inherit;
@@ -767,30 +581,7 @@ kbd {
 .settings p {
   margin: 0 0 10px;
 }
-select:disabled {
-  opacity: 0.5;
-}
 
-.hints {
-  display: grid;
-  gap: 4px;
-  margin: 8px 0 0;
-  padding: 8px 0 0;
-  border-top: 1px solid var(--border);
-  list-style: none;
-}
-.hints li {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-.hints .pair {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  align-self: center;
-}
 select {
   font: inherit;
   color: inherit;
@@ -798,6 +589,9 @@ select {
   border: 1px solid var(--border-strong);
   border-radius: 3px;
   padding: 2px 4px;
+}
+select:disabled {
+  opacity: 0.5;
 }
 
 .weak {
