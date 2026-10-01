@@ -28,10 +28,10 @@ export const messages = {
   'title.chart': 'Type chart',
   'title.calc': 'Type calculator',
   'title.quiz': 'Type quiz',
+  'theme.label': 'Theme',
+  'theme.auto': 'Auto',
   'theme.light': 'Light',
   'theme.dark': 'Dark',
-  'theme.toLight': 'Switch to light theme',
-  'theme.toDark': 'Switch to dark theme',
   'lang.label': 'Language',
 
   'home.intro':

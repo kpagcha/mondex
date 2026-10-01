@@ -30,10 +30,10 @@ export const messages: Record<keyof typeof en, string> = {
   'title.chart': 'Tabla de tipos',
   'title.calc': 'Calculadora de tipos',
   'title.quiz': 'Test de tipos',
+  'theme.label': 'Tema',
+  'theme.auto': 'Auto',
   'theme.light': 'Claro',
   'theme.dark': 'Oscuro',
-  'theme.toLight': 'Cambiar al tema claro',
-  'theme.toDark': 'Cambiar al tema oscuro',
   'lang.label': 'Idioma',
 
   'home.intro':

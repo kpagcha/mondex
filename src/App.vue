@@ -3,10 +3,10 @@ import { watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, MotionConfig, motion } from 'motion-v'
 import { FADE, SPRING } from '@/lib/motion'
-import { useTheme } from '@/composables/useTheme'
+import { THEME_MODES, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
 
-const { theme, toggle } = useTheme()
+const { mode, setMode } = useTheme()
 const isDev = import.meta.env.DEV
 const route = useRoute()
 
@@ -14,10 +14,6 @@ watchEffect(() => {
   const key = route.meta.titleKey
   document.title = key ? `${t(key)} · mondex` : 'mondex'
 })
-
-function onLang(e: Event) {
-  setLocale((e.target as HTMLSelectElement).value as Locale)
-}
 </script>
 
 <template>
@@ -41,19 +37,6 @@ function onLang(e: Event) {
             <span class="label">{{ t('nav.quiz') }}</span>
           </RouterLink>
         </nav>
-        <div class="controls">
-          <select class="lang" :value="locale" :aria-label="t('lang.label')" v-tip="t('lang.label')" @change="onLang">
-            <option v-for="(label, code) in LOCALES" :key="code" :value="code">{{ label }}</option>
-          </select>
-          <button
-            class="btn theme"
-            type="button"
-            v-tip="t(theme === 'dark' ? 'theme.toLight' : 'theme.toDark')"
-            @click="toggle"
-          >
-            {{ t(theme === 'dark' ? 'theme.dark' : 'theme.light') }}
-          </button>
-        </div>
       </div>
     </header>
     <main class="wrap">
@@ -73,11 +56,28 @@ function onLang(e: Event) {
       </RouterView>
     </main>
     <footer class="wrap footer muted">
-      <span>
-        {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
-        {{ t('footer.copyright') }}
-      </span>
-      <RouterLink v-if="isDev" to="/dev" class="dev">Dev</RouterLink>
+      <!-- Language and theme are detected automatically, so they live down here. -->
+      <div class="settings">
+        <label class="setting">
+          {{ t('lang.label') }}
+          <select :value="locale" @change="setLocale(($event.target as HTMLSelectElement).value as Locale)">
+            <option v-for="(label, code) in LOCALES" :key="code" :value="code" :lang="code">{{ label }}</option>
+          </select>
+        </label>
+        <label class="setting">
+          {{ t('theme.label') }}
+          <select :value="mode" @change="setMode(($event.target as HTMLSelectElement).value as ThemeMode)">
+            <option v-for="m in THEME_MODES" :key="m" :value="m">{{ t(`theme.${m}`) }}</option>
+          </select>
+        </label>
+      </div>
+      <div class="credits">
+        <span>
+          {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
+          {{ t('footer.copyright') }}
+        </span>
+        <RouterLink v-if="isDev" to="/dev" class="dev">Dev</RouterLink>
+      </div>
     </footer>
   </MotionConfig>
 </template>
@@ -99,9 +99,11 @@ function onLang(e: Event) {
 .bar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  min-height: 44px;
   flex-wrap: wrap;
+  gap: 4px 16px;
+  min-height: 44px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .logo {
@@ -120,10 +122,15 @@ function onLang(e: Event) {
 .nav {
   display: flex;
   gap: 4px;
-  flex: 1;
-  flex-wrap: wrap;
+  /* Sits beside the logo when it fits, else drops to its own row (scrolling sideways as a last resort). */
+  flex: 1 0 auto;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 .nav a {
+  flex: none;
+  white-space: nowrap;
   position: relative;
   padding: 4px 8px;
   border-radius: 3px;
@@ -143,48 +150,9 @@ function onLang(e: Event) {
   position: relative;
 }
 
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.lang {
-  min-height: 26px;
-  padding: 2px 4px;
-  font: inherit;
-  color: inherit;
-  background: var(--panel-alt);
-  border: 1px solid var(--border-strong);
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.theme {
-  min-width: 64px;
-}
-
-/* Phones: logo + controls on the first row, nav on its own full-width row. */
 @media (max-width: 720px) {
   .bar {
-    gap: 8px 12px;
-    padding-top: 8px;
-  }
-  .controls {
-    margin-left: auto;
-  }
-  .nav {
-    order: 1;
-    flex: 1 0 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    margin: 0 -16px;
-    padding: 0 16px 8px;
-  }
-  .nav a {
-    flex: none;
-    white-space: nowrap;
+    column-gap: 12px;
   }
 }
 
@@ -197,20 +165,41 @@ main {
   padding-bottom: 24px;
   font-size: calc(11px * var(--text-scale));
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.setting {
+  display: flex;
   align-items: center;
   gap: 8px;
 }
-.footer .dev {
+
+.setting select {
+  min-height: 26px;
+  padding: 2px 4px;
+  font: inherit;
+  color: var(--text);
+  background: var(--panel-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.credits {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.credits .dev {
   padding: 0 4px;
   border: 1px dashed var(--border-strong);
   border-radius: 3px;
   color: var(--muted);
-}
-@media (max-width: 720px) {
-  .footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
 }
 </style>
