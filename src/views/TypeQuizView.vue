@@ -51,6 +51,12 @@ function* newIds() {
 
 // ---- Current card ----
 const current = ref<Card | null>(null)
+
+// A single type can't take 4× or ¼×, so those are only offered against dual types.
+const SINGLE_MULTIPLIERS = MULTIPLIERS.filter((m) => m !== 0.25 && m !== 4)
+const options = computed(() =>
+  current.value?.kind === 'mult' && current.value.def.length === 1 ? SINGLE_MULTIPLIERS : MULTIPLIERS,
+)
 const picked = ref<TypeId[]>([])
 const result = ref<{ correct: boolean; choice?: Multiplier; missed: TypeId[]; wrong: TypeId[] } | null>(null)
 let shownAt = 0
@@ -120,7 +126,7 @@ function onKey(e: KeyboardEvent) {
   }
   if (c.kind === 'mult') {
     const i = Number(e.key) - 1
-    if (i >= 0 && i < MULTIPLIERS.length) answerMult(MULTIPLIERS[i]!)
+    if (i >= 0 && i < options.value.length) answerMult(options.value[i]!)
   } else if (e.key === 'Enter') {
     e.preventDefault()
     submitMulti()
@@ -208,9 +214,10 @@ function ansAnimate(m: Multiplier) {
                 <TypeIcon v-for="t in current.def" :key="t" :type="t" :scale="2" />
               </span>
             </div>
-            <div class="answers">
+            <!-- One row of buttons, or two rows on phones. -->
+            <div class="answers" :style="{ '--cols': options.length, '--cols-narrow': options.length / 2 }">
               <motion.button
-                v-for="(m, i) in MULTIPLIERS"
+                v-for="(m, i) in options"
                 :key="m"
                 type="button"
                 class="btn ans num"
@@ -382,12 +389,12 @@ function ansAnimate(m: Multiplier) {
 
 .answers {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(var(--cols), 1fr);
   gap: 6px;
 }
 @media (max-width: 480px) {
   .answers {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(var(--cols-narrow), 1fr);
   }
 }
 .ans {
