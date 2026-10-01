@@ -34,7 +34,6 @@ const setAtk = (v: TypeId[]) => setQuery({ atk: v.join(',') })
 const DEF_ROWS: { m: Multiplier; label: MessageKey }[] = [
   { m: 4, label: 'calc.weak' },
   { m: 2, label: 'calc.weak' },
-  { m: 1, label: 'calc.neutral' },
   { m: 0.5, label: 'calc.resists' },
   { m: 0.25, label: 'calc.resists' },
   { m: 0, label: 'calc.immune' },

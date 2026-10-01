@@ -54,7 +54,6 @@ export const messages = {
   'calc.pickDef': 'Pick one or two defending types.',
   'calc.pickAtk': 'Pick up to four attacking types (a moveset) to see what they hit.',
   'calc.weak': 'Weak',
-  'calc.neutral': 'Neutral',
   'calc.resists': 'Resists',
   'calc.immune': 'Immune',
   'calc.againstEach': 'Against each type:',

@@ -58,7 +58,6 @@ export const messages: Record<keyof typeof en, string> = {
   'calc.pickDef': 'Elige uno o dos tipos defensores.',
   'calc.pickAtk': 'Elige hasta cuatro tipos atacantes (un set de movimientos) para ver a qué golpean.',
   'calc.weak': 'Débil',
-  'calc.neutral': 'Neutro',
   'calc.resists': 'Resiste',
   'calc.immune': 'Inmune',
   'calc.againstEach': 'Contra cada tipo:',
