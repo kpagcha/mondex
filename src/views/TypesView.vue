@@ -187,8 +187,7 @@ function onToggle(e: Event) {
 
 .sides {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px 24px;
+  gap: 20px;
 }
 
 .groups {
