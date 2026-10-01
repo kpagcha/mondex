@@ -241,40 +241,15 @@
 }
 
 /* Type grids (the types list and the type picker): no cell around each type, the badge is the button. A selected
-   type is pressed in, shifted onto its shadow, while the rest stay raised, and gets a marker below. */
+   type is pushed in: its raised shadow turns into an inset one, while the rest stay raised. */
 :root[data-style='retro'] :is(.list, .picker) .opt {
-  position: relative;
-  /* Room below the badge for the selection marker. */
-  padding-bottom: 10px;
   background: none;
   border-color: transparent;
   box-shadow: none;
   opacity: 1;
 }
-
-/* Selection marker: a short bar in the text color under each selected badge. In the types list it's the sliding pill,
-   so it glides from type to type; in the picker, where several can be on, each one pops in. */
-:root[data-style='retro'] .list .opt .pill,
-:root[data-style='retro'] .picker .opt.on::after {
-  inset: auto auto 2px calc(50% - 12px);
-  width: 24px;
-  height: 3px;
-  background: var(--text);
-}
-:root[data-style='retro'] .picker .opt.on::after {
-  content: '';
-  position: absolute;
-  animation: marker-in 0.2s cubic-bezier(0.3, 1.35, 0.6, 1);
-}
-@keyframes marker-in {
-  from {
-    transform: scaleX(0);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  :root[data-style='retro'] .picker .opt.on::after {
-    animation: none;
-  }
+:root[data-style='retro'] .list .opt .pill {
+  display: none;
 }
 
 /* Badges that are links or buttons lift on hover instead of underlining, settling with a very slight bounce. */
@@ -299,10 +274,13 @@
   }
 }
 
-/* Selected (pressed in) wins over the hover lift. */
+/* Selected (pushed in) wins over the hover lift. */
 :root[data-style='retro'] :is(.list, .picker) .opt.on .type-badge:is(.s1, .s2) {
-  transform: translate(2px, 2px);
-  box-shadow: none;
+  transform: none;
+  box-shadow: inset 2px 2px 0 rgb(0 0 0 / 0.35);
+}
+:root[data-style='retro'] :is(.list, .picker) .opt.on .type-badge.s2 {
+  box-shadow: inset 3px 3px 0 rgb(0 0 0 / 0.35);
 }
 
 /* The quiz picker's marks after answering, as a ring around the badge: right, missed (dashed) and wrong. */
