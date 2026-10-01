@@ -17,7 +17,7 @@ import TypeIcon from '@/components/TypeIcon.vue'
 const GROUPS: { key: 'display' | 'body' | 'num'; title: string; hint: string; options: FontOption[] }[] = [
   { key: 'display', title: 'Display', hint: 'Logo, headings, nav, tabs.', options: DISPLAY_FONTS },
   { key: 'body', title: 'Body', hint: 'Everything else.', options: BODY_FONTS },
-  { key: 'num', title: 'Numbers', hint: 'Chart cells, multipliers, quiz answers, stats.', options: NUM_FONTS },
+  { key: 'num', title: 'Numbers', hint: 'Multipliers, quiz, stats.', options: NUM_FONTS },
 ]
 
 const SAMPLE_EN = 'Which attacking types are super effective against Water/Ground? Grass is 4×, Electric has no effect.'
