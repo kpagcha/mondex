@@ -188,9 +188,10 @@ export const messages = {
   'theme.light': 'Light',
   'theme.dark': 'Dark',
   'lang.label': 'Language',
+  'format.label': '{game} · Regulation {reg}',
 
   'home.intro':
-    'A competitive Pokémon dex. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
+    'A competitive dex for {game}, up to date with Regulation {reg}. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
   'home.typesDesc': 'Every type with its weaknesses, resistances and immunities.',
   'home.chartDesc': 'Every attacking type against every defending type.',
   'home.calcDesc': 'Weaknesses and resistances for any type combination, and the coverage of a moveset.',

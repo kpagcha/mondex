@@ -5,6 +5,7 @@ import { AnimatePresence, MotionConfig, motion } from 'motion-v'
 import { FADE, PAGE, SPRING } from '@/lib/motion'
 import { THEME_MODES, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
+import { GAME_NAME, REGULATION } from '@/data/format'
 
 const { mode, setMode } = useTheme()
 const isDev = import.meta.env.DEV
@@ -12,7 +13,7 @@ const route = useRoute()
 
 watchEffect(() => {
   const key = route.meta.titleKey
-  document.title = key ? `${t(key)} · mondex` : 'mondex'
+  document.title = key ? `${t(key)} · ${GAME_NAME} · mondex` : `mondex · ${GAME_NAME} dex`
 })
 
 // Same query as the phone-only styles below.
@@ -47,6 +48,7 @@ const fadeVariants = {
     <header class="site-header">
       <div class="wrap bar">
         <RouterLink to="/" class="logo font-display">mon<span>dex</span></RouterLink>
+        <span class="format muted">{{ t('format.label', { game: GAME_NAME, reg: REGULATION }) }}</span>
         <nav class="nav font-display">
           <!-- The active highlight is one element that slides between links. -->
           <RouterLink v-slot="{ isActive }" to="/types" active-class="active">
@@ -154,6 +156,10 @@ const fadeVariants = {
 }
 .logo:hover {
   text-decoration: none;
+}
+.format {
+  font-size: calc(11px * var(--text-scale));
+  white-space: nowrap;
 }
 
 .nav {

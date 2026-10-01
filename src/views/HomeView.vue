@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { t } from '@/i18n'
+import { GAME_NAME, REGULATION } from '@/data/format'
 </script>
 
 <template>
   <div class="panel">
     <h1>mondex</h1>
-    <p class="muted">{{ t('home.intro') }}</p>
+    <p class="muted">{{ t('home.intro', { game: GAME_NAME, reg: REGULATION }) }}</p>
   </div>
   <div class="tools">
     <RouterLink to="/types" class="panel tool">

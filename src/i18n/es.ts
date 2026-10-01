@@ -190,9 +190,10 @@ export const messages: Record<keyof typeof en, string> = {
   'theme.light': 'Claro',
   'theme.dark': 'Oscuro',
   'lang.label': 'Idioma',
+  'format.label': '{game} · Reglamento {reg}',
 
   'home.intro':
-    'Una Pokédex competitiva. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
+    'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
   'home.typesDesc': 'Cada tipo con sus debilidades, resistencias e inmunidades.',
   'home.chartDesc': 'Cada tipo atacante contra cada tipo defensor.',
   'home.calcDesc':
