@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { t, type MessageKey } from '@/i18n'
 
-// Links to the type tools, as a row of cards with a one-line description each.
-const LINKS: { to: string; label: MessageKey; desc: MessageKey }[] = [
-  { to: '/types/chart', label: 'nav.chart', desc: 'quick.chart' },
-  { to: '/types/calc', label: 'nav.calc', desc: 'quick.calc' },
-  { to: '/types/quiz', label: 'nav.quiz', desc: 'quick.quiz' },
+// Links to the type tools, as a row of cards. `compact` (the Types page) gives each a one-line description; otherwise
+// (the home page, with narrower cards) a slightly longer one that may wrap.
+defineProps<{ compact?: boolean }>()
+
+const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey }[] = [
+  { to: '/types/chart', label: 'nav.chart', desc: 'quick.chart', long: 'quick.chartLong' },
+  { to: '/types/calc', label: 'nav.calc', desc: 'quick.calc', long: 'quick.calcLong' },
+  { to: '/types/quiz', label: 'nav.quiz', desc: 'quick.quiz', long: 'quick.quizLong' },
 ]
 </script>
 
 <template>
-  <div class="quick-links">
+  <div class="quick-links" :class="{ compact }">
     <RouterLink v-for="l in LINKS" :key="l.to" :to="l.to" class="quick">
       <span class="quick-title font-display">{{ t(l.label) }} <span class="arrow" aria-hidden="true">›</span></span>
-      <span class="quick-desc muted">{{ t(l.desc) }}</span>
+      <span class="quick-desc muted">{{ t(compact ? l.desc : l.long) }}</span>
     </RouterLink>
   </div>
 </template>
@@ -55,7 +58,9 @@ const LINKS: { to: string; label: MessageKey; desc: MessageKey }[] = [
 .quick-desc {
   font-size: calc(12px * var(--text-scale));
   line-height: 1.4;
-  /* One line, cut short with an ellipsis if a card gets too narrow. */
+}
+/* One line, cut short with an ellipsis if a card gets too narrow. */
+.compact .quick-desc {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

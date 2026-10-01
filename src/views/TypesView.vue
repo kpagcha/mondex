@@ -113,7 +113,7 @@ function onToggle(e: Event) {
 </script>
 
 <template>
-  <QuickLinks class="tools" />
+  <QuickLinks compact class="tools" />
   <div class="panel">
     <h1>{{ t('title.types') }}</h1>
     <p class="muted">{{ t('types.intro') }}</p>
