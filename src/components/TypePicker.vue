@@ -2,6 +2,8 @@
 import { TYPES, type TypeId } from '@/data/types'
 import { typeName } from '@/i18n'
 import TypeIcon from '@/components/TypeIcon.vue'
+import { motion } from 'motion-v'
+import { PRESS } from '@/lib/motion'
 
 const props = withDefaults(
   defineProps<{
@@ -34,7 +36,7 @@ function toggle(t: TypeId) {
 
 <template>
   <div class="picker" role="group">
-    <button
+    <motion.button
       v-for="t in TYPES"
       :key="t"
       type="button"
@@ -43,10 +45,11 @@ function toggle(t: TypeId) {
       :aria-pressed="modelValue.includes(t)"
       :disabled="disabled"
       v-tip:picker="typeName(t)"
+      :while-press="disabled ? undefined : PRESS"
       @click="toggle(t)"
     >
       <TypeIcon :type="t" :scale="2" :tip="false" />
-    </button>
+    </motion.button>
   </div>
 </template>
 

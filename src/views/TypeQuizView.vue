@@ -4,6 +4,8 @@ import { TYPES, type Multiplier, type TypeId } from '@/data/types'
 import { t, typeName } from '@/i18n'
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
 import { deckStats, emptyDeck, grade, loadDeck, pickNext, rollDay, saveDeck } from '@/lib/srs'
+import { AnimatePresence, motion } from 'motion-v'
+import { FADE, PRESS } from '@/lib/motion'
 import {
   cardLabel,
   checkMulti,
@@ -175,61 +177,90 @@ function reset() {
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6']
+
+// After answering: the right answer pops, a wrong pick gives a small shake.
+function ansAnimate(m: Multiplier) {
+  if (!result.value || current.value?.kind !== 'mult') return {}
+  if (m === current.value.answer) return { scale: [1, 1.06, 1] }
+  if (m === result.value.choice) return { x: [0, -4, 4, -2, 0] }
+  return {}
+}
 </script>
 
 <template>
   <div class="layout">
     <section class="panel card">
-      <template v-if="current?.kind === 'mult'">
-        <p class="muted q">{{ t('quiz.howEffective') }}</p>
-        <div class="matchup">
-          <TypeIcon :type="current.atk" :scale="2" />
-          <span class="arrow">→</span>
-          <span class="defs">
-            <TypeIcon v-for="t in current.def" :key="t" :type="t" :scale="2" />
-          </span>
-        </div>
-        <div class="answers">
-          <button
-            v-for="(m, i) in MULTIPLIERS"
-            :key="m"
-            type="button"
-            class="btn ans num"
-            :class="{
-              right: result && m === current.answer,
-              miss: result && m === result.choice && !result.correct,
-            }"
-            :disabled="!!result"
-            @click="answerMult(m)"
-          >
-            <kbd>{{ KEYS[i] }}</kbd
-            >{{ formatMult(m) }}
-          </button>
-        </div>
-      </template>
+      <!-- Each question slides in as the previous one slides out. -->
+      <AnimatePresence mode="wait" :initial="false">
+        <motion.div
+          :key="current?.id ?? 'done'"
+          :initial="{ opacity: 0, x: 12 }"
+          :animate="{ opacity: 1, x: 0 }"
+          :exit="{ opacity: 0, x: -12 }"
+          :transition="FADE"
+        >
+          <template v-if="current?.kind === 'mult'">
+            <p class="muted q">{{ t('quiz.howEffective') }}</p>
+            <div class="matchup">
+              <TypeIcon :type="current.atk" :scale="2" />
+              <span class="arrow">→</span>
+              <span class="defs">
+                <TypeIcon v-for="t in current.def" :key="t" :type="t" :scale="2" />
+              </span>
+            </div>
+            <div class="answers">
+              <motion.button
+                v-for="(m, i) in MULTIPLIERS"
+                :key="m"
+                type="button"
+                class="btn ans num"
+                :class="{
+                  right: result && m === current.answer,
+                  miss: result && m === result.choice && !result.correct,
+                }"
+                :disabled="!!result"
+                :while-press="result ? undefined : PRESS"
+                :animate="ansAnimate(m)"
+                :transition="{ duration: 0.3 }"
+                @click="answerMult(m)"
+              >
+                <kbd>{{ KEYS[i] }}</kbd
+                >{{ formatMult(m) }}
+              </motion.button>
+            </div>
+          </template>
 
-      <template v-else-if="current?.kind === 'multi'">
-        <p class="q prompt">
-          <span v-if="multiPrompt(current)[0]">{{ multiPrompt(current)[0] }}</span>
-          <TypeIcon :type="current.type" :scale="2" />
-          <span>{{ multiPrompt(current)[1] }}</span>
-        </p>
-        <p class="muted small">{{ t('quiz.tickAll') }}</p>
-        <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
-        <div v-if="!result" class="actions">
-          <button type="button" class="btn primary" @click="submitMulti">
-            {{ t('quiz.submit') }} <kbd>Enter</kbd>
-          </button>
-        </div>
-      </template>
+          <template v-else-if="current?.kind === 'multi'">
+            <p class="q prompt">
+              <span v-if="multiPrompt(current)[0]">{{ multiPrompt(current)[0] }}</span>
+              <TypeIcon :type="current.type" :scale="2" />
+              <span>{{ multiPrompt(current)[1] }}</span>
+            </p>
+            <p class="muted small">{{ t('quiz.tickAll') }}</p>
+            <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
+            <div v-if="!result" class="actions">
+              <button type="button" class="btn primary" @click="submitMulti">
+                {{ t('quiz.submit') }} <kbd>Enter</kbd>
+              </button>
+            </div>
+          </template>
 
-      <div v-else class="done">
-        <h2>{{ t('quiz.caughtUp') }}</h2>
-        <p class="muted">{{ t('quiz.caughtUpText', { n: deck.newLimit }) }}</p>
-        <button type="button" class="btn primary" @click="learnMore">{{ t('quiz.learnMore') }}</button>
-      </div>
+          <div v-else class="done">
+            <h2>{{ t('quiz.caughtUp') }}</h2>
+            <p class="muted">{{ t('quiz.caughtUpText', { n: deck.newLimit }) }}</p>
+            <button type="button" class="btn primary" @click="learnMore">{{ t('quiz.learnMore') }}</button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
 
-      <div v-if="result && current" class="feedback" :class="result.correct ? 'ok' : 'bad'">
+      <motion.div
+        v-if="result && current"
+        class="feedback"
+        :class="result.correct ? 'ok' : 'bad'"
+        :initial="{ opacity: 0, y: 6 }"
+        :animate="{ opacity: 1, y: 0 }"
+        :transition="FADE"
+      >
         <div class="verdict">
           <b>{{ t(result.correct ? 'quiz.correct' : 'quiz.wrong') }}</b>
           <template v-if="current.kind === 'mult'">
@@ -242,7 +273,7 @@ const KEYS = ['1', '2', '3', '4', '5', '6']
           </template>
         </div>
         <button type="button" class="btn primary" @click="next()">{{ t('quiz.next') }} <kbd>Enter</kbd></button>
-      </div>
+      </motion.div>
     </section>
 
     <aside>

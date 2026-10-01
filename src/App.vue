@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
+import { AnimatePresence, MotionConfig, motion } from 'motion-v'
+import { FADE, SPRING } from '@/lib/motion'
 import { useTheme } from '@/composables/useTheme'
 import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
 
@@ -19,39 +21,65 @@ function onLang(e: Event) {
 </script>
 
 <template>
-  <header class="site-header">
-    <div class="wrap bar">
-      <RouterLink to="/" class="logo font-display">mon<span>dex</span></RouterLink>
-      <nav class="nav font-display">
-        <RouterLink to="/types" exact-active-class="active">{{ t('nav.chart') }}</RouterLink>
-        <RouterLink to="/types/calc" active-class="active">{{ t('nav.calc') }}</RouterLink>
-        <RouterLink to="/types/quiz" active-class="active">{{ t('nav.quiz') }}</RouterLink>
-      </nav>
-      <div class="controls">
-        <select class="lang" :value="locale" :aria-label="t('lang.label')" v-tip="t('lang.label')" @change="onLang">
-          <option v-for="(label, code) in LOCALES" :key="code" :value="code">{{ label }}</option>
-        </select>
-        <button
-          class="btn theme"
-          type="button"
-          v-tip="t(theme === 'dark' ? 'theme.toLight' : 'theme.toDark')"
-          @click="toggle"
-        >
-          {{ t(theme === 'dark' ? 'theme.dark' : 'theme.light') }}
-        </button>
+  <!-- Motion respects the OS "reduce motion" setting everywhere below. -->
+  <MotionConfig reduced-motion="user">
+    <header class="site-header">
+      <div class="wrap bar">
+        <RouterLink to="/" class="logo font-display">mon<span>dex</span></RouterLink>
+        <nav class="nav font-display">
+          <!-- The active highlight is one element that slides between links. -->
+          <RouterLink v-slot="{ isExactActive }" to="/types" exact-active-class="active">
+            <motion.span v-if="isExactActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+            <span class="label">{{ t('nav.chart') }}</span>
+          </RouterLink>
+          <RouterLink v-slot="{ isActive }" to="/types/calc" active-class="active">
+            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+            <span class="label">{{ t('nav.calc') }}</span>
+          </RouterLink>
+          <RouterLink v-slot="{ isActive }" to="/types/quiz" active-class="active">
+            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+            <span class="label">{{ t('nav.quiz') }}</span>
+          </RouterLink>
+        </nav>
+        <div class="controls">
+          <select class="lang" :value="locale" :aria-label="t('lang.label')" v-tip="t('lang.label')" @change="onLang">
+            <option v-for="(label, code) in LOCALES" :key="code" :value="code">{{ label }}</option>
+          </select>
+          <button
+            class="btn theme"
+            type="button"
+            v-tip="t(theme === 'dark' ? 'theme.toLight' : 'theme.toDark')"
+            @click="toggle"
+          >
+            {{ t(theme === 'dark' ? 'theme.dark' : 'theme.light') }}
+          </button>
+        </div>
       </div>
-    </div>
-  </header>
-  <main class="wrap">
-    <RouterView />
-  </main>
-  <footer class="wrap footer muted">
-    <span>
-      {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
-      {{ t('footer.copyright') }}
-    </span>
-    <RouterLink v-if="isDev" to="/dev" class="dev">Dev</RouterLink>
-  </footer>
+    </header>
+    <main class="wrap">
+      <RouterView v-slot="{ Component, route: r }">
+        <!-- Keyed by path so query changes (calculator picks) don't replay it. -->
+        <AnimatePresence mode="wait" :initial="false">
+          <motion.div
+            :key="r.path"
+            :initial="{ opacity: 0, y: 6 }"
+            :animate="{ opacity: 1, y: 0 }"
+            :exit="{ opacity: 0, y: -4 }"
+            :transition="FADE"
+          >
+            <component :is="Component" />
+          </motion.div>
+        </AnimatePresence>
+      </RouterView>
+    </main>
+    <footer class="wrap footer muted">
+      <span>
+        {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
+        {{ t('footer.copyright') }}
+      </span>
+      <RouterLink v-if="isDev" to="/dev" class="dev">Dev</RouterLink>
+    </footer>
+  </MotionConfig>
 </template>
 
 <style scoped>
@@ -96,6 +124,7 @@ function onLang(e: Event) {
   flex-wrap: wrap;
 }
 .nav a {
+  position: relative;
   padding: 4px 8px;
   border-radius: 3px;
   color: var(--text);
@@ -105,8 +134,16 @@ function onLang(e: Event) {
   text-decoration: none;
 }
 .nav a.active {
-  background: var(--sel);
   font-weight: bold;
+}
+.nav .pill {
+  position: absolute;
+  inset: 0;
+  background: var(--sel);
+  border-radius: 3px;
+}
+.nav .label {
+  position: relative;
 }
 
 .controls {

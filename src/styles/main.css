@@ -105,6 +105,16 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  /* Weight changes ease in; only visible with variable fonts. */
+  transition: font-weight 0.15s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none;
+  }
 }
 
 html {
