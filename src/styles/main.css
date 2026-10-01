@@ -312,3 +312,36 @@ img.pixel {
   color: var(--panel);
   border-color: var(--border-strong);
 }
+
+/* ---------- Collapsible sections ---------- */
+/* Opening and closing a <details> slides its content and fades it in or out. Where height can't be animated to
+   `auto` (interpolate-size is Chromium-only so far), the content just fades. */
+details {
+  interpolate-size: allow-keywords;
+}
+details::details-content {
+  block-size: 0;
+  opacity: 0;
+  overflow-y: clip;
+  transition:
+    block-size 0.2s ease-out,
+    opacity 0.2s ease-out,
+    content-visibility 0.2s allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+/* The views space an open summary from its content with a margin; ease it along with the height. */
+details > summary {
+  transition:
+    margin-bottom 0.2s ease-out,
+    font-weight 0.15s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  details::details-content,
+  details > summary {
+    transition: none;
+  }
+}
