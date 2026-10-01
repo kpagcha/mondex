@@ -4,9 +4,10 @@
 import type { TypeId } from '@/data/types'
 
 function load(): Record<TypeId, string> {
-  const files = import.meta.glob<string>('./type-icons/*.png', { eager: true, import: 'default' })
+  const files = import.meta.glob<string>('../assets/type-icons/*.png', { eager: true, import: 'default' })
+  // Keyed by file name: '../assets/type-icons/fire.png' → 'fire'.
   return Object.fromEntries(
-    Object.entries(files).map(([path, url]) => [path.slice('./type-icons/'.length, -'.png'.length), url]),
+    Object.entries(files).map(([path, url]) => [path.slice(path.lastIndexOf('/') + 1, -'.png'.length), url]),
   ) as Record<TypeId, string>
 }
 
