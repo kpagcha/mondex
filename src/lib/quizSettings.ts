@@ -23,7 +23,7 @@ export interface QuizSettings {
 }
 
 export const DEFAULTS: QuizSettings = {
-  hints: true,
+  hints: false,
   newPerDay: DEFAULT_NEW_LIMIT,
   learnMoreStep: 10,
   multiEvery: 5,
