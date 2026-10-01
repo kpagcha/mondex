@@ -313,6 +313,14 @@ img.pixel {
   border-color: var(--border-strong);
 }
 
+/* ---------- Theme switch ---------- */
+/* Changing the theme cross-fades the whole page (started in useTheme). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.025s;
+  animation-timing-function: ease-out;
+}
+
 /* ---------- Collapsible sections ---------- */
 /* Opening and closing a <details> slides its content and fades it in or out. Where height can't be animated to
    `auto` (interpolate-size is Chromium-only so far), the content just fades. */

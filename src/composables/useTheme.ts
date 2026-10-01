@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
 export type Theme = 'light' | 'dark'
 /** `auto` follows the OS preference (live). */
@@ -27,12 +27,24 @@ const mode = computed<ThemeMode>(() => choice.value ?? 'auto')
 const theme = computed<Theme>(() => choice.value ?? (systemDark.value ? 'dark' : 'light'))
 
 export function useTheme() {
-  const setMode = (m: ThemeMode) => {
-    const next = m === 'auto' ? null : m
+  const apply = (next: Theme | null) => {
     choice.value = next
     const root = document.documentElement
     if (next) root.dataset.theme = next
     else delete root.dataset.theme
+  }
+  const setMode = (m: ThemeMode) => {
+    const next = m === 'auto' ? null : m
+    // Cross-fade between the old and new colors where the browser supports view transitions (timing in main.css);
+    // elsewhere, and with reduced motion, the theme switches at once.
+    if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.startViewTransition(() => {
+        apply(next)
+        return nextTick()
+      })
+    } else {
+      apply(next)
+    }
     try {
       if (next) localStorage.setItem(KEY, next)
       else localStorage.removeItem(KEY)
