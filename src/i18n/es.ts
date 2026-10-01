@@ -201,10 +201,6 @@ export const messages: Record<keyof typeof en, string> = {
   'home.quizDesc':
     'Aprende la tabla con repetición espaciada. Los enfrentamientos que falles vuelven hasta que te los sepas.',
 
-  'legend.se': 'súper eficaz',
-  'legend.nve': 'poco eficaz',
-  'legend.none': 'no afecta',
-
   'types.intro': 'Elige un tipo.',
   'types.defending': 'Al defender',
   'types.attacking': 'Al atacar',
@@ -370,8 +366,7 @@ export const messages: Record<keyof typeof en, string> = {
   'hint.ghost.normal': 'Los espíritus no pueden tocar a los vivos.',
   'hint.poison.steel': 'El acero no está vivo y el veneno no lo penetra.',
 
-  'chart.intro':
-    'Las filas son el tipo del movimiento atacante; las columnas, el tipo del Pokémon defensor. Haz clic en un tipo para abrirlo en la calculadora.',
+  'chart.intro': 'Las filas son el tipo del movimiento atacante; las columnas, el tipo del Pokémon defensor.',
   'chart.atk': 'Atq',
   'chart.def': 'Def',
 

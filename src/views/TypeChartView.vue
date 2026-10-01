@@ -59,11 +59,6 @@ onMounted(async () => {
   <div class="panel">
     <h1>{{ t('title.chart') }}</h1>
     <p class="muted">{{ t('chart.intro') }}</p>
-    <div class="legend">
-      <span class="legend-item"><span class="mult-tag m-2">2×</span> {{ t('legend.se') }}</span>
-      <span class="legend-item"><span class="mult-tag m-0_5">½×</span> {{ t('legend.nve') }}</span>
-      <span class="legend-item"><span class="mult-tag m-0">0×</span> {{ t('legend.none') }}</span>
-    </div>
   </div>
 
   <div class="scroller">
@@ -105,19 +100,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-}
-/* A multiplier and its label never split across lines. */
-.legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
 .scroller {
   overflow-x: auto;
   margin-bottom: 12px;

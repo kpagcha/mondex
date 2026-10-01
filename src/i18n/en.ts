@@ -197,10 +197,6 @@ export const messages = {
   'home.calcDesc': 'Weaknesses and resistances for any type combination, and the coverage of a moveset.',
   'home.quizDesc': 'Learn the chart with spaced repetition. Matchups you miss come back until you know them.',
 
-  'legend.se': 'super effective',
-  'legend.nve': 'not very effective',
-  'legend.none': 'no effect',
-
   'types.intro': 'Pick a type.',
   'types.defending': 'Defending',
   'types.attacking': 'Attacking',
@@ -364,8 +360,7 @@ export const messages = {
   'hint.ghost.normal': "Spirits can't touch the living.",
   'hint.poison.steel': "Steel isn't alive, and poison can't soak into it.",
 
-  'chart.intro':
-    "Rows are the attacking move's type, columns the defending Pokémon's type. Click a type to open it in the calculator.",
+  'chart.intro': "Rows are the attacking move's type, columns the defending Pokémon's type.",
   'chart.atk': 'Atk',
   'chart.def': 'Def',
 
