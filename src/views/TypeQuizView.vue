@@ -283,11 +283,6 @@ function ansAnimate(m: Multiplier) {
             </p>
             <p class="muted small">{{ t('quiz.tickAll') }}</p>
             <TypePicker v-model="picked" :disabled="!!result" :marks="marks" />
-            <div v-if="!result" class="actions">
-              <button type="button" class="btn primary" @click="submitMulti">
-                {{ t('quiz.submit') }} <kbd>Enter</kbd>
-              </button>
-            </div>
           </template>
 
           <div v-else class="done">
@@ -298,27 +293,42 @@ function ansAnimate(m: Multiplier) {
         </motion.div>
       </AnimatePresence>
 
-      <motion.div
-        v-if="result && current"
-        class="feedback"
-        :class="result.correct ? 'ok' : 'bad'"
-        :initial="{ opacity: 0, y: 6 }"
-        :animate="{ opacity: 1, y: 0 }"
-        :transition="FADE"
-      >
-        <div class="verdict">
-          <b>{{ t(result.correct ? 'quiz.correct' : 'quiz.wrong') }}</b>
-          <template v-if="current.kind === 'mult'">
-            <span class="mult-tag" :class="multClass(current.answer)">{{ formatMult(current.answer) }}</span>
-            <span class="muted">{{ explain(current) }}</span>
-          </template>
-          <template v-else-if="!result.correct">
-            <span v-if="result.missed.length">{{ t('quiz.missed', { list: names(result.missed) }) }}</span>
-            <span v-if="result.wrong.length">{{ t('quiz.extra', { list: names(result.wrong) }) }}</span>
-          </template>
+      <!-- The button sits right under the question, in the same place before and after answering;
+           feedback appears below it, so its length never moves the button. -->
+      <div v-if="current" class="bottom">
+        <div class="actions">
+          <button v-if="result" type="button" class="btn primary" @click="next()">
+            {{ t('quiz.next') }} <kbd>Enter</kbd>
+          </button>
+          <button v-else-if="current.kind === 'multi'" type="button" class="btn primary" @click="submitMulti">
+            {{ t('quiz.submit') }} <kbd>Enter</kbd>
+          </button>
+          <!-- Multiplier cards are answered by their buttons; this keeps the row's height. -->
+          <button v-else type="button" class="btn primary placeholder" tabindex="-1" aria-hidden="true">
+            {{ t('quiz.next') }} <kbd>Enter</kbd>
+          </button>
         </div>
-        <button type="button" class="btn primary" @click="next()">{{ t('quiz.next') }} <kbd>Enter</kbd></button>
-      </motion.div>
+        <motion.div
+          v-if="result"
+          class="feedback"
+          :class="result.correct ? 'ok' : 'bad'"
+          :initial="{ opacity: 0, y: 6 }"
+          :animate="{ opacity: 1, y: 0 }"
+          :transition="FADE"
+        >
+          <div class="verdict">
+            <b>{{ t(result.correct ? 'quiz.correct' : 'quiz.wrong') }}</b>
+            <template v-if="current.kind === 'mult'">
+              <span class="mult-tag" :class="multClass(current.answer)">{{ formatMult(current.answer) }}</span>
+              <span class="muted">{{ explain(current) }}</span>
+            </template>
+            <template v-else-if="!result.correct">
+              <span v-if="result.missed.length">{{ t('quiz.missed', { list: names(result.missed) }) }}</span>
+              <span v-if="result.wrong.length">{{ t('quiz.extra', { list: names(result.wrong) }) }}</span>
+            </template>
+          </div>
+        </motion.div>
+      </div>
     </section>
 
     <aside>
@@ -493,13 +503,18 @@ kbd {
   display: flex;
   justify-content: flex-end;
 }
+.actions .placeholder {
+  visibility: hidden;
+}
+/* Phones: one full-width button at the bottom of the card. */
+@media (max-width: 760px) {
+  .actions .btn {
+    flex: 1;
+    min-height: 44px;
+  }
+}
 
 .feedback {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
   margin-top: 14px;
   padding: 8px 10px;
   border: 1px solid var(--border);
