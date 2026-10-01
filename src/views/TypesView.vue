@@ -3,7 +3,8 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, motion } from 'motion-v'
 import { TYPES, isType, type Multiplier } from '@/data/types'
-import { t, typeName } from '@/i18n'
+import { ATK_ROWS, DEF_ROWS, typeInfo, type Entry, type EntryKey, type TypeInfo } from '@/data/typeinfo'
+import { t, termName, typeName, type MessageKey } from '@/i18n'
 import { attackProfile, defensiveProfile, formatMult, multClass, type Profile } from '@/lib/typecalc'
 import { FADE, PRESS, SPRING } from '@/lib/motion'
 import TypeIcon from '@/components/TypeIcon.vue'
@@ -20,13 +21,31 @@ const MULTS: Multiplier[] = [2, 0.5, 0]
 const sections = computed(() => {
   const ty = type.value
   if (!ty) return []
-  // Only the multipliers this type actually has.
+  const info: TypeInfo = typeInfo(ty)
+  // Only the multipliers and interactions this type actually has.
   const rows = (p: Profile) => MULTS.filter((m) => p[m].length).map((m) => ({ m, types: p[m] }))
+  const infoRows = (keys: readonly EntryKey[]) =>
+    keys.flatMap((k) => (info[k]?.length ? [{ label: `info.${k}` as MessageKey, entries: info[k] }] : []))
   return [
-    { title: 'types.defending' as const, rows: rows(defensiveProfile([ty])) },
-    { title: 'types.attacking' as const, rows: rows(attackProfile(ty)) },
+    // The defending side also covers the type's Pokémon; the attacking side, its moves.
+    {
+      title: 'types.defending' as const,
+      rows: rows(defensiveProfile([ty])),
+      info: infoRows(DEF_ROWS),
+      notes: info.notes ?? [],
+    },
+    { title: 'types.attacking' as const, rows: rows(attackProfile(ty)), info: infoRows(ATK_ROWS), notes: [] },
   ]
 })
+
+/** What an entry does besides its multiplier: "+1 SpA", "Def 1.5×", "+1 priority", "sound moves". */
+function effectText(e: Entry): string {
+  if (e.fx) return t(e.fx)
+  if (e.priority) return t('info.priority', { n: e.priority })
+  if (!e.stat) return ''
+  const stat = t(`stat.${e.stat}`)
+  return e.stages ? `+${e.stages} ${stat}` : `${stat} ${formatMult(e.statMult ?? 1)}`
+}
 </script>
 
 <template>
@@ -91,6 +110,27 @@ const sections = computed(() => {
                 </tr>
               </tbody>
             </table>
+            <dl v-if="s.info.length || s.notes.length" class="info">
+              <template v-for="row in s.info" :key="row.label">
+                <dt class="muted">{{ t(row.label) }}</dt>
+                <dd>
+                  <span v-for="e in row.entries" :key="e.term" class="term">
+                    {{ termName(e.term) }}
+                    <span v-if="e.mult !== undefined" class="mult-tag" :class="multClass(e.mult)">
+                      {{ formatMult(e.mult) }}
+                    </span>
+                    <TypeIcon v-if="e.vs" :type="e.vs" />
+                    <span v-if="effectText(e)" class="effect num">{{ effectText(e) }}</span>
+                  </span>
+                </dd>
+              </template>
+              <template v-if="s.notes.length">
+                <dt class="muted">{{ t('info.notes') }}</dt>
+                <dd>
+                  <span v-for="n in s.notes" :key="n.key" class="term">{{ t(n.key) }}</span>
+                </dd>
+              </template>
+            </dl>
           </section>
         </div>
       </div>
@@ -172,6 +212,38 @@ const sections = computed(() => {
 }
 .icons a {
   display: flex;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 10px;
+  align-items: baseline;
+  margin: 0;
+  padding: 8px 4px 0;
+  border-top: 1px solid var(--border);
+}
+.info dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+}
+.term {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 5px;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.term .mult-tag {
+  min-width: 0;
+  padding: 0 0.3em;
+}
+.effect {
+  color: var(--muted);
 }
 
 .hint {

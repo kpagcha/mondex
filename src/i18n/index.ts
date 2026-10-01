@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import type { TypeId } from '@/data/types'
+import type { TermId } from '@/data/typeinfo'
 import * as en from './en'
 import * as es from './es'
 
@@ -8,7 +9,10 @@ export const LOCALES = { en: 'English', es: 'Español' } as const
 export type Locale = keyof typeof LOCALES
 export type MessageKey = keyof typeof en.messages
 
-const BUNDLES: Record<Locale, { messages: Record<MessageKey, string>; types: Record<TypeId, string> }> = { en, es }
+const BUNDLES: Record<
+  Locale,
+  { messages: Record<MessageKey, string>; types: Record<TypeId, string>; terms: Record<TermId, string> }
+> = { en, es }
 
 const KEY = 'mondex.lang'
 
@@ -67,4 +71,9 @@ export function tSplit(key: MessageKey, slot: string): [string, string] {
 
 export function typeName(type: TypeId): string {
   return BUNDLES[locale.value].types[type]
+}
+
+/** Official name of a status, move, ability or item. */
+export function termName(term: TermId): string {
+  return BUNDLES[locale.value].terms[term]
 }
