@@ -133,9 +133,6 @@ function onLang(e: Event) {
   background: var(--hover);
   text-decoration: none;
 }
-.nav a.active {
-  font-weight: bold;
-}
 .nav .pill {
   position: absolute;
   inset: 0;

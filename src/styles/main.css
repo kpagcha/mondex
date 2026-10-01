@@ -256,7 +256,6 @@ img.pixel {
   background: var(--panel);
   border-color: var(--border);
   color: var(--text);
-  font-weight: bold;
 }
 
 /* Multiplier cells */
