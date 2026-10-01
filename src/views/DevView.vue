@@ -11,6 +11,7 @@ import {
   resetPicks,
   type FontOption,
 } from '@/dev/fonts'
+import { STYLES, style } from '@/dev/styles'
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
 import TypeIcon from '@/components/TypeIcon.vue'
 
@@ -32,9 +33,22 @@ onMounted(loadAll)
   <div class="panel">
     <h1>Dev settings</h1>
     <p class="muted">
-      Only available in <code>npm run dev</code>. Font picks apply across the whole app and are saved in this browser,
-      so you can browse the real pages with them.
+      Only available in <code>npm run dev</code>. Style and font picks apply across the whole app and are saved in this
+      browser, so you can browse the real pages with them.
     </p>
+  </div>
+
+  <div class="panel">
+    <h2>Style</h2>
+    <div class="styles">
+      <label v-for="s in STYLES" :key="s.id" class="opt" :class="{ on: style === s.id }">
+        <input v-model="style" type="radio" name="style" :value="s.id" />
+        <span class="opt-text">
+          <span class="opt-name">{{ s.label }}</span>
+          <span class="muted small">{{ s.note }}</span>
+        </span>
+      </label>
+    </div>
   </div>
 
   <div class="panel">
@@ -129,6 +143,12 @@ select {
   border: 1px solid var(--border-strong);
   border-radius: 3px;
   padding: 2px 4px;
+}
+
+.styles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 4px 12px;
 }
 
 .groups {
