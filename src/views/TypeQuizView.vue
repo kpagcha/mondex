@@ -43,8 +43,15 @@ const dualsOn = computed(() => {
   return deck.value.duals ?? dualsAuto.value
 })
 
+/** With duals on, every this-many-plus-one-th new card is a dual, so they show up right away. */
+const DUAL_EVERY = 3
+const DUAL_IDS = new Set(dual.map((c) => c.id))
+/** Duals switched off (or not unlocked yet) are left out entirely, reviews included; they resume when on. */
+const skip = (id: string) => !dualsOn.value && DUAL_IDS.has(id)
+
 function* newIds() {
   const order = newCardOrder(deck.value.seed!)
+  if (dualsOn.value && Object.keys(deck.value.cards).length % (DUAL_EVERY + 1) === DUAL_EVERY) yield* order.dual
   yield* order.basic
   if (dualsOn.value) yield* order.dual
 }
@@ -64,7 +71,7 @@ let shownAt = 0
 const session = ref({ seen: 0, correct: 0 })
 
 function next(ignoreLimit = false) {
-  const id = pickNext(deck.value, { newIds: newIds(), avoid: current.value?.id, ignoreLimit })
+  const id = pickNext(deck.value, { newIds: newIds(), avoid: current.value?.id, ignoreLimit, skip })
   current.value = id ? (getCard(id) ?? null) : null
   picked.value = []
   result.value = null
@@ -142,7 +149,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 // ---- Stats & settings ----
 const stats = computed(() => {
   void deck.value.tick
-  return deckStats(deck.value)
+  return deckStats(deck.value, Date.now(), skip)
 })
 const total = computed(() => basic.length + (dualsOn.value ? dual.length : 0))
 const accuracy = computed(() =>
@@ -151,7 +158,7 @@ const accuracy = computed(() =>
 const weakSpots = computed(() => {
   void deck.value.tick
   return Object.entries(deck.value.cards)
-    .filter(([, s]) => s.lapses > 0)
+    .filter(([id, s]) => s.lapses > 0 && !skip(id))
     .sort((a, b) => b[1].lapses - a[1].lapses || b[1].ease - a[1].ease)
     .slice(0, 8)
     .map(([id, s]) => ({ id, lapses: s.lapses, learning: s.step >= 0, card: getCard(id) }))
@@ -170,7 +177,8 @@ function setDuals(e: Event) {
   deck.value.duals = v === 'auto' ? undefined : v === 'on'
   saveDeck(deck.value)
   triggerRef(deck)
-  if (!current.value) next()
+  // Replace an unanswered dual card when duals go off.
+  if (!current.value || (!result.value && skip(current.value.id))) next()
 }
 
 function reset() {

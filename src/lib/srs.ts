@@ -124,6 +124,8 @@ export interface PickOptions {
   now?: number
   /** Ignore the daily new-card limit. */
   ignoreLimit?: boolean
+  /** Cards to leave out entirely, even when due (e.g. dual types switched off). */
+  skip?: (id: string) => boolean
 }
 
 /**
@@ -140,7 +142,7 @@ export function pickNext(deck: Deck, opts: PickOptions): string | null {
   let review: [string, CardState] | null = null
 
   for (const [id, c] of Object.entries(deck.cards)) {
-    if (id === opts.avoid) continue
+    if (id === opts.avoid || opts.skip?.(id)) continue
     if (c.step >= 0) {
       if (c.learnAt <= deck.tick) {
         if (!learnDue || c.learnAt < learnDue[1]) learnDue = [id, c.learnAt]
@@ -161,7 +163,7 @@ export function pickNext(deck: Deck, opts: PickOptions): string | null {
     }
   }
   if (learnLater) return learnLater[0]
-  if (opts.avoid && (deck.cards[opts.avoid]?.step ?? -1) >= 0) return opts.avoid
+  if (opts.avoid && !opts.skip?.(opts.avoid) && (deck.cards[opts.avoid]?.step ?? -1) >= 0) return opts.avoid
   return null
 }
 
@@ -172,11 +174,13 @@ export interface DeckStats {
   mature: number
 }
 
-export function deckStats(deck: Deck, now = Date.now()): DeckStats {
+export function deckStats(deck: Deck, now = Date.now(), skip?: (id: string) => boolean): DeckStats {
   let learning = 0
   let due = 0
   let mature = 0
-  const cards = Object.values(deck.cards)
+  const cards = Object.entries(deck.cards)
+    .filter(([id]) => !skip?.(id))
+    .map(([, c]) => c)
   for (const c of cards) {
     if (c.step >= 0) learning++
     else if (c.due <= now) due++
