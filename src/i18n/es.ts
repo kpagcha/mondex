@@ -27,6 +27,7 @@ export const messages: Record<keyof typeof en, string> = {
   'nav.chart': 'Tabla de tipos',
   'nav.calc': 'Calculadora',
   'nav.quiz': 'Test',
+  'nav.back': 'Volver',
   'title.chart': 'Tabla de tipos',
   'title.calc': 'Calculadora de tipos',
   'title.quiz': 'Test de tipos',

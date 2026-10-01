@@ -50,6 +50,10 @@ watchEffect(() => {
             :exit="{ opacity: 0, y: -4 }"
             :transition="FADE"
           >
+            <!-- Mobile replaces the header links with a way back to the home page. -->
+            <RouterLink v-if="r.name !== 'home'" to="/" class="back font-display">
+              <span class="chevron" aria-hidden="true">‹</span> {{ t('nav.back') }}
+            </RouterLink>
             <component :is="Component" />
           </motion.div>
         </AnimatePresence>
@@ -93,6 +97,7 @@ watchEffect(() => {
 .site-header {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
   margin-bottom: 16px;
 }
 
@@ -150,9 +155,37 @@ watchEffect(() => {
   position: relative;
 }
 
-@media (max-width: 720px) {
-  .bar {
-    column-gap: 12px;
+.back {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  margin-bottom: 12px;
+  padding: 3px 10px 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  color: var(--muted);
+}
+.back .chevron {
+  font-weight: bold;
+  font-size: 1.25em;
+  line-height: 1;
+}
+.back:hover {
+  background: var(--panel-alt);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* Phones only: a narrow desktop window keeps the header links. */
+@media (max-width: 720px) and (hover: none) and (pointer: coarse) {
+  .nav {
+    display: none;
+  }
+  .back {
+    display: flex;
   }
 }
 

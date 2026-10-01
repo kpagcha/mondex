@@ -25,6 +25,7 @@ export const messages = {
   'nav.chart': 'Type chart',
   'nav.calc': 'Calculator',
   'nav.quiz': 'Quiz',
+  'nav.back': 'Back',
   'title.chart': 'Type chart',
   'title.calc': 'Type calculator',
   'title.quiz': 'Type quiz',
