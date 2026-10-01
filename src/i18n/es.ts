@@ -201,6 +201,18 @@ export const messages: Record<keyof typeof en, string> = {
   'lang.label': 'Idioma',
   'format.label': '{game} · Reglamento {reg}',
 
+  'desc.home':
+    'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}: tabla de tipos, calculadora de tipos, los enfrentamientos de cada tipo y un test de tipos.',
+  'desc.types':
+    'Cada tipo de {game} con sus debilidades, resistencias e inmunidades, y las interacciones que van más allá de la tabla de tipos.',
+  'desc.type':
+    'El tipo {type} en {game}: sus debilidades, resistencias e inmunidades, contra qué es súper eficaz y sus otras interacciones.',
+  'desc.chart': 'La tabla de tipos de {game}: cada tipo atacante contra cada tipo defensor.',
+  'desc.calc':
+    'Calculadora de tipos para {game}: debilidades y resistencias de cualquier combinación de tipos, y la cobertura de un set de movimientos.',
+  'desc.quiz':
+    'Aprende la tabla de tipos de {game} con repetición espaciada. Los enfrentamientos que falles vuelven hasta que te los sepas.',
+
   'home.intro':
     'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
   'home.typesDesc': 'Cada tipo con sus debilidades, resistencias e inmunidades.',

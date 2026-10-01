@@ -3,15 +3,32 @@ import { computed, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, MotionConfig, motion } from 'motion-v'
 import { FADE, PAGE, SPRING } from '@/lib/motion'
-import { t } from '@/i18n'
+import { t, typeName } from '@/i18n'
+import { isType } from '@/data/types'
 import { GAME_NAME, REGULATION } from '@/data/format'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const route = useRoute()
 
+function setMeta(selector: string, content: string) {
+  document.head.querySelector(selector)?.setAttribute('content', content)
+}
+
 watchEffect(() => {
+  // A type's own page (/types/fire) is titled and described as that type; pages without a description use the home
+  // page's.
+  const type = typeof route.params.type === 'string' && isType(route.params.type) ? route.params.type : null
   const key = route.meta.titleKey
-  document.title = key ? `${t(key)} · ${GAME_NAME} · mondex` : `mondex · ${GAME_NAME} dex`
+  const name = key ? t(key) : null
+  const title = name
+    ? `${type ? `${typeName(type)} · ` : ''}${name} · ${GAME_NAME} · mondex`
+    : `mondex · ${GAME_NAME} dex`
+  const params = { game: GAME_NAME, reg: REGULATION }
+  const desc = type ? t('desc.type', { ...params, type: typeName(type) }) : t(route.meta.descKey ?? 'desc.home', params)
+  document.title = title
+  setMeta('meta[name="description"]', desc)
+  setMeta('meta[property="og:title"]', title)
+  setMeta('meta[property="og:description"]', desc)
 })
 
 // Pages under Types that get a back link to it.

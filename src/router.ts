@@ -5,19 +5,21 @@ import type { MessageKey } from '@/i18n'
 declare module 'vue-router' {
   interface RouteMeta {
     titleKey?: MessageKey
+    /** The page's meta description, for search results and link previews. */
+    descKey?: MessageKey
   }
 }
 
 export const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', name: 'home', component: () => import('@/views/HomeView.vue') },
+    { path: '/', name: 'home', component: () => import('@/views/HomeView.vue'), meta: { descKey: 'desc.home' } },
     {
       // `/types` lists every type; `/types/fire` also shows that type's matchups.
       path: `/types/:type(${TYPES.join('|')})?`,
       name: 'types',
       component: () => import('@/views/TypesView.vue'),
-      meta: { titleKey: 'title.types' },
+      meta: { titleKey: 'title.types', descKey: 'desc.types' },
       // The chart used to live at `/types`: keep its shared cell links (?atk=…&def=…) working.
       beforeEnter: (to) => (!to.params.type && to.query.atk ? { path: '/types/chart', query: to.query } : undefined),
     },
@@ -25,19 +27,19 @@ export const router = createRouter({
       path: '/types/chart',
       name: 'chart',
       component: () => import('@/views/TypeChartView.vue'),
-      meta: { titleKey: 'title.chart' },
+      meta: { titleKey: 'title.chart', descKey: 'desc.chart' },
     },
     {
       path: '/types/calc',
       name: 'calc',
       component: () => import('@/views/TypeCalcView.vue'),
-      meta: { titleKey: 'title.calc' },
+      meta: { titleKey: 'title.calc', descKey: 'desc.calc' },
     },
     {
       path: '/types/quiz',
       name: 'quiz',
       component: () => import('@/views/TypeQuizView.vue'),
-      meta: { titleKey: 'title.quiz' },
+      meta: { titleKey: 'title.quiz', descKey: 'desc.quiz' },
     },
     {
       path: '/settings',

@@ -199,6 +199,17 @@ export const messages = {
   'lang.label': 'Language',
   'format.label': '{game} · Regulation {reg}',
 
+  'desc.home':
+    "A competitive dex for {game}, up to date with Regulation {reg}: type chart, type calculator, every type's matchups and a type quiz.",
+  'desc.types':
+    'Every {game} type with its weaknesses, resistances and immunities, and the interactions beyond the type chart.',
+  'desc.type':
+    'The {type} type in {game}: its weaknesses, resistances and immunities, what it hits super effectively, and its other interactions.',
+  'desc.chart': 'The {game} type chart: every attacking type against every defending type.',
+  'desc.calc':
+    'Type calculator for {game}: weaknesses and resistances for any type combination, and the coverage of a moveset.',
+  'desc.quiz': 'Learn the {game} type chart with spaced repetition. Matchups you miss come back until you know them.',
+
   'home.intro':
     'A competitive dex for {game}, up to date with Regulation {reg}. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
   'home.typesDesc': 'Every type with its weaknesses, resistances and immunities.',
