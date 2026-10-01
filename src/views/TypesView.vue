@@ -63,7 +63,7 @@ function toggleLearn() {
   writeFlag(LEARN_KEY, learn.value)
 }
 
-/** The memory hook for a super effective matchup on this type's `side`; `other` is the type in the row. */
+/** The memory hook for a matchup on this type's `side`; `other` is the type in the row. */
 function hint(side: 'def' | 'atk', other: TypeId): string {
   const ty = type.value!
   const [atk, def] = side === 'def' ? [other, ty] : [ty, other]
@@ -150,8 +150,8 @@ function onToggle(e: Event) {
                     <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
                   </th>
                   <td>
-                    <!-- Learn mode: one line per super effective matchup, with its memory hook. -->
-                    <ul v-if="learn && row.m === 2" class="hints">
+                    <!-- Learn mode: one line per matchup, with its memory hook. -->
+                    <ul v-if="learn" class="hints">
                       <li v-for="x in row.types" :key="x">
                         <RouterLink :to="`/types/${x}`"><TypeIcon :type="x" /></RouterLink>
                         <span>{{ hint(s.side, x) }}</span>
