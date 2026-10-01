@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, motion } from 'motion-v'
-import { TYPES, isType, type Multiplier } from '@/data/types'
+import { TYPES, isType, type Multiplier, type TypeId } from '@/data/types'
 import { ATK_ROWS, DEF_ROWS, MORE_ROWS, typeInfo, type EntryKey, type TypeInfo } from '@/data/typeinfo'
 import { t, typeName, type MessageKey } from '@/i18n'
 import { attackProfile, defensiveProfile, formatMult, multClass, type Profile } from '@/lib/typecalc'
@@ -40,32 +40,57 @@ const sections = computed(() => {
     // The defending side also covers the type's Pokémon; the attacking side, its moves.
     {
       title: 'types.defending' as const,
+      side: 'def' as const,
       rows: rows(defensiveProfile([ty])),
       info: [...infoRows(DEF_ROWS), ...(notes.length ? [{ label: t('info.notes'), notes }] : [])],
     },
-    { title: 'types.attacking' as const, rows: rows(attackProfile(ty)), info: infoRows(ATK_ROWS) },
+    {
+      title: 'types.attacking' as const,
+      side: 'atk' as const,
+      rows: rows(attackProfile(ty)),
+      info: infoRows(ATK_ROWS),
+    },
   ]
 })
 
 const more = computed(() => infoRows(MORE_ROWS))
 
-// Whether "More interactions" is open is remembered across visits.
-const MORE_KEY = 'mondex.types.more'
-const moreOpen = ref(readMore())
-function readMore(): boolean {
+/** Remembered per viewer, and kept on while moving between types. */
+const LEARN_KEY = 'mondex.types.learn'
+const learn = ref(readFlag(LEARN_KEY))
+function toggleLearn() {
+  learn.value = !learn.value
+  writeFlag(LEARN_KEY, learn.value)
+}
+
+/** The memory hook for a super effective matchup on this type's `side`; `other` is the type in the row. */
+function hint(side: 'def' | 'atk', other: TypeId): string {
+  const ty = type.value!
+  const [atk, def] = side === 'def' ? [other, ty] : [ty, other]
+  return t(`hint.${atk}.${def}` as MessageKey)
+}
+
+function readFlag(key: string): boolean {
   try {
-    return localStorage.getItem(MORE_KEY) === '1'
+    return localStorage.getItem(key) === '1'
   } catch {
     return false
   }
 }
-function onToggle(e: Event) {
-  moreOpen.value = (e.target as HTMLDetailsElement).open
+function writeFlag(key: string, on: boolean) {
   try {
-    localStorage.setItem(MORE_KEY, moreOpen.value ? '1' : '0')
+    localStorage.setItem(key, on ? '1' : '0')
   } catch {
     // Storage unavailable: the choice lasts for this page load.
   }
+}
+
+// Whether "More interactions" is open is remembered across visits.
+const MORE_KEY = 'mondex.types.more'
+const moreOpen = ref(readFlag(MORE_KEY))
+function onToggle(e: Event) {
+  moreOpen.value = (e.target as HTMLDetailsElement).open
+  writeFlag(MORE_KEY, moreOpen.value)
 }
 </script>
 
@@ -111,6 +136,9 @@ function onToggle(e: Event) {
         <h2 class="name">
           <TypeIcon :type="type" :scale="2" />
           {{ typeName(type) }}
+          <button type="button" class="btn learn" :class="{ on: learn }" :aria-pressed="learn" @click="toggleLearn">
+            {{ t('types.learn') }}
+          </button>
         </h2>
         <div class="sides">
           <section v-for="s in sections" :key="s.title">
@@ -122,7 +150,14 @@ function onToggle(e: Event) {
                     <span class="mult-tag" :class="multClass(row.m)">{{ formatMult(row.m) }}</span>
                   </th>
                   <td>
-                    <span class="icons">
+                    <!-- Learn mode: one line per super effective matchup, with its memory hook. -->
+                    <ul v-if="learn && row.m === 2" class="hints">
+                      <li v-for="x in row.types" :key="x">
+                        <RouterLink :to="`/types/${x}`"><TypeIcon :type="x" /></RouterLink>
+                        <span>{{ hint(s.side, x) }}</span>
+                      </li>
+                    </ul>
+                    <span v-else class="icons">
                       <RouterLink v-for="x in row.types" :key="x" :to="`/types/${x}`">
                         <TypeIcon :type="x" />
                       </RouterLink>
@@ -183,6 +218,35 @@ function onToggle(e: Event) {
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.learn {
+  margin-left: auto;
+  font-family: var(--font-body, inherit);
+  font-size: calc(12px * var(--text-scale));
+  font-weight: normal;
+}
+.learn.on {
+  background: var(--sel);
+  border-color: var(--accent);
+}
+
+.hints {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hints li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.hints a {
+  flex: none;
+  align-self: center;
+  display: flex;
 }
 
 .sides {
