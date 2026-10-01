@@ -94,7 +94,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
           </th>
           <td>
             <span class="icons">
-              <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" tip-group="defense" />
+              <TypeIcon v-for="t in defProfile[row.m]" :key="t" :type="t" />
             </span>
           </td>
         </tr>
@@ -139,7 +139,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
             :class="multClass(0)"
             v-tip:chips="typesLabel(e.def)"
           >
-            <TypeIcon v-for="t in e.def" :key="t" :type="t" :tip="false" lazy />
+            <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
           </span>
         </span>
       </div>
@@ -154,7 +154,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
           :class="multClass(g.root.best)"
           v-tip:chips="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`"
         >
-          <TypeIcon :type="g.root.def[0]!" :tip="false" />
+          <TypeIcon :type="g.root.def[0]!" />
         </span>
         <template v-if="g.combos.length">
           <span class="muted">+</span>
@@ -166,7 +166,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
               :class="multClass(c.entry.best)"
               v-tip:chips="`${typesLabel(c.entry.def)}: ${formatMult(c.entry.best)}`"
             >
-              <TypeIcon :type="c.partner" :tip="false" lazy />
+              <TypeIcon :type="c.partner" lazy />
             </span>
           </span>
         </template>
@@ -181,7 +181,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
             :class="multClass(e.best)"
             v-tip:chips="`${typesLabel(e.def)}: ${formatMult(e.best)}`"
           >
-            <TypeIcon v-for="t in e.def" :key="t" :type="t" :tip="false" lazy />
+            <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
           </span>
         </span>
       </div>
@@ -197,7 +197,7 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
       </summary>
       <div class="combos">
         <span v-for="e in neutral" :key="e.def.join()" class="chip plain" v-tip:chips="typesLabel(e.def)">
-          <TypeIcon v-for="t in e.def" :key="t" :type="t" :tip="false" lazy />
+          <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
         </span>
       </div>
     </details>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { TYPES, type TypeId } from '@/data/types'
-import { typeName } from '@/i18n'
 import TypeIcon from '@/components/TypeIcon.vue'
 import { motion } from 'motion-v'
 import { PRESS } from '@/lib/motion'
@@ -44,11 +43,10 @@ function toggle(t: TypeId) {
       :class="[{ on: modelValue.includes(t) }, marks?.[t]]"
       :aria-pressed="modelValue.includes(t)"
       :disabled="disabled"
-      v-tip:picker="typeName(t)"
       :while-press="disabled ? undefined : PRESS"
       @click="toggle(t)"
     >
-      <TypeIcon :type="t" :scale="2" :tip="false" />
+      <TypeIcon :type="t" :scale="2" />
     </motion.button>
   </div>
 </template>
