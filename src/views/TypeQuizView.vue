@@ -18,6 +18,7 @@ import {
 } from '@/lib/quiz'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
+import { confirmDialog } from '@/composables/useConfirm'
 
 // Dev-only controls to fast-forward the quiz; left out of production builds.
 const QuizDevTools = import.meta.env.DEV ? defineAsyncComponent(() => import('@/dev/QuizDevTools.vue')) : null
@@ -211,8 +212,8 @@ function setDuals(e: Event) {
   if (!current.value || (!result.value && skip(current.value.id))) next()
 }
 
-function reset() {
-  if (!confirm(t('quiz.resetConfirm'))) return
+async function reset() {
+  if (!(await confirmDialog({ message: t('quiz.resetConfirm'), confirm: t('quiz.reset'), danger: true }))) return
   deck.value = emptyDeck()
   saveDeck(deck.value)
   session.value = { seen: 0, correct: 0 }

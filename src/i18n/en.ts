@@ -423,6 +423,7 @@ export const messages = {
   'quiz.about1':
     'Scheduling uses SM-2 spaced repetition. A miss is re-asked after 3 and then 8 more cards; correct answers come back after 1 day, 6 days, and then increasingly longer gaps. Hesitant answers grow the gaps more slowly.',
   'quiz.about2': '{n}×{n} single-type matchups and tick-all questions come first; dual types unlock after that.',
+  'confirm.cancel': 'Cancel',
   'quiz.reset': 'Reset progress',
   'quiz.resetConfirm': 'Reset all quiz progress?',
 

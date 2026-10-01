@@ -430,6 +430,7 @@ export const messages: Record<keyof typeof en, string> = {
     'La planificación usa repetición espaciada SM-2. Un fallo se vuelve a preguntar tras 3 y luego 8 tarjetas más; los aciertos vuelven al cabo de 1 día, 6 días y después a intervalos cada vez mayores. Las respuestas dudosas alargan los intervalos más despacio.',
   'quiz.about2':
     'Primero van los {n}×{n} enfrentamientos de tipo simple y las preguntas de marcar; después se desbloquean los tipos dobles.',
+  'confirm.cancel': 'Cancelar',
   'quiz.reset': 'Reiniciar progreso',
   'quiz.resetConfirm': '¿Reiniciar todo el progreso del test?',
 

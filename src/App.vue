@@ -6,6 +6,7 @@ import { FADE, PAGE, SPRING } from '@/lib/motion'
 import { THEME_MODES, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
 import { GAME_NAME, REGULATION } from '@/data/format'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const { mode, setMode } = useTheme()
 const isDev = import.meta.env.DEV
@@ -117,6 +118,7 @@ const fadeVariants = {
         <RouterLink v-if="isDev" to="/dev" class="dev">Dev</RouterLink>
       </div>
     </footer>
+    <ConfirmDialog />
   </MotionConfig>
 </template>
 
