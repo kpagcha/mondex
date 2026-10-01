@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, shallowRef, triggerRef, watch } from 'vue'
 import { TYPES, type Multiplier, type TypeId } from '@/data/types'
 import { t, typeName } from '@/i18n'
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
@@ -7,15 +7,21 @@ import { deckStats, emptyDeck, grade, loadDeck, pickNext, rollDay, saveDeck } fr
 import { AnimatePresence, motion } from 'motion-v'
 import { FADE, PRESS } from '@/lib/motion'
 import {
+  MULTI_QUESTIONS,
+  cardKind,
   cardLabel,
   checkMulti,
   explain,
   getCard,
   getCurriculum,
+  matchups,
   multiPrompt,
+  multiQuestion,
   newCardOrder,
   type Card,
 } from '@/lib/quiz'
+import { CHOICES, LIMITS, defaultSettings, loadSettings, normalize, saveSettings } from '@/lib/quizSettings'
+import { hintFor } from '@/lib/hints'
 import TypeIcon from '@/components/TypeIcon.vue'
 import TypePicker from '@/components/TypePicker.vue'
 import { confirmDialog } from '@/composables/useConfirm'
@@ -23,13 +29,15 @@ import { confirmDialog } from '@/composables/useConfirm'
 // Dev-only controls to fast-forward the quiz; left out of production builds.
 const QuizDevTools = import.meta.env.DEV ? defineAsyncComponent(() => import('@/dev/QuizDevTools.vue')) : null
 
-/** Dual-type cards unlock once this share of the basic cards has graduated. */
-const DUAL_UNLOCK = 0.6
-/** Answers slower than this (ms) count as a hesitant correct answer. */
-const SLOW_MS = { mult: 8_000, multi: 20_000 }
-
 const deck = shallowRef(loadDeck())
-rollDay(deck.value)
+// Settings live apart from progress, so resetting progress keeps them. Decks used to hold the dual types choice.
+const settings = ref(loadSettings(deck.value.duals))
+if (deck.value.duals !== undefined) {
+  delete deck.value.duals
+  saveDeck(deck.value)
+  saveSettings(settings.value)
+}
+rollDay(deck.value, settings.value.newPerDay)
 const { basic, dual } = getCurriculum()
 
 const graduated = computed(() => {
@@ -41,23 +49,39 @@ const graduated = computed(() => {
   }
   return n
 })
-const dualsAuto = computed(() => graduated.value >= basic.length * DUAL_UNLOCK)
+const unlockAt = computed(() => Math.ceil(basic.length * settings.value.dualUnlock))
+const dualsAuto = computed(() => graduated.value >= unlockAt.value)
 const dualsOn = computed(() => {
-  void deck.value.tick
-  return deck.value.duals ?? dualsAuto.value
+  const mode = settings.value.duals
+  return mode === 'auto' ? dualsAuto.value : mode === 'on'
 })
 
-/** With duals on, every this-many-plus-one-th new card is a dual, so they show up right away. */
-const DUAL_EVERY = 3
-const DUAL_IDS = new Set(dual.map((c) => c.id))
-/** Duals switched off (or not unlocked yet) are left out entirely, reviews included; they resume when on. */
-const skip = (id: string) => !dualsOn.value && DUAL_IDS.has(id)
+/**
+ * Cards switched off in the settings (dual types, tick-all cards or some of their questions) are left out
+ * entirely, reviews included; they resume, schedules intact, when switched back on.
+ */
+function skip(id: string): boolean {
+  const kind = cardKind(id)
+  if (kind === 'dual') return !dualsOn.value
+  if (kind === 'multi') return !settings.value.multiEvery || !settings.value.questions[multiQuestion(id)]
+  return false
+}
 
+/**
+ * New cards in study order. Each pool has its own rate, counted over the cards seen so far:
+ * one tick-all card in every `multiEvery` basic cards, and one dual in every `dualEvery` cards.
+ */
 function* newIds() {
   const order = newCardOrder(deck.value.seed!)
-  if (dualsOn.value && Object.keys(deck.value.cards).length % (DUAL_EVERY + 1) === DUAL_EVERY) yield* order.dual
-  yield* order.basic
-  if (dualsOn.value) yield* order.dual
+  const s = settings.value
+  const seen = { single: 0, multi: 0, dual: 0 }
+  for (const id of Object.keys(deck.value.cards)) seen[cardKind(id)]++
+  const all = seen.single + seen.multi + seen.dual
+  if (dualsOn.value && all % s.dualEvery === s.dualEvery - 1) yield* order.dual
+  if (s.multiEvery && (seen.single + seen.multi) % s.multiEvery === s.multiEvery - 1) yield* order.multi
+  yield* order.single
+  yield* order.multi
+  yield* order.dual
 }
 
 // ---- Current card ----
@@ -84,7 +108,8 @@ function next(ignoreLimit = false) {
 
 function record(correct: boolean, slow?: boolean) {
   const c = current.value!
-  slow ??= performance.now() - shownAt > SLOW_MS[c.kind]
+  const secs = c.kind === 'mult' ? settings.value.slowMult : settings.value.slowMulti
+  slow ??= secs > 0 && performance.now() - shownAt > secs * 1000
   grade(deck.value, c.id, correct ? (slow ? 3 : 4) : 1)
   saveDeck(deck.value)
   triggerRef(deck)
@@ -124,12 +149,25 @@ function simulate(correct: boolean, slow = false) {
 
 /** Dev: the card the quiz would show next, ignoring the daily limit. */
 const devPick = (avoid?: string) => pickNext(deck.value, { newIds: newIds(), avoid, ignoreLimit: true, skip })
-const devBasicIds = computed(() => newCardOrder(deck.value.seed!).basic)
+const devBasicIds = computed(() => {
+  const order = newCardOrder(deck.value.seed!)
+  return [...order.single, ...order.multi]
+})
 function devDone() {
   saveDeck(deck.value)
   triggerRef(deck)
   next()
 }
+
+/** After answering: the memory hook for each matchup the card is about. */
+const hints = computed(() => {
+  const c = current.value
+  if (!result.value || !c || !settings.value.hints) return []
+  return matchups(c).flatMap(([atk, def]) => {
+    const text = hintFor(atk, def)
+    return text ? [{ atk, def, text }] : []
+  })
+})
 
 const marks = computed(() => {
   const c = current.value
@@ -182,7 +220,7 @@ const stats = computed(() => {
   void deck.value.tick
   return deckStats(deck.value, Date.now(), skip)
 })
-const total = computed(() => basic.length + (dualsOn.value ? dual.length : 0))
+const total = computed(() => [...basic, ...dual].filter((c) => !skip(c.id)).length)
 const accuracy = computed(() =>
   session.value.seen ? Math.round((100 * session.value.correct) / session.value.seen) : 0,
 )
@@ -197,24 +235,52 @@ const weakSpots = computed(() => {
 })
 
 function learnMore() {
-  deck.value.newLimit += 10
+  deck.value.newLimit += settings.value.learnMoreStep
   saveDeck(deck.value)
   triggerRef(deck)
   next()
 }
 
-function setDuals(e: Event) {
-  const v = (e.target as HTMLSelectElement).value
-  deck.value.duals = v === 'auto' ? undefined : v === 'on'
-  saveDeck(deck.value)
-  triggerRef(deck)
-  // Replace an unanswered dual card when duals go off.
-  if (!current.value || (!result.value && skip(current.value.id))) next()
+// Settings apply from the next card; an unanswered card that was just switched off is replaced now.
+let newPerDay = settings.value.newPerDay
+watch(
+  settings,
+  (s) => {
+    // A cleared or out-of-range number goes back to its default.
+    const clean = normalize(s)
+    if (JSON.stringify(clean) !== JSON.stringify(s)) {
+      settings.value = clean
+      return
+    }
+    // Today's allowance follows the new daily number, keeping anything "Learn more" added.
+    if (s.newPerDay !== newPerDay) {
+      deck.value.newLimit = Math.max(0, deck.value.newLimit + s.newPerDay - newPerDay)
+      newPerDay = s.newPerDay
+      saveDeck(deck.value)
+      triggerRef(deck)
+    }
+    saveSettings(s)
+    if (!current.value || (!result.value && skip(current.value.id))) next()
+  },
+  { deep: true },
+)
+
+function restoreDefaults() {
+  settings.value = defaultSettings()
 }
+
+const QUESTION_LABELS = {
+  weak: 'settings.q.weak',
+  resist: 'settings.q.resist',
+  immune: 'settings.q.immune',
+  se: 'settings.q.se',
+  nve: 'settings.q.nve',
+  noeff: 'settings.q.noeff',
+} as const
 
 async function reset() {
   if (!(await confirmDialog({ message: t('quiz.resetConfirm'), confirm: t('quiz.reset'), danger: true }))) return
-  deck.value = emptyDeck()
+  deck.value = emptyDeck(settings.value.newPerDay)
   saveDeck(deck.value)
   session.value = { seen: 0, correct: 0 }
   current.value = null
@@ -289,7 +355,9 @@ function ansAnimate(m: Multiplier) {
           <div v-else class="done">
             <h2>{{ t('quiz.caughtUp') }}</h2>
             <p class="muted">{{ t('quiz.caughtUpText', { n: deck.newLimit }) }}</p>
-            <button type="button" class="btn primary" @click="learnMore">{{ t('quiz.learnMore') }}</button>
+            <button type="button" class="btn primary" @click="learnMore">
+              {{ t('quiz.learnMore', { n: settings.learnMoreStep }) }}
+            </button>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -328,6 +396,17 @@ function ansAnimate(m: Multiplier) {
               <span v-if="result.wrong.length">{{ t('quiz.extra', { list: names(result.wrong) }) }}</span>
             </template>
           </div>
+          <!-- Memory hooks to reinforce the answer (Advanced settings > Show hints). -->
+          <ul v-if="hints.length" class="hints">
+            <li v-for="h in hints" :key="h.atk + h.def">
+              <span class="pair">
+                <TypeIcon :type="h.atk" />
+                <span class="muted">→</span>
+                <TypeIcon :type="h.def" />
+              </span>
+              <span>{{ h.text }}</span>
+            </li>
+          </ul>
         </motion.div>
       </div>
     </section>
@@ -342,7 +421,7 @@ function ansAnimate(m: Multiplier) {
         :pick="devPick"
         :basic-ids="devBasicIds"
         :graduated="graduated"
-        :unlock-at="Math.ceil(basic.length * DUAL_UNLOCK)"
+        :unlock-at="unlockAt"
         :done="devDone"
       />
       <div class="panel">
@@ -363,21 +442,101 @@ function ansAnimate(m: Multiplier) {
           <dt>{{ t('quiz.mature') }}</dt>
           <dd class="num">{{ stats.mature }}</dd>
         </dl>
-        <label class="setting">
-          {{ t('quiz.dualTypes') }}
-          <select :value="deck.duals === undefined ? 'auto' : deck.duals ? 'on' : 'off'" @change="setDuals">
+      </div>
+
+      <details class="panel settings small">
+        <summary>{{ t('settings.title') }}</summary>
+        <label class="check">
+          <input v-model="settings.hints" type="checkbox" />
+          {{ t('settings.hints') }}
+        </label>
+
+        <label class="row">
+          <span>{{ t('settings.newPerDay') }}</span>
+          <input
+            v-model.lazy.number="settings.newPerDay"
+            type="number"
+            :min="LIMITS.newPerDay[0]"
+            :max="LIMITS.newPerDay[1]"
+            required
+          />
+        </label>
+        <label class="row">
+          <span>{{ t('settings.learnMoreStep') }}</span>
+          <input
+            v-model.lazy.number="settings.learnMoreStep"
+            type="number"
+            :min="LIMITS.learnMoreStep[0]"
+            :max="LIMITS.learnMoreStep[1]"
+            required
+          />
+        </label>
+
+        <label class="row">
+          <span>{{ t('settings.multiEvery') }}</span>
+          <select v-model.number="settings.multiEvery">
+            <option v-for="n in CHOICES.multiEvery" :key="n" :value="n">
+              {{ n ? t('settings.everyN', { n }) : t('quiz.off') }}
+            </option>
+          </select>
+        </label>
+        <fieldset :disabled="!settings.multiEvery">
+          <legend>{{ t('settings.questions') }}</legend>
+          <label v-for="q in MULTI_QUESTIONS" :key="q" class="check">
+            <input v-model="settings.questions[q]" type="checkbox" />
+            {{ t(QUESTION_LABELS[q]) }}
+          </label>
+        </fieldset>
+
+        <label class="row">
+          <span>{{ t('quiz.dualTypes') }}</span>
+          <select v-model="settings.duals">
             <option value="auto">
-              {{
-                t('quiz.auto', {
-                  s: dualsAuto ? t('quiz.unlocked') : `${graduated}/${Math.ceil(basic.length * DUAL_UNLOCK)}`,
-                })
-              }}
+              {{ t('quiz.auto', { s: dualsAuto ? t('quiz.unlocked') : `${graduated}/${unlockAt}` }) }}
             </option>
             <option value="on">{{ t('quiz.on') }}</option>
             <option value="off">{{ t('quiz.off') }}</option>
           </select>
         </label>
-      </div>
+        <label class="row">
+          <span>{{ t('settings.dualUnlock') }}</span>
+          <select v-model.number="settings.dualUnlock" :disabled="settings.duals !== 'auto'">
+            <option v-for="n in CHOICES.dualUnlock" :key="n" :value="n">
+              {{ t('settings.percent', { n: n * 100 }) }}
+            </option>
+          </select>
+        </label>
+        <label class="row">
+          <span>{{ t('settings.dualEvery') }}</span>
+          <select v-model.number="settings.dualEvery" :disabled="settings.duals === 'off'">
+            <option v-for="n in CHOICES.dualEvery" :key="n" :value="n">{{ t('settings.everyN', { n }) }}</option>
+          </select>
+        </label>
+
+        <label class="row">
+          <span>{{ t('settings.slowMult') }}</span>
+          <input
+            v-model.lazy.number="settings.slowMult"
+            type="number"
+            :min="LIMITS.slow[0]"
+            :max="LIMITS.slow[1]"
+            required
+          />
+        </label>
+        <label class="row">
+          <span>{{ t('settings.slowMulti') }}</span>
+          <input
+            v-model.lazy.number="settings.slowMulti"
+            type="number"
+            :min="LIMITS.slow[0]"
+            :max="LIMITS.slow[1]"
+            required
+          />
+        </label>
+        <p class="muted">{{ t('settings.slowNote') }}</p>
+
+        <button type="button" class="btn" @click="restoreDefaults">{{ t('settings.restore') }}</button>
+      </details>
 
       <div class="panel">
         <h2>{{ t('quiz.weakSpots') }}</h2>
@@ -562,11 +721,75 @@ kbd {
   font-weight: bold;
 }
 
-.setting {
+.settings summary {
+  cursor: pointer;
+  font-family: var(--font-display, inherit);
+  font-weight: bold;
+}
+.settings[open] summary {
+  margin-bottom: 10px;
+}
+.settings .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  margin-bottom: 6px;
+}
+.settings .check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.settings input[type='number'] {
+  width: 4.5em;
+  font: inherit;
+  color: inherit;
+  background: var(--panel-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+.settings fieldset {
+  margin: 4px 0 10px;
+  padding: 6px 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.settings fieldset:disabled {
+  opacity: 0.5;
+}
+.settings legend {
+  padding: 0 4px;
+  color: var(--muted);
+}
+.settings p {
+  margin: 0 0 10px;
+}
+select:disabled {
+  opacity: 0.5;
+}
+
+.hints {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+}
+.hints li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.hints .pair {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  align-self: center;
 }
 select {
   font: inherit;

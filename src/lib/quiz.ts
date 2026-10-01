@@ -11,7 +11,8 @@ export interface MultCard {
   answer: Multiplier
 }
 
-export type MultiQuestion = 'weak' | 'resist' | 'immune' | 'se' | 'nve' | 'noeff'
+export const MULTI_QUESTIONS = ['weak', 'resist', 'immune', 'se', 'nve', 'noeff'] as const
+export type MultiQuestion = (typeof MULTI_QUESTIONS)[number]
 
 /** "Which attacking types are super effective against Steel?": tick all that apply. */
 export interface MultiCard {
@@ -63,6 +64,23 @@ const PROMPT_KEYS = {
   noeff: 'quiz.q.noeff',
 } as const satisfies Record<MultiQuestion, MessageKey>
 
+/** The attacker → defender matchups a card is about: its own, or each type in a tick-all answer. */
+export function matchups(c: Card): [atk: TypeId, def: TypeId][] {
+  if (c.kind === 'mult') return c.def.map((d) => [c.atk, d])
+  return c.answer.map((o) => (DEFENSIVE[c.q] ? [o, c.type] : [c.type, o]))
+}
+
+/** Which pool a card id belongs to: single-type multiplier, tick-all, or dual-type multiplier. */
+export function cardKind(id: string): 'single' | 'multi' | 'dual' {
+  if (id.startsWith('ms:')) return 'multi'
+  return id.includes('/') ? 'dual' : 'single'
+}
+
+/** The question of a tick-all card id (`ms:<question>:<type>`). */
+export function multiQuestion(id: string): MultiQuestion {
+  return id.split(':')[1] as MultiQuestion
+}
+
 /** The question text split around the type, so a type badge can go in between. */
 export function multiPrompt(c: MultiCard): [before: string, after: string] {
   return tSplit(PROMPT_KEYS[c.q], 'type')
@@ -102,7 +120,7 @@ function buildCurriculum() {
   for (const a of TYPES) for (const d of TYPES) singles.push(multCard(a, [d]))
 
   const multis: MultiCard[] = []
-  for (const q of Object.keys(MULTI_FILTERS) as MultiQuestion[]) {
+  for (const q of MULTI_QUESTIONS) {
     for (const t of TYPES) {
       const c = multiCard(q, t)
       if (c) multis.push(c)
@@ -123,16 +141,18 @@ function buildCurriculum() {
   const dualExtreme = duals.filter(extreme)
   const dualOther = duals.filter((c) => !extreme(c))
 
+  // Each pool is introduced at its own rate (see the quiz settings); within a pool, tiers come in order.
   const tiers = {
-    basic: [[...notable, ...multis], neutral] as Card[][],
+    single: [notable, neutral] as Card[][],
+    multi: [multis] as Card[][],
     dual: [dualExtreme, dualOther] as Card[][],
   }
-  return { tiers, basic: tiers.basic.flat(), dual: tiers.dual.flat() }
+  return { tiers, basic: [...singles, ...multis] as Card[], dual: duals as Card[] }
 }
 
 let curriculum: ReturnType<typeof buildCurriculum> | null = null
 let byId: Map<string, Card> | null = null
-let order: { seed: number; basic: string[]; dual: string[] } | null = null
+let order: { seed: number; single: string[]; multi: string[]; dual: string[] } | null = null
 
 /** All quiz cards, grouped into basic and dual. Order here is not the study order. */
 export function getCurriculum() {
@@ -140,13 +160,13 @@ export function getCurriculum() {
   return curriculum
 }
 
-/** Study order for new cards: tiers in fixed order, each shuffled by the deck's seed. */
+/** Study order for new cards, per pool: tiers in fixed order, each shuffled by the deck's seed. */
 export function newCardOrder(seed: number) {
   if (order?.seed !== seed) {
     const { tiers } = getCurriculum()
     const ids = (group: Card[][], k: number) =>
       group.flatMap((tier, i) => shuffle([...tier], seed + k + i).map((c) => c.id))
-    order = { seed, basic: ids(tiers.basic, 0), dual: ids(tiers.dual, 2) }
+    order = { seed, single: ids(tiers.single, 0), multi: ids(tiers.multi, 2), dual: ids(tiers.dual, 4) }
   }
   return order
 }

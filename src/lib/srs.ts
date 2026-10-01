@@ -36,7 +36,7 @@ export interface Deck {
   day: string
   newToday: number
   newLimit: number
-  /** Dual-type cards: forced on/off, or unset to unlock automatically. */
+  /** Old home of the dual types setting, now in the quiz settings; read once to carry it over. */
   duals?: boolean
   /** Shuffles the order new cards are introduced in; rolled again on reset. */
   seed?: number
@@ -52,17 +52,17 @@ export function newSeed(): number {
   return Math.floor(Math.random() * 2 ** 32)
 }
 
-export function emptyDeck(): Deck {
-  return { v: 1, tick: 0, cards: {}, day: today(), newToday: 0, newLimit: DEFAULT_NEW_LIMIT, seed: newSeed() }
+export function emptyDeck(newLimit = DEFAULT_NEW_LIMIT): Deck {
+  return { v: 1, tick: 0, cards: {}, day: today(), newToday: 0, newLimit, seed: newSeed() }
 }
 
 /** Roll the daily new-card counter over when the date changes. */
-export function rollDay(deck: Deck, now = Date.now()): void {
+export function rollDay(deck: Deck, newLimit = DEFAULT_NEW_LIMIT, now = Date.now()): void {
   const d = today(now)
   if (deck.day !== d) {
     deck.day = d
     deck.newToday = 0
-    deck.newLimit = DEFAULT_NEW_LIMIT
+    deck.newLimit = newLimit
   }
 }
 
@@ -159,7 +159,7 @@ export function pickNext(deck: Deck, opts: PickOptions): string | null {
   if (review) return review[0]
   if (opts.ignoreLimit || deck.newToday < deck.newLimit) {
     for (const id of opts.newIds) {
-      if (id !== opts.avoid && !deck.cards[id]) return id
+      if (id !== opts.avoid && !deck.cards[id] && !opts.skip?.(id)) return id
     }
   }
   if (learnLater) return learnLater[0]

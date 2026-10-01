@@ -7,6 +7,7 @@ import { ATK_ROWS, DEF_ROWS, MORE_ROWS, typeInfo, type EntryKey, type TypeInfo }
 import { t, typeName, type MessageKey } from '@/i18n'
 import { attackProfile, defensiveProfile, formatMult, multClass, type Profile } from '@/lib/typecalc'
 import { FADE, PRESS, SPRING } from '@/lib/motion'
+import { hintFor } from '@/lib/hints'
 import TypeIcon from '@/components/TypeIcon.vue'
 import InfoRows, { type InfoRow } from '@/components/InfoRows.vue'
 
@@ -67,7 +68,8 @@ function toggleLearn() {
 function hint(side: 'def' | 'atk', other: TypeId): string {
   const ty = type.value!
   const [atk, def] = side === 'def' ? [other, ty] : [ty, other]
-  return t(`hint.${atk}.${def}` as MessageKey)
+  // Rows only hold non-neutral matchups, which all have one.
+  return hintFor(atk, def) ?? ''
 }
 
 function readFlag(key: string): boolean {
