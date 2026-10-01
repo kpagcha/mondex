@@ -241,12 +241,16 @@
 }
 
 /* Type grids (the types list and the type picker): no cell around each type, the badge is the button. A selected
-   type is pushed in: its raised shadow turns into an inset one, while the rest stay raised. */
+   type is pushed in: its raised shadow turns into an inset one, with a ring around it, while the rest stay raised. */
 :root[data-style='retro'] :is(.list, .picker) .opt {
   background: none;
   border-color: transparent;
   box-shadow: none;
   opacity: 1;
+}
+/* No hover fill either: hovering lifts the badge instead. */
+:root[data-style='retro'] :is(.list, .picker) .opt:hover {
+  background: none;
 }
 :root[data-style='retro'] .list .opt .pill {
   display: none;
@@ -281,6 +285,12 @@
 }
 :root[data-style='retro'] :is(.list, .picker) .opt.on .type-badge.s2 {
   box-shadow: inset 3px 3px 0 rgb(0 0 0 / 0.35);
+}
+/* And a faint ring in the text color around it, so it stands out at a glance. The quiz's right/wrong rings below take its
+   place after answering. */
+:root[data-style='retro'] :is(.list, .picker) .opt.on:not(.ok, .missed, .wrong) .type-badge {
+  outline: 2px solid color-mix(in srgb, var(--text) 50%, transparent);
+  outline-offset: 3px;
 }
 
 /* The quiz picker's marks after answering, as a ring around the badge: right, missed (dashed) and wrong. */
