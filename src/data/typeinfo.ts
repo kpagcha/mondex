@@ -42,6 +42,17 @@ export const TERMS = [
   'magnetrise',
   'charge',
   'dragoncheer',
+  'weatherball',
+  'terrainpulse',
+  'risingvoltage',
+  'expandingforce',
+  'soak',
+  'magicpowder',
+  'forestscurse',
+  'trickortreat',
+  'reflecttype',
+  'burnup',
+  'doubleshock',
   // Abilities
   'effectspore',
   'corrosion',
@@ -97,6 +108,8 @@ export const TERMS = [
   'eelevate',
   'liquidvoice',
   'flowerveil',
+  'mimicry',
+  'forecast',
   // Items
   'ironball',
   'silkscarf',
@@ -196,6 +209,8 @@ export type Stat = (typeof STATS)[number]
 
 export interface Entry {
   term: TermId
+  /** The weather or terrain it needs. */
+  cond?: TermId
   /** Damage or power multiplier; with `vs`, only against that type. */
   mult?: number
   vs?: TypeId
@@ -231,12 +246,23 @@ export interface TypeInfo {
   user?: Entry[]
   target?: Entry[]
   items?: Entry[]
+  // Interactions with specific moves and abilities, shown collapsed.
+  /** What turns into the type. */
+  becomes?: Entry[]
+  /** What gives the type to a target, or to the user (Reflect Type is added for every type). */
+  gives?: Entry[]
+  /** What removes the type from its user. */
+  loses?: Entry[]
+  /** Moves of the type with their own conditions. */
+  specific?: Entry[]
 }
 
 export const DEF_ROWS = ['immune', 'bypass', 'hurt', 'stats', 'ally'] as const
 export const ATK_ROWS = ['field', 'user', 'target', 'items'] as const
 
-export type EntryKey = (typeof DEF_ROWS)[number] | (typeof ATK_ROWS)[number]
+export const MORE_ROWS = ['becomes', 'gives', 'loses', 'specific'] as const
+
+export type EntryKey = (typeof DEF_ROWS)[number] | (typeof ATK_ROWS)[number] | (typeof MORE_ROWS)[number]
 
 /** `type`'s interactions, without the ones whose term `game` doesn't have. */
 export function typeInfo(type: TypeId, game: Game = GAME): TypeInfo {
@@ -245,14 +271,18 @@ export function typeInfo(type: TypeId, game: Game = GAME): TypeInfo {
   // Stealth Rock damage follows the type's Rock matchup.
   const rock = chart('rock', type)
   const hurt = rock === 1 ? info.hurt : [...(info.hurt ?? []), x('stealthrock', rock)]
-  for (const k of [...DEF_ROWS, ...ATK_ROWS] as EntryKey[]) {
-    out[k] = (k === 'hurt' ? hurt : info[k])?.filter((e) => available(e.term, game))
+  const gives = [...(info.gives ?? []), { term: 'reflecttype', fx: 'info.fx.reflectType' } as const]
+  for (const k of [...DEF_ROWS, ...ATK_ROWS, ...MORE_ROWS] as EntryKey[]) {
+    const entries = k === 'hurt' ? hurt : k === 'gives' ? gives : info[k]
+    out[k] = entries?.filter((e) => available(e.term, game))
   }
   return out
 }
 
 const is = (...terms: TermId[]): Entry[] => terms.map((term) => ({ term }))
 const x = (term: TermId, mult: number, vs?: TypeId): Entry => ({ term, mult, vs })
+/** `term` in weather or terrain `cond`, with power `mult`. */
+const when = (term: TermId, cond: TermId, mult?: number): Entry => ({ term, cond, mult })
 const up = (term: TermId, stat: Stat, stages: number, mult?: number): Entry => ({ term, stat, stages, mult })
 /** Every type has a 1.2× boosting item and a berry that halves a super effective hit (any hit, for Normal). */
 const items = (boost: TermId, berry: TermId, ...more: Entry[]) => [x(boost, 1.2), x(berry, 0.5), ...more]
@@ -263,6 +293,8 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('silkscarf', 'chilanberry', x('normalgem', 1.3)),
   },
   fire: {
+    becomes: [when('weatherball', 'sun', 2), when('forecast', 'sun')],
+    loses: is('burnup'),
     immune: is('brn'),
     field: [x('sun', 1.5), x('rain', 0.5), x('primordialsea', 0)],
     user: [x('blaze', 1.5), x('firemane', 1.5), x('megasol', 1.5)],
@@ -280,6 +312,8 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('charcoal', 'occaberry'),
   },
   water: {
+    becomes: [when('weatherball', 'rain', 2), when('forecast', 'rain')],
+    gives: is('soak'),
     hurt: [x('freezedry', 2), x('saltcure', 2)],
     field: [x('rain', 1.5), x('sun', 0.5), x('desolateland', 0)],
     user: [
@@ -298,6 +332,9 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('mysticwater', 'passhoberry', up('absorbbulb', 'spa', 1), up('luminousmoss', 'spd', 1)),
   },
   electric: {
+    becomes: [when('terrainpulse', 'electricterrain', 2), when('mimicry', 'electricterrain')],
+    loses: is('doubleshock'),
+    specific: [{ term: 'risingvoltage', cond: 'electricterrain', mult: 2, fx: 'info.fx.grounded' }],
     immune: is('par'),
     field: [x('electricterrain', 1.3), x('deltastream', 1, 'flying')],
     user: [up('charge', 'spd', 1, 2), x('transistor', 1.3), x('galvanize', 1.2)],
@@ -305,6 +342,8 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('magnet', 'wacanberry', up('cellbattery', 'atk', 1)),
   },
   grass: {
+    becomes: [when('terrainpulse', 'grassyterrain', 2), when('mimicry', 'grassyterrain')],
+    gives: [{ term: 'forestscurse', fx: 'info.fx.adds' }],
     immune: is('powder', 'leechseed', 'effectspore'),
     ally: [{ term: 'flowerveil', fx: 'info.fx.flowerVeil' }],
     field: [x('grassyterrain', 1.3)],
@@ -313,6 +352,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('miracleseed', 'rindoberry'),
   },
   ice: {
+    becomes: [when('weatherball', 'snow', 2), when('forecast', 'snow')],
     immune: is('frz', 'sheercold'),
     stats: [{ term: 'snow', stat: 'def', statMult: 1.5 }],
     field: [x('deltastream', 1, 'flying')],
@@ -342,11 +382,15 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
   },
   flying: {
     immune: is('spikes', 'toxicspikes', 'stickyweb', 'terrains', 'arenatrap'),
-    bypass: is('gravity', 'ingrain', 'roost', 'smackdown', 'thousandarrows', 'ironball'),
+    bypass: is('gravity', 'ingrain', 'smackdown', 'thousandarrows', 'ironball'),
+    loses: is('roost'),
     user: [x('aerilate', 1.2), { term: 'galewings', priority: 1 }],
     items: items('sharpbeak', 'cobaberry'),
   },
   psychic: {
+    becomes: [when('terrainpulse', 'psychicterrain', 2), when('mimicry', 'psychicterrain')],
+    gives: is('magicpowder'),
+    specific: [{ term: 'expandingforce', cond: 'psychicterrain', mult: 1.5, fx: 'info.fx.spread' }],
     field: [x('psychicterrain', 1.3)],
     items: items('twistedspoon', 'payapaberry'),
   },
@@ -356,6 +400,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('silverpowder', 'tangaberry'),
   },
   rock: {
+    becomes: [when('weatherball', 'sandstorm', 2)],
     immune: is('sandstorm'),
     stats: [{ term: 'sandstorm', stat: 'spd', statMult: 1.5 }],
     field: [x('deltastream', 1, 'flying')],
@@ -363,6 +408,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('hardstone', 'chartiberry'),
   },
   ghost: {
+    gives: [{ term: 'trickortreat', fx: 'info.fx.adds' }],
     immune: is('trapping'),
     bypass: is('scrappy', 'mindseye', 'foresight', 'odorsleuth'),
     notes: [{ key: 'info.note.curse' }],
@@ -391,6 +437,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     items: items('metalcoat', 'babiriberry'),
   },
   fairy: {
+    becomes: [when('terrainpulse', 'mistyterrain', 2), when('mimicry', 'mistyterrain')],
     user: [x('fairyaura', 1.33), x('pixilate', 1.2)],
     items: items('fairyfeather', 'roseliberry'),
   },

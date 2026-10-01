@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, motion } from 'motion-v'
 import { TYPES, isType, type Multiplier } from '@/data/types'
-import { ATK_ROWS, DEF_ROWS, typeInfo, type Entry, type EntryKey, type TypeInfo } from '@/data/typeinfo'
-import { t, termName, typeName, type MessageKey } from '@/i18n'
+import { ATK_ROWS, DEF_ROWS, MORE_ROWS, typeInfo, type EntryKey, type TypeInfo } from '@/data/typeinfo'
+import { t, typeName, type MessageKey } from '@/i18n'
 import { attackProfile, defensiveProfile, formatMult, multClass, type Profile } from '@/lib/typecalc'
 import { FADE, PRESS, SPRING } from '@/lib/motion'
 import TypeIcon from '@/components/TypeIcon.vue'
+import InfoRows, { type InfoRow } from '@/components/InfoRows.vue'
 
 // The selected type is the route param (`/types/fire`), validated by the route itself.
 const route = useRoute()
@@ -18,33 +19,53 @@ const type = computed(() => {
 
 const MULTS: Multiplier[] = [2, 0.5, 0]
 
+const info = computed<TypeInfo | null>(() => (type.value ? typeInfo(type.value) : null))
+
+/** Only the interactions this type actually has. */
+function infoRows(keys: readonly EntryKey[]): InfoRow[] {
+  const i = info.value
+  const name = type.value ? typeName(type.value) : ''
+  return keys.flatMap((k) =>
+    i?.[k]?.length ? [{ label: t(`info.${k}` as MessageKey, { type: name }), entries: i[k] }] : [],
+  )
+}
+
 const sections = computed(() => {
   const ty = type.value
   if (!ty) return []
-  const info: TypeInfo = typeInfo(ty)
-  // Only the multipliers and interactions this type actually has.
+  // Only the multipliers this type actually has.
   const rows = (p: Profile) => MULTS.filter((m) => p[m].length).map((m) => ({ m, types: p[m] }))
-  const infoRows = (keys: readonly EntryKey[]) =>
-    keys.flatMap((k) => (info[k]?.length ? [{ label: `info.${k}` as MessageKey, entries: info[k] }] : []))
+  const notes = info.value?.notes?.map((n) => t(n.key)) ?? []
   return [
     // The defending side also covers the type's Pokémon; the attacking side, its moves.
     {
       title: 'types.defending' as const,
       rows: rows(defensiveProfile([ty])),
-      info: infoRows(DEF_ROWS),
-      notes: info.notes ?? [],
+      info: [...infoRows(DEF_ROWS), ...(notes.length ? [{ label: t('info.notes'), notes }] : [])],
     },
-    { title: 'types.attacking' as const, rows: rows(attackProfile(ty)), info: infoRows(ATK_ROWS), notes: [] },
+    { title: 'types.attacking' as const, rows: rows(attackProfile(ty)), info: infoRows(ATK_ROWS) },
   ]
 })
 
-/** What an entry does besides its multiplier: "+1 SpA", "Def 1.5×", "+1 priority", "sound moves". */
-function effectText(e: Entry): string {
-  if (e.fx) return t(e.fx)
-  if (e.priority) return t('info.priority', { n: e.priority })
-  if (!e.stat) return ''
-  const stat = t(`stat.${e.stat}`)
-  return e.stages ? `+${e.stages} ${stat}` : `${stat} ${formatMult(e.statMult ?? 1)}`
+const more = computed(() => infoRows(MORE_ROWS))
+
+// Whether "More interactions" is open is remembered across visits.
+const MORE_KEY = 'mondex.types.more'
+const moreOpen = ref(readMore())
+function readMore(): boolean {
+  try {
+    return localStorage.getItem(MORE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+function onToggle(e: Event) {
+  moreOpen.value = (e.target as HTMLDetailsElement).open
+  try {
+    localStorage.setItem(MORE_KEY, moreOpen.value ? '1' : '0')
+  } catch {
+    // Storage unavailable: the choice lasts for this page load.
+  }
 }
 </script>
 
@@ -110,29 +131,14 @@ function effectText(e: Entry): string {
                 </tr>
               </tbody>
             </table>
-            <dl v-if="s.info.length || s.notes.length" class="info">
-              <template v-for="row in s.info" :key="row.label">
-                <dt class="muted">{{ t(row.label) }}</dt>
-                <dd>
-                  <span v-for="e in row.entries" :key="e.term" class="term">
-                    {{ termName(e.term) }}
-                    <span v-if="e.mult !== undefined" class="mult-tag" :class="multClass(e.mult)">
-                      {{ formatMult(e.mult) }}
-                    </span>
-                    <TypeIcon v-if="e.vs" :type="e.vs" />
-                    <span v-if="effectText(e)" class="effect num">{{ effectText(e) }}</span>
-                  </span>
-                </dd>
-              </template>
-              <template v-if="s.notes.length">
-                <dt class="muted">{{ t('info.notes') }}</dt>
-                <dd>
-                  <span v-for="n in s.notes" :key="n.key" class="term">{{ t(n.key) }}</span>
-                </dd>
-              </template>
-            </dl>
+            <InfoRows v-if="s.info.length" :rows="s.info" class="info" />
           </section>
         </div>
+        <!-- Interactions with specific moves and abilities: useful, but secondary. -->
+        <details v-if="more.length" class="more" :open="moreOpen" @toggle="onToggle">
+          <summary class="muted">{{ t('info.more') }}</summary>
+          <InfoRows :rows="more" />
+        </details>
       </div>
     </motion.div>
   </AnimatePresence>
@@ -215,35 +221,22 @@ function effectText(e: Entry): string {
 }
 
 .info {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 6px 10px;
-  align-items: baseline;
-  margin: 0;
   padding: 8px 4px 0;
   border-top: 1px solid var(--border);
 }
-.info dd {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0;
+
+.more {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: calc(12px * var(--text-scale));
 }
-.term {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 5px;
-  background: var(--panel-alt);
-  border: 1px solid var(--border);
-  border-radius: 3px;
+.more summary {
+  cursor: pointer;
+  width: fit-content;
 }
-.term .mult-tag {
-  min-width: 0;
-  padding: 0 0.3em;
-}
-.effect {
-  color: var(--muted);
+.more[open] summary {
+  margin-bottom: 8px;
 }
 
 .hint {
