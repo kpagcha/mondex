@@ -216,6 +216,7 @@ export const messages: Record<keyof typeof en, string> = {
   'info.field': 'Clima y campo',
   'info.user': 'Usuario',
   'info.target': 'Objetivo',
+  'info.allyAtk': 'Aliados',
   'info.items': 'Objetos',
   'info.priority': '+{n} prioridad',
   'info.fx.flowerVeil': 'sin bajadas de estadísticas ni estados',

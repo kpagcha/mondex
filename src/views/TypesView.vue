@@ -37,20 +37,24 @@ const sections = computed(() => {
   if (!ty) return []
   // Only the multipliers this type actually has.
   const rows = (p: Profile) => MULTS.filter((m) => p[m].length).map((m) => ({ m, types: p[m] }))
-  const notes = info.value?.notes?.map((n) => t(n.key)) ?? []
+  const notes = (side?: 'atk') => {
+    const list = info.value?.notes?.filter((n) => n.side === side).map((n) => t(n.key)) ?? []
+    return list.length ? [{ label: t('info.notes'), notes: list }] : []
+  }
   return [
-    // The defending side also covers the type's Pokémon; the attacking side, its moves.
+    // Interactions go on the side they help: protecting the type's Pokémon, or its attacks (its moves, and its
+    // Pokémon on the offense).
     {
       title: 'types.defending' as const,
       side: 'def' as const,
       rows: rows(defensiveProfile([ty])),
-      info: [...infoRows(DEF_ROWS), ...(notes.length ? [{ label: t('info.notes'), notes }] : [])],
+      info: [...infoRows(DEF_ROWS), ...notes()],
     },
     {
       title: 'types.attacking' as const,
       side: 'atk' as const,
       rows: rows(attackProfile(ty)),
-      info: infoRows(ATK_ROWS),
+      info: [...infoRows(ATK_ROWS), ...notes('atk')],
     },
   ]
 })

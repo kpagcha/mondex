@@ -212,6 +212,7 @@ export const messages = {
   'info.field': 'Weather & terrain',
   'info.user': 'User',
   'info.target': 'Target',
+  'info.allyAtk': 'Allies',
   'info.items': 'Items',
   'info.priority': '+{n} priority',
   'info.fx.flowerVeil': 'no stat drops or status',

@@ -227,6 +227,8 @@ export interface Note {
   key: MessageKey
   /** The move, ability or item the note is about, when its availability matters. */
   term?: TermId
+  /** Shown under Attacking when it's about the type's Pokémon attacking; under Defending otherwise. */
+  side?: 'atk'
 }
 
 export interface TypeInfo {
@@ -238,13 +240,15 @@ export interface TypeInfo {
   hurt?: Entry[]
   /** Stat boosts in weather. */
   stats?: Entry[]
-  /** What allies' moves and abilities do for it (doubles). */
+  /** What allies' moves and abilities do to protect it (doubles). */
   ally?: Entry[]
   notes?: Note[]
   // Moves of the type: the user's and the target's moves, abilities and conditions, and items.
   field?: Entry[]
   user?: Entry[]
   target?: Entry[]
+  /** What allies' moves and abilities do for its attacks (doubles). */
+  allyAtk?: Entry[]
   items?: Entry[]
   // Interactions with specific moves and abilities, shown collapsed.
   /** What turns into the type. */
@@ -258,7 +262,7 @@ export interface TypeInfo {
 }
 
 export const DEF_ROWS = ['immune', 'bypass', 'hurt', 'stats', 'ally'] as const
-export const ATK_ROWS = ['field', 'user', 'target', 'items'] as const
+export const ATK_ROWS = ['field', 'user', 'target', 'allyAtk', 'items'] as const
 
 export const MORE_ROWS = ['becomes', 'gives', 'loses', 'specific'] as const
 
@@ -368,7 +372,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     immune: is('psn'),
     bypass: is('corrosion'),
     notes: [
-      { key: 'info.note.toxic' },
+      { key: 'info.note.toxic', side: 'atk' },
       { key: 'info.note.toxicSpikes' },
       { key: 'info.note.blackSludge', term: 'blacksludge' },
     ],
@@ -411,14 +415,14 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     gives: [{ term: 'trickortreat', fx: 'info.fx.adds' }],
     immune: is('trapping'),
     bypass: is('scrappy', 'mindseye', 'foresight', 'odorsleuth'),
-    notes: [{ key: 'info.note.curse' }],
+    notes: [{ key: 'info.note.curse', side: 'atk' }],
     target: [x('purifyingsalt', 0.5), up('rattled', 'spe', 1)],
     items: items('spelltag', 'kasibberry'),
   },
   dragon: {
-    ally: [{ term: 'dragoncheer', fx: 'info.fx.dragonCheer' }],
     field: [x('mistyterrain', 0.5)],
     user: [x('dragonsmaw', 1.5), x('dragonize', 1.2)],
+    allyAtk: [{ term: 'dragoncheer', fx: 'info.fx.dragonCheer' }],
     items: items('dragonfang', 'habanberry'),
   },
   dark: {
@@ -433,7 +437,8 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     bypass: is('corrosion'),
     hurt: [x('saltcure', 2)],
     notes: [{ key: 'info.note.magnetPull', term: 'magnetpull' }],
-    user: [x('steelworker', 1.5), x('steelyspirit', 1.5), x('sandforce', 1.3)],
+    user: [x('steelworker', 1.5), x('sandforce', 1.3)],
+    allyAtk: [x('steelyspirit', 1.5)],
     items: items('metalcoat', 'babiriberry'),
   },
   fairy: {
