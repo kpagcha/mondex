@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { TYPES } from '@/data/types'
 import type { MessageKey } from '@/i18n'
 
 declare module 'vue-router' {
@@ -12,7 +13,16 @@ export const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: () => import('@/views/HomeView.vue') },
     {
-      path: '/types',
+      // `/types` lists every type; `/types/fire` also shows that type's matchups.
+      path: `/types/:type(${TYPES.join('|')})?`,
+      name: 'types',
+      component: () => import('@/views/TypesView.vue'),
+      meta: { titleKey: 'title.types' },
+      // The chart used to live at `/types`: keep its shared cell links (?atk=…&def=…) working.
+      beforeEnter: (to) => (!to.params.type && to.query.atk ? { path: '/types/chart', query: to.query } : undefined),
+    },
+    {
+      path: '/types/chart',
       name: 'chart',
       component: () => import('@/views/TypeChartView.vue'),
       meta: { titleKey: 'title.chart' },

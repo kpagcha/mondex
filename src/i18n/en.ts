@@ -22,10 +22,12 @@ export const types: Record<TypeId, string> = {
 }
 
 export const messages = {
-  'nav.chart': 'Type chart',
+  'nav.types': 'Types',
+  'nav.chart': 'Chart',
   'nav.calc': 'Calculator',
   'nav.quiz': 'Quiz',
   'nav.back': 'Back',
+  'title.types': 'Types',
   'title.chart': 'Type chart',
   'title.calc': 'Type calculator',
   'title.quiz': 'Type quiz',
@@ -37,6 +39,7 @@ export const messages = {
 
   'home.intro':
     'A competitive Pokémon dex. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
+  'home.typesDesc': 'Every type with its weaknesses, resistances and immunities.',
   'home.chartDesc': 'Every attacking type against every defending type.',
   'home.calcDesc': 'Weaknesses and resistances for any type combination, and the coverage of a moveset.',
   'home.quizDesc': 'Learn the chart with spaced repetition. Matchups you miss come back until you know them.',
@@ -44,6 +47,11 @@ export const messages = {
   'legend.se': 'super effective',
   'legend.nve': 'not very effective',
   'legend.none': 'no effect',
+
+  'types.intro': 'Pick a type.',
+  'types.defending': 'Defending',
+  'types.attacking': 'Attacking',
+  'types.selectHint': 'Select a type above to see its matchups.',
 
   'chart.intro':
     "Rows are the attacking move's type, columns the defending Pokémon's type. Click a type to open it in the calculator.",

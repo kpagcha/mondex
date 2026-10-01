@@ -9,6 +9,10 @@ import { t } from '@/i18n'
   </div>
   <div class="tools">
     <RouterLink to="/types" class="panel tool">
+      <h2>{{ t('title.types') }}</h2>
+      <p class="muted">{{ t('home.typesDesc') }}</p>
+    </RouterLink>
+    <RouterLink to="/types/chart" class="panel tool">
       <h2>{{ t('title.chart') }}</h2>
       <p class="muted">{{ t('home.chartDesc') }}</p>
     </RouterLink>

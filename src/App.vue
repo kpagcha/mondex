@@ -49,8 +49,12 @@ const fadeVariants = {
         <RouterLink to="/" class="logo font-display">mon<span>dex</span></RouterLink>
         <nav class="nav font-display">
           <!-- The active highlight is one element that slides between links. -->
-          <RouterLink v-slot="{ isExactActive }" to="/types" exact-active-class="active">
-            <motion.span v-if="isExactActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+          <RouterLink v-slot="{ isActive }" to="/types" active-class="active">
+            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
+            <span class="label">{{ t('nav.types') }}</span>
+          </RouterLink>
+          <RouterLink v-slot="{ isActive }" to="/types/chart" active-class="active">
+            <motion.span v-if="isActive" layout-id="nav-pill" class="pill" :transition="SPRING" />
             <span class="label">{{ t('nav.chart') }}</span>
           </RouterLink>
           <RouterLink v-slot="{ isActive }" to="/types/calc" active-class="active">
@@ -66,11 +70,11 @@ const fadeVariants = {
     </header>
     <main class="wrap">
       <RouterView v-slot="{ Component, route: r }">
-        <!-- Keyed by path so query changes (calculator picks) don't replay it.
+        <!-- Keyed by route rather than URL so query and param changes (calculator picks, the selected type) don't replay it.
              On phones, popLayout lifts the leaving page out of the flow so both pages slide side by side. -->
         <AnimatePresence :mode="isPhone ? 'popLayout' : 'wait'" :initial="false" :custom="direction">
           <motion.div
-            :key="r.path"
+            :key="r.matched[0]?.path ?? r.path"
             :custom="direction"
             :variants="isPhone ? pageVariants : fadeVariants"
             initial="enter"

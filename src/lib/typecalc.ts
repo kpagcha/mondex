@@ -37,6 +37,13 @@ export function defensiveProfile(def: readonly TypeId[]): Profile {
   return p
 }
 
+/** Every defending type grouped by the multiplier `atk` deals to it. */
+export function attackProfile(atk: TypeId): Profile {
+  const p = emptyProfile()
+  for (const def of TYPES) p[chart(atk, def) as Multiplier].push(def)
+  return p
+}
+
 /** All 18 single types followed by all 153 dual-type combinations. */
 export const ALL_DEFENDERS: readonly (readonly TypeId[])[] = (() => {
   const out: TypeId[][] = TYPES.map((t) => [t])

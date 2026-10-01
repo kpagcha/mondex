@@ -24,10 +24,12 @@ export const types: Record<TypeId, string> = {
 }
 
 export const messages: Record<keyof typeof en, string> = {
-  'nav.chart': 'Tabla de tipos',
+  'nav.types': 'Tipos',
+  'nav.chart': 'Tabla',
   'nav.calc': 'Calculadora',
   'nav.quiz': 'Test',
   'nav.back': 'Volver',
+  'title.types': 'Tipos',
   'title.chart': 'Tabla de tipos',
   'title.calc': 'Calculadora de tipos',
   'title.quiz': 'Test de tipos',
@@ -39,6 +41,7 @@ export const messages: Record<keyof typeof en, string> = {
 
   'home.intro':
     'Una Pokédex competitiva. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
+  'home.typesDesc': 'Cada tipo con sus debilidades, resistencias e inmunidades.',
   'home.chartDesc': 'Cada tipo atacante contra cada tipo defensor.',
   'home.calcDesc':
     'Debilidades y resistencias de cualquier combinación de tipos, y la cobertura de un set de movimientos.',
@@ -48,6 +51,11 @@ export const messages: Record<keyof typeof en, string> = {
   'legend.se': 'súper eficaz',
   'legend.nve': 'poco eficaz',
   'legend.none': 'no afecta',
+
+  'types.intro': 'Elige un tipo.',
+  'types.defending': 'Al defender',
+  'types.attacking': 'Al atacar',
+  'types.selectHint': 'Selecciona un tipo arriba para ver sus enfrentamientos.',
 
   'chart.intro':
     'Las filas son el tipo del movimiento atacante; las columnas, el tipo del Pokémon defensor. Haz clic en un tipo para abrirlo en la calculadora.',
