@@ -66,7 +66,7 @@ onMounted(async () => {
     </div>
   </div>
 
-  <div class="panel scroller">
+  <div class="scroller">
     <table ref="table" class="chart" @mouseover="onOver" @mouseleave="onLeave" @click="onClick">
       <thead>
         <tr>
@@ -120,16 +120,15 @@ onMounted(async () => {
 
 .scroller {
   overflow-x: auto;
-  --pad: 8px;
-  padding: var(--pad);
+  margin-bottom: 12px;
 }
 
 .chart {
   /* Keep the dense chart compact: icons stay 1× on phones. */
   --icon-scale: 1;
   border-collapse: collapse;
-  margin: 0 auto;
   font-weight: bold;
+  background: var(--panel);
 }
 
 .chart th,
@@ -153,7 +152,7 @@ onMounted(async () => {
 
 .rowh {
   position: sticky;
-  left: calc(-1 * var(--pad));
+  left: 0;
   z-index: 1;
   padding: 2px 4px;
   background: var(--panel-alt);
@@ -161,7 +160,7 @@ onMounted(async () => {
 
 .corner {
   position: sticky;
-  left: calc(-1 * var(--pad));
+  left: 0;
   z-index: 2;
   font-size: calc(9px * var(--text-scale));
   font-weight: normal;
