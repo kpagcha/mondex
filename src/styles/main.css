@@ -122,6 +122,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Pages slide in from off-screen; that must not add a horizontal scrollbar. */
+  overflow-x: clip;
 }
 
 body {

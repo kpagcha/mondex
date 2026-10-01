@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { watchEffect } from 'vue'
+import { ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, MotionConfig, motion } from 'motion-v'
-import { FADE, SPRING } from '@/lib/motion'
+import { FADE, PAGE, SPRING } from '@/lib/motion'
 import { THEME_MODES, useTheme, type ThemeMode } from '@/composables/useTheme'
 import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
 
@@ -14,6 +14,31 @@ watchEffect(() => {
   const key = route.meta.titleKey
   document.title = key ? `${t(key)} · mondex` : 'mondex'
 })
+
+// Same query as the phone-only styles below.
+const phoneQuery = window.matchMedia('(max-width: 720px) and (hover: none) and (pointer: coarse)')
+const isPhone = ref(phoneQuery.matches)
+phoneQuery.addEventListener('change', (e) => (isPhone.value = e.matches))
+
+// On phones, pages push each other sideways: going deeper, the new page comes in from the right as
+// the old one leaves to the left; going back, the reverse. Both travel a full screen width in lockstep.
+const depth = (path: string) => path.split('/').filter(Boolean).length
+const direction = ref(1)
+watch(
+  () => route.path,
+  (to, from) => (direction.value = depth(to) >= depth(from) ? 1 : -1),
+)
+const pageVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? '100vw' : '-100vw' }),
+  center: { x: 0 },
+  exit: (dir: number) => ({ x: dir > 0 ? '-100vw' : '100vw' }),
+}
+// On desktop, the old page fades out, then the new one fades in from slightly below.
+const fadeVariants = {
+  enter: { opacity: 0, y: 6 },
+  center: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -4 },
+}
 </script>
 
 <template>
@@ -41,14 +66,17 @@ watchEffect(() => {
     </header>
     <main class="wrap">
       <RouterView v-slot="{ Component, route: r }">
-        <!-- Keyed by path so query changes (calculator picks) don't replay it. -->
-        <AnimatePresence mode="wait" :initial="false">
+        <!-- Keyed by path so query changes (calculator picks) don't replay it.
+             On phones, popLayout lifts the leaving page out of the flow so both pages slide side by side. -->
+        <AnimatePresence :mode="isPhone ? 'popLayout' : 'wait'" :initial="false" :custom="direction">
           <motion.div
             :key="r.path"
-            :initial="{ opacity: 0, y: 6 }"
-            :animate="{ opacity: 1, y: 0 }"
-            :exit="{ opacity: 0, y: -4 }"
-            :transition="FADE"
+            :custom="direction"
+            :variants="isPhone ? pageVariants : fadeVariants"
+            initial="enter"
+            animate="center"
+            exit="exit"
+            :transition="isPhone ? PAGE : FADE"
           >
             <!-- Mobile replaces the header links with a way back to the home page. -->
             <RouterLink v-if="r.name !== 'home'" to="/" class="back font-display">
@@ -191,6 +219,9 @@ watchEffect(() => {
 
 main {
   flex: 1 0 auto;
+  /* Anchors the leaving page, and cuts it off where the new page ends instead of over the footer. */
+  position: relative;
+  overflow-y: clip;
 }
 
 .footer {
