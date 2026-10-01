@@ -2,20 +2,20 @@
 import { computed } from 'vue'
 import { iconUrl, type TypeId } from '@/data/types'
 import { typeName } from '@/i18n'
-import { style } from '@/dev/styles'
-import { TYPE_GLYPHS } from '@/dev/typeGlyphs'
+import { useStyle } from '@/composables/useStyle'
+import { TYPE_GLYPHS } from '@/data/typeGlyphs'
 
 const props = withDefaults(defineProps<{ type: TypeId; scale?: 1 | 2; lazy?: boolean }>(), {
   scale: 1,
   lazy: false,
 })
 
-// Dev-only style lab: the brutalist style swaps the sprites for fixed-width CSS badges (styled in
-// `src/dev/brutal.css`): the type glyph, then the name on large badges; small ones are just the glyph.
-const badge = computed(() => import.meta.env.DEV && style.value === 'brutal')
+// The retro style swaps the sprites for fixed-width CSS badges (styled in `src/styles/retro.css`): the type glyph,
+// then the name on large badges; small ones are just the glyph.
+const { style } = useStyle()
+const badge = computed(() => style.value === 'retro')
 const name = computed(() => typeName(props.type))
-// Guarded so production builds drop the bundled glyphs.
-const glyph = computed(() => (import.meta.env.DEV ? `url(${TYPE_GLYPHS[props.type]})` : undefined))
+const glyph = computed(() => `url(${TYPE_GLYPHS[props.type]})`)
 </script>
 
 <template>

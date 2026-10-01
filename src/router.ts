@@ -39,8 +39,12 @@ export const router = createRouter({
       component: () => import('@/views/TypeQuizView.vue'),
       meta: { titleKey: 'title.quiz' },
     },
-    // Dev-only tools; the import is dropped from production builds.
-    ...(import.meta.env.DEV ? [{ path: '/dev', name: 'dev', component: () => import('@/views/DevView.vue') }] : []),
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/SettingsView.vue'),
+      meta: { titleKey: 'title.settings' },
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

@@ -1,10 +1,10 @@
-/* Dev-only "retro brutalist" style: the pixel-era look with a subtle neo-brutalist take. Square corners, ink outlines
+/* The "retro" style (the default): the pixel-era look with a subtle neo-brutalist take. Square corners, ink outlines
    on the main surfaces, hard offset shadows instead of soft ones, a warm paper background and a highlighter-yellow
    selection. Grid lines inside tables keep the softer --border so the dense chart doesn't get heavy.
-   Applied when <html data-style="brutal">; works with both light and dark themes. */
+   Applied when <html data-style="retro"> (see useStyle); works with both light and dark themes. */
 
 /* ---------- Tokens ---------- */
-:root[data-style='brutal'] {
+:root[data-style='retro'] {
   --ink: #141414;
   --hard: 3px 3px 0 var(--ink);
   --hard-sm: 2px 2px 0 var(--ink);
@@ -24,7 +24,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root[data-style='brutal']:not([data-theme='light']) {
+  :root[data-style='retro']:not([data-theme='light']) {
     --ink: #000000;
     --bg: #1c1b20;
     --panel: #29282e;
@@ -40,7 +40,7 @@
   }
 }
 
-:root[data-style='brutal'][data-theme='dark'] {
+:root[data-style='retro'][data-theme='dark'] {
   --ink: #000000;
   --bg: #1c1b20;
   --panel: #29282e;
@@ -57,41 +57,41 @@
 
 /* ---------- Shape ---------- */
 /* Square corners everywhere. !important because the views' scoped styles set their own small radii. */
-:root[data-style='brutal'] *:not(.tippy-arrow) {
+:root[data-style='retro'] *:not(.tippy-arrow) {
   border-radius: 0 !important;
 }
 
 /* ---------- Surfaces ---------- */
-:root[data-style='brutal'] .panel {
+:root[data-style='retro'] .panel {
   border: 2px solid var(--ink);
   box-shadow: var(--hard);
 }
 
-:root[data-style='brutal'] .site-header {
+:root[data-style='retro'] .site-header {
   border-bottom: 2px solid var(--ink);
   box-shadow: none;
 }
 
-:root[data-style='brutal'] .back {
+:root[data-style='retro'] .back {
   border: 2px solid var(--ink);
   box-shadow: var(--hard-sm);
 }
 
-:root[data-style='brutal'] .confirm .panel {
+:root[data-style='retro'] .confirm .panel {
   box-shadow: 6px 6px 0 var(--ink);
 }
 
-:root[data-style='brutal'] .tippy-box[data-theme~='mondex'] {
+:root[data-style='retro'] .tippy-box[data-theme~='mondex'] {
   border: 2px solid var(--ink);
   box-shadow: var(--hard-sm);
 }
-:root[data-style='brutal'] .tippy-box[data-theme~='mondex'] > .tippy-arrow {
+:root[data-style='retro'] .tippy-box[data-theme~='mondex'] > .tippy-arrow {
   border-color: var(--ink);
 }
 
 /* ---------- Buttons ---------- */
 /* Raised on a hard shadow; they lift on hover and press flat when clicked. */
-:root[data-style='brutal'] .btn {
+:root[data-style='retro'] .btn {
   border: 2px solid var(--ink);
   box-shadow: var(--hard-sm);
   font-weight: bold;
@@ -100,29 +100,29 @@
     box-shadow 0.08s ease-out,
     background-color 0.08s ease-out;
 }
-:root[data-style='brutal'] .btn:hover:not(:disabled) {
+:root[data-style='retro'] .btn:hover:not(:disabled) {
   transform: translate(-1px, -1px);
   box-shadow: var(--hard);
 }
-:root[data-style='brutal'] .btn:active:not(:disabled) {
+:root[data-style='retro'] .btn:active:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow: none;
 }
-:root[data-style='brutal'] .btn:disabled {
+:root[data-style='retro'] .btn:disabled {
   box-shadow: none;
 }
-:root[data-style='brutal'] .btn.primary,
-:root[data-style='brutal'] .btn.danger {
+:root[data-style='retro'] .btn.primary,
+:root[data-style='retro'] .btn.danger {
   border-color: var(--ink);
 }
 /* Quiz answers keep their right/wrong ring alongside the hard shadow. */
-:root[data-style='brutal'] .ans.right {
+:root[data-style='retro'] .ans.right {
   border-color: var(--good);
   box-shadow:
     inset 0 0 0 2px var(--good),
     var(--hard-sm);
 }
-:root[data-style='brutal'] .ans.miss {
+:root[data-style='retro'] .ans.miss {
   border-color: var(--bad);
   box-shadow:
     inset 0 0 0 2px var(--bad),
@@ -130,44 +130,44 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root[data-style='brutal'] .btn {
+  :root[data-style='retro'] .btn {
     transition: none;
   }
-  :root[data-style='brutal'] .btn:hover:not(:disabled),
-  :root[data-style='brutal'] .btn:active:not(:disabled) {
+  :root[data-style='retro'] .btn:hover:not(:disabled),
+  :root[data-style='retro'] .btn:active:not(:disabled) {
     transform: none;
   }
 }
 
 /* ---------- Controls ---------- */
-:root[data-style='brutal'] select,
-:root[data-style='brutal'] input[type='number'] {
+:root[data-style='retro'] select,
+:root[data-style='retro'] input[type='number'] {
   border: 2px solid var(--ink);
 }
 
-:root[data-style='brutal'] :focus-visible {
+:root[data-style='retro'] :focus-visible {
   outline: 2px dashed var(--ink);
   outline-offset: 2px;
 }
 
 /* ---------- Navigation ---------- */
-:root[data-style='brutal'] .nav .pill {
+:root[data-style='retro'] .nav .pill {
   border: 2px solid var(--ink);
 }
 
-:root[data-style='brutal'] .tabs {
+:root[data-style='retro'] .tabs {
   border-bottom: 2px solid var(--ink);
 }
-:root[data-style='brutal'] .tabs a {
+:root[data-style='retro'] .tabs a {
   border-width: 2px;
   margin-bottom: -2px;
 }
-:root[data-style='brutal'] .tabs a.active {
+:root[data-style='retro'] .tabs a.active {
   border-color: var(--ink);
 }
 
 /* ---------- Multipliers ---------- */
-:root[data-style='brutal'] .mult-tag {
+:root[data-style='retro'] .mult-tag {
   border: 2px solid var(--ink);
 }
 
@@ -176,7 +176,7 @@
    and the white type glyph. Large badges add the name in white bold monospace, centered beside the glyph and about
    as big as the sprites' text, with a light drop for readability on pale fills like Electric and Ice. Small badges
    are just the glyph on its color. */
-:root[data-style='brutal'] .type-badge {
+:root[data-style='retro'] .type-badge {
   display: inline-flex;
   align-items: center;
   flex: none;
@@ -187,21 +187,21 @@
   box-shadow: 1px 1px 0 var(--ink);
   user-select: none;
 }
-:root[data-style='brutal'] .type-badge .glyph {
+:root[data-style='retro'] .type-badge .glyph {
   flex: none;
   background: currentColor;
   mask: var(--glyph) center / contain no-repeat;
 }
-:root[data-style='brutal'] .type-badge.s1 {
+:root[data-style='retro'] .type-badge.s1 {
   justify-content: center;
   width: calc(26px * var(--icon-scale, 1));
   height: calc(20px * var(--icon-scale, 1));
 }
-:root[data-style='brutal'] .type-badge.s1 .glyph {
+:root[data-style='retro'] .type-badge.s1 .glyph {
   width: calc(14px * var(--icon-scale, 1));
   height: calc(14px * var(--icon-scale, 1));
 }
-:root[data-style='brutal'] .type-badge.s2 {
+:root[data-style='retro'] .type-badge.s2 {
   width: 8.6em;
   height: 2.3em;
   padding: 0 0.25em;
@@ -219,16 +219,16 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
-:root[data-style='brutal'] .type-badge.s2 .glyph {
+:root[data-style='retro'] .type-badge.s2 .glyph {
   width: 1.3em;
   height: 1.3em;
 }
 /* The box is sized off the 12px badge font; the name is set larger, filling the badge with little padding left so
    the longest names (ELÉCTRICO, SINIESTRO) still fit beside the glyph. */
-:root[data-style='brutal'] .type-badge.s2 .label {
+:root[data-style='retro'] .type-badge.s2 .label {
   font-size: 1.15em;
 }
-:root[data-style='brutal'] .type-badge .label {
+:root[data-style='retro'] .type-badge .label {
   /* The glyph sits at the left; the name is centered in the rest of the badge. */
   flex: 1;
   text-align: center;
@@ -236,13 +236,13 @@
 }
 
 /* Grids of large badges need wider columns to fit them. */
-:root[data-style='brutal'] :is(.picker, .list) {
+:root[data-style='retro'] :is(.picker, .list) {
   grid-template-columns: repeat(auto-fill, minmax(calc(12px * var(--text-scale) * 8.6 + 16px), 1fr));
 }
 
 /* Type grids (the types list and the type picker): no cell around each type, the badge is the button. A selected
    type is pressed in, shifted onto its shadow, while the rest stay raised, and gets a marker below. */
-:root[data-style='brutal'] :is(.list, .picker) .opt {
+:root[data-style='retro'] :is(.list, .picker) .opt {
   position: relative;
   /* Room below the badge for the selection marker. */
   padding-bottom: 10px;
@@ -254,14 +254,14 @@
 
 /* Selection marker: a short bar in the text color under each selected badge. In the types list it's the sliding pill,
    so it glides from type to type; in the picker, where several can be on, each one pops in. */
-:root[data-style='brutal'] .list .opt .pill,
-:root[data-style='brutal'] .picker .opt.on::after {
+:root[data-style='retro'] .list .opt .pill,
+:root[data-style='retro'] .picker .opt.on::after {
   inset: auto auto 2px calc(50% - 12px);
   width: 24px;
   height: 3px;
   background: var(--text);
 }
-:root[data-style='brutal'] .picker .opt.on::after {
+:root[data-style='retro'] .picker .opt.on::after {
   content: '';
   position: absolute;
   animation: marker-in 0.2s cubic-bezier(0.3, 1.35, 0.6, 1);
@@ -272,103 +272,103 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  :root[data-style='brutal'] .picker .opt.on::after {
+  :root[data-style='retro'] .picker .opt.on::after {
     animation: none;
   }
 }
 
 /* Badges that are links or buttons lift on hover instead of underlining, settling with a very slight bounce. */
-:root[data-style='brutal'] a:has(.type-badge):hover {
+:root[data-style='retro'] a:has(.type-badge):hover {
   text-decoration: none;
 }
-:root[data-style='brutal'] :is(a, button) .type-badge {
+:root[data-style='retro'] :is(a, button) .type-badge {
   transition:
     transform 0.2s cubic-bezier(0.3, 1.35, 0.6, 1),
     box-shadow 0.2s cubic-bezier(0.3, 1.35, 0.6, 1);
 }
-:root[data-style='brutal'] :is(a, button:not(:disabled)):hover .type-badge {
+:root[data-style='retro'] :is(a, button:not(:disabled)):hover .type-badge {
   transform: translate(-1px, -1px);
   box-shadow: 2px 2px 0 var(--ink);
 }
-:root[data-style='brutal'] :is(a, button:not(:disabled)):hover .type-badge.s2 {
+:root[data-style='retro'] :is(a, button:not(:disabled)):hover .type-badge.s2 {
   box-shadow: 3px 3px 0 var(--ink);
 }
 @media (prefers-reduced-motion: reduce) {
-  :root[data-style='brutal'] :is(a, button) .type-badge {
+  :root[data-style='retro'] :is(a, button) .type-badge {
     transition: none;
   }
 }
 
 /* Selected (pressed in) wins over the hover lift. */
-:root[data-style='brutal'] :is(.list, .picker) .opt.on .type-badge:is(.s1, .s2) {
+:root[data-style='retro'] :is(.list, .picker) .opt.on .type-badge:is(.s1, .s2) {
   transform: translate(2px, 2px);
   box-shadow: none;
 }
 
 /* The quiz picker's marks after answering, as a ring around the badge: right, missed (dashed) and wrong. */
-:root[data-style='brutal'] .picker .opt:is(.ok, .missed, .wrong) .type-badge {
+:root[data-style='retro'] .picker .opt:is(.ok, .missed, .wrong) .type-badge {
   outline: 2px solid var(--bad);
   outline-offset: 2px;
 }
-:root[data-style='brutal'] .picker .opt.ok .type-badge {
+:root[data-style='retro'] .picker .opt.ok .type-badge {
   outline-color: var(--good);
 }
-:root[data-style='brutal'] .picker .opt.missed .type-badge {
+:root[data-style='retro'] .picker .opt.missed .type-badge {
   outline-style: dashed;
 }
 
 /* Official type colors, as in Scarlet/Violet's type symbols. */
-:root[data-style='brutal'] .type-badge[data-type='normal'] {
+:root[data-style='retro'] .type-badge[data-type='normal'] {
   --tc: #9fa19f;
 }
-:root[data-style='brutal'] .type-badge[data-type='fire'] {
+:root[data-style='retro'] .type-badge[data-type='fire'] {
   --tc: #e62829;
 }
-:root[data-style='brutal'] .type-badge[data-type='water'] {
+:root[data-style='retro'] .type-badge[data-type='water'] {
   --tc: #2980ef;
 }
-:root[data-style='brutal'] .type-badge[data-type='electric'] {
+:root[data-style='retro'] .type-badge[data-type='electric'] {
   --tc: #fac000;
 }
-:root[data-style='brutal'] .type-badge[data-type='grass'] {
+:root[data-style='retro'] .type-badge[data-type='grass'] {
   --tc: #3fa129;
 }
-:root[data-style='brutal'] .type-badge[data-type='ice'] {
+:root[data-style='retro'] .type-badge[data-type='ice'] {
   --tc: #3fd8ff;
 }
-:root[data-style='brutal'] .type-badge[data-type='fighting'] {
+:root[data-style='retro'] .type-badge[data-type='fighting'] {
   --tc: #ff8000;
 }
-:root[data-style='brutal'] .type-badge[data-type='poison'] {
+:root[data-style='retro'] .type-badge[data-type='poison'] {
   --tc: #9141cb;
 }
-:root[data-style='brutal'] .type-badge[data-type='ground'] {
+:root[data-style='retro'] .type-badge[data-type='ground'] {
   --tc: #915121;
 }
-:root[data-style='brutal'] .type-badge[data-type='flying'] {
+:root[data-style='retro'] .type-badge[data-type='flying'] {
   --tc: #81b9ef;
 }
-:root[data-style='brutal'] .type-badge[data-type='psychic'] {
+:root[data-style='retro'] .type-badge[data-type='psychic'] {
   --tc: #ef4179;
 }
-:root[data-style='brutal'] .type-badge[data-type='bug'] {
+:root[data-style='retro'] .type-badge[data-type='bug'] {
   --tc: #91a119;
 }
-:root[data-style='brutal'] .type-badge[data-type='rock'] {
+:root[data-style='retro'] .type-badge[data-type='rock'] {
   --tc: #afa981;
 }
-:root[data-style='brutal'] .type-badge[data-type='ghost'] {
+:root[data-style='retro'] .type-badge[data-type='ghost'] {
   --tc: #704170;
 }
-:root[data-style='brutal'] .type-badge[data-type='dragon'] {
+:root[data-style='retro'] .type-badge[data-type='dragon'] {
   --tc: #5060e1;
 }
-:root[data-style='brutal'] .type-badge[data-type='dark'] {
+:root[data-style='retro'] .type-badge[data-type='dark'] {
   --tc: #50413f;
 }
-:root[data-style='brutal'] .type-badge[data-type='steel'] {
+:root[data-style='retro'] .type-badge[data-type='steel'] {
   --tc: #60a1b8;
 }
-:root[data-style='brutal'] .type-badge[data-type='fairy'] {
+:root[data-style='retro'] .type-badge[data-type='fairy'] {
   --tc: #ef70ef;
 }

@@ -1,4 +1,4 @@
-// Dev-only: type glyphs for the brutalist style's badges, keyed by type. White-on-transparent 64×64 PNGs from the
+// Type glyphs for the retro style's badges, keyed by type. White-on-transparent 64×64 PNGs from the
 // Bulbagarden Archives (`<Type>_icon.png`, as used on Bulbapedia's Type page), bundled because the archive blocks
 // cross-site image requests. The badges use them as CSS masks so each glyph takes the badge's text color.
 import type { TypeId } from '@/data/types'
@@ -10,5 +10,4 @@ function load(): Record<TypeId, string> {
   ) as Record<TypeId, string>
 }
 
-// Annotated pure so production builds, where nothing reads it, drop the glyphs.
-export const TYPE_GLYPHS = /* @__PURE__ */ load()
+export const TYPE_GLYPHS = load()
