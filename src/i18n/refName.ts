@@ -11,7 +11,7 @@ type Names = Record<GeneratedKind, Record<string, string>>
 // Every `<category>.names.<locale>.json` gen-data writes, each a chunk of its own. Only for the entries the regulation
 // has, the only ones shown (gen-data fails if one lacks a name).
 const FILES = import.meta.glob<Record<string, string>>('../data/generated/*.names.*.json', { import: 'default' })
-const KINDS: Record<string, GeneratedKind> = { abilities: 'ability', moves: 'move', items: 'item' }
+const KINDS: Record<string, GeneratedKind> = { abilities: 'ability', moves: 'move', items: 'item', pokemon: 'pokemon' }
 
 const loaded = shallowReactive<Partial<Record<Locale, Names>>>({})
 const loading: Partial<Record<Locale, Promise<void>>> = {}
@@ -19,7 +19,7 @@ const loading: Partial<Record<Locale, Promise<void>>> = {}
 /** Loads the names of `l` (the current locale by default), once. */
 export function loadDexNames(l: Locale = locale.value): Promise<void> {
   return (loading[l] ??= (async () => {
-    const names = { ability: {}, move: {}, item: {} } as Names
+    const names = { ability: {}, move: {}, item: {}, pokemon: {} } as Names
     const files = Object.entries(FILES).flatMap(([path, load]) => {
       const [, category, fileLocale] = path.match(/\/(\w+)\.names\.([\w-]+)\.json$/)!
       return fileLocale === l ? [{ kind: KINDS[category!]!, load }] : []
@@ -30,7 +30,7 @@ export function loadDexNames(l: Locale = locale.value): Promise<void> {
   })())
 }
 
-/** Official name of a type, condition, move, ability or item. Empty until its locale's names load. */
+/** Official name of a type, condition, move, ability, item or Pokémon. Empty until its locale's names load. */
 export function refName(ref: Ref): string {
   if (ref.kind === 'type') return typeName(ref.id)
   if (ref.kind === 'condition' || ref.kind === 'group') return termName(ref)

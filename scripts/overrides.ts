@@ -3,7 +3,7 @@
 import type { Locale } from '../src/i18n/locales.ts'
 
 /** The categories `gen-data.ts` generates, as named in its output files. */
-export type CategoryKey = 'abilities' | 'moves' | 'items'
+export type CategoryKey = 'abilities' | 'moves' | 'items' | 'pokemon'
 
 /**
  * Official names by locale and Showdown ID, overriding PokéAPI: names it doesn't have yet (it lags new releases),

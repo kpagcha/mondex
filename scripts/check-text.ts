@@ -12,7 +12,7 @@ import { createJiti } from 'jiti'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const jiti = createJiti(import.meta.url, { alias: { '@': join(ROOT, 'src') } })
 
-type Kind = 'type' | 'condition' | 'group' | 'move' | 'ability' | 'item'
+type Kind = 'type' | 'condition' | 'group' | 'move' | 'ability' | 'item' | 'pokemon'
 interface Dex {
   CONDITIONS: readonly string[]
   GROUPS: readonly string[]
@@ -30,6 +30,7 @@ const KNOWN: Record<Kind, (id: string) => boolean> = {
   move: () => true,
   ability: () => true,
   item: () => true,
+  pokemon: () => true,
 }
 
 /** The curated text, by file: each entry's strings. */

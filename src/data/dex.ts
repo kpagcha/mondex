@@ -8,9 +8,10 @@ import type ABILITIES from '@/data/generated/abilities.json'
 import AVAILABLE from '@/data/generated/available.json'
 import type ITEMS from '@/data/generated/items.json'
 import type MOVES from '@/data/generated/moves.json'
+import type POKEMON from '@/data/generated/pokemon.json'
 import type { TypeId } from '@/data/types'
 
-// Abilities, moves and items are generated: every one in the games, and whether the current regulation has it.
+// Abilities, moves, items and Pokémon are generated: every one in the games, and whether the current regulation has it.
 // Conditions and groups list the entries referenced so far. An ID is only unique within its category: Electric
 // Terrain is both a move and the terrain it sets, and Psychic both a type and a move.
 
@@ -48,6 +49,8 @@ export type GroupId = (typeof GROUPS)[number]
 export type MoveId = keyof typeof MOVES
 export type AbilityId = keyof typeof ABILITIES
 export type ItemId = keyof typeof ITEMS
+/** A species or forme, by Showdown ID: `garchomp`, `garchompmegaz`, `raichualola`. */
+export type PokemonId = keyof typeof POKEMON
 
 /** Each category's IDs. */
 export interface Ids {
@@ -57,6 +60,7 @@ export interface Ids {
   move: MoveId
   ability: AbilityId
   item: ItemId
+  pokemon: PokemonId
 }
 export type Kind = keyof Ids
 /** The categories named in the locale `names` tables (types have their own). */
@@ -97,4 +101,5 @@ const AVAILABLE_IDS = {
   ability: new Set(AVAILABLE.abilities),
   move: new Set(AVAILABLE.moves),
   item: new Set(AVAILABLE.items),
+  pokemon: new Set(AVAILABLE.pokemon),
 }

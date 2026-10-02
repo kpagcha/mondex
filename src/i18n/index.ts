@@ -9,7 +9,7 @@ export { LOCALES, type Locale }
 export type MessageKey = keyof typeof en.messages
 
 /** Categories whose names are generated from the games' data (`npm run gen-data`), for every locale. */
-export type GeneratedKind = 'ability' | 'move' | 'item'
+export type GeneratedKind = 'ability' | 'move' | 'item' | 'pokemon'
 /** A locale's names of every referenced entry, per category: one missing is a compile error. */
 export type Names = { [K in Exclude<NamedKind, GeneratedKind>]: Record<Ids[K], string> }
 

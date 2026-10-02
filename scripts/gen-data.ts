@@ -38,7 +38,12 @@ interface Sources {
 interface Species {
   id: string
   name: string
+  num: number
   exists: boolean
+  isNonstandard: string | null
+  /** The species a forme belongs to ("Garchomp" for Garchomp-Mega-Z), and the forme ("Mega-Z"; empty for the base). */
+  baseSpecies: string
+  forme: string
   abilities: Record<string, string>
 }
 /** An ability, move or item. */
@@ -229,6 +234,11 @@ interface Category {
   text?: TextTable
   /** Our curated descriptions written from Showdown's, checked for drift (`src/i18n/en/<key>.ts`). */
   curated?: Record<string, { source: string }>
+  /**
+   * Builds a locale's names from the names its sources give (by ID), for categories whose entries the sources don't
+   * name one by one: Pokémon formes.
+   */
+  compose?: (names: Map<string, string>) => Map<string, string>
 }
 
 async function main() {
@@ -259,7 +269,11 @@ async function main() {
   // The regulation's legal Pokémon, Mega Evolutions included.
   const roster = dex.species.all().filter((s) => s.exists && !rules.isBannedSpecies(s))
   console.log(`${roster.length} legal Pokémon`)
+  const legal = new Set(roster.map((s) => s.id))
   const abilitiesHeld = new Set(roster.flatMap((s) => Object.values(s.abilities).map(toId)))
+  /** The legal Pokémon that can have an ability, in Pokédex order. */
+  const holders = (ability: string) =>
+    roster.filter((s) => Object.values(s.abilities).some((a) => toId(a) === ability)).map((s) => s.id)
   const movesLearned = new Set(roster.flatMap((s) => [...dex.species.getMovePool(s.id)]))
 
   // `num <= 0` leaves out Showdown's placeholders ("No Ability") and its fan-made CAP entries (negative numbers).
@@ -305,6 +319,26 @@ async function main() {
           .map((i) => ({ ...i, available: !i.isNonstandard && !rules.isBanned(`item:${i.id}`) })),
       pokeapi: ['items', 'item_names', 'item_id'],
     },
+    {
+      // Available when the regulation allows it (the roster). Named by species, official in every locale, plus the
+      // forme as Showdown labels it: "Garchomp (Mega-Z)", "Raichu (Alola)". Provisional: PokéAPI's official forme names
+      // are patchy (no Spanish for most new Megas), so proper forme names wait for the Pokémon category.
+      key: 'pokemon',
+      entries: () =>
+        dex.species
+          .all()
+          .filter((s) => s.exists && s.num > 0)
+          .map((s) => ({ ...s, available: legal.has(s.id) })),
+      pokeapi: ['pokemon_species', 'pokemon_species_names', 'pokemon_species_id'],
+      compose: (names) => {
+        const named = new Map<string, string>()
+        for (const s of roster) {
+          const species = names.get(toId(s.baseSpecies))
+          if (species) named.set(s.id, s.forme ? `${species} (${s.forme})` : species)
+        }
+        return named
+      },
+    },
   ]
 
   const availableIds: Record<string, string[]> = {}
@@ -313,9 +347,11 @@ async function main() {
     const available = entries.filter((e) => e.available)
 
     // Each locale's names: English is Showdown's; the others come from PokéAPI, then the overrides.
-    const names = { en: new Map(entries.map((e) => [e.id, e.name])) } as Record<Locale, Map<string, string>>
+    const english = new Map(entries.map((e) => [e.id, e.name]))
+    const names = { en: c.compose ? c.compose(english) : english } as Record<Locale, Map<string, string>>
     for (const [locale, language] of languages) {
       names[locale] = await pokeapiNames(sources.pokeapi, language.pokeapi, ...c.pokeapi)
+      if (c.compose) names[locale] = c.compose(names[locale])
       const overrides = NAMES[locale]?.[c.key] ?? {}
       const redundant = Object.keys(overrides).filter((id) => overrides[id] === names[locale].get(id))
       if (redundant.length)
@@ -340,7 +376,7 @@ async function main() {
     }
     const data = (e: Entry & { available: boolean }) =>
       text && e.available
-        ? { available: true, short: text[e.id]!.shortDesc, long: text[e.id]!.desc }
+        ? { available: true, short: text[e.id]!.shortDesc, long: text[e.id]!.desc, holders: holders(e.id) }
         : { available: e.available }
     await writeJson(`${c.key}.json`, Object.fromEntries(entries.map((e) => [e.id, data(e)])))
     if (text && c.curated) {
