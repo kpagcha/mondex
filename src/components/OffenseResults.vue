@@ -58,9 +58,8 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
     </div>
   </div>
 
-  <div class="panel">
+  <div v-if="immune.length" class="panel">
     <h2>{{ t('calc.immuneTitle', { n: immune.length }) }}</h2>
-    <p v-if="!immune.length" class="muted">{{ t('calc.noImmune') }}</p>
     <div v-for="g in immuneGroups.groups" :key="g.root.def[0]" class="root-row">
       <span class="chip" :class="multClass(0)"><TypeIcon :type="g.root.def[0]!" /></span>
       <span class="muted">{{ t('calc.everyDual') }}</span>
@@ -81,11 +80,10 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
     </div>
   </div>
 
-  <details class="panel">
+  <details v-if="resisted.length" class="panel">
     <summary>
       <h2>{{ t('calc.resistedTitle', { n: resisted.length }) }}</h2>
     </summary>
-    <p v-if="!resisted.length" class="muted">{{ t('calc.noResist') }}</p>
     <div v-for="g in resistedGroups.groups" :key="g.root.def[0]" class="resist-row">
       <span v-tip:chips="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`">
         <TypeIcon :type="g.root.def[0]!" />
@@ -118,7 +116,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
         </span>
       </fieldset>
     </div>
-    <p v-if="resisted.length" class="muted small note">{{ t('calc.partnersNote') }}</p>
+    <p class="muted small note">{{ t('calc.partnersNote') }}</p>
   </details>
 </template>
 
