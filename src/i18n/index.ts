@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue'
 import type { TypeId } from '@/data/types'
-import type { TermId } from '@/data/typeinfo'
+import type { Ids, NamedKind, Ref } from '@/data/dex'
 import * as en from './en'
 import * as es from './es'
 
@@ -9,10 +9,13 @@ export const LOCALES = { en: 'English', es: 'Español' } as const
 export type Locale = keyof typeof LOCALES
 export type MessageKey = keyof typeof en.messages
 
-const BUNDLES: Record<
-  Locale,
-  { messages: Record<MessageKey, string>; types: Record<TypeId, string>; terms: Record<TermId, string> }
-> = { en, es }
+/** A locale's names of every referenced entry, per category: one missing is a compile error. */
+export type Names = { [K in NamedKind]: Record<Ids[K], string> }
+
+const BUNDLES: Record<Locale, { messages: Record<MessageKey, string>; types: Record<TypeId, string>; names: Names }> = {
+  en,
+  es,
+}
 
 const KEY = 'mondex.lang'
 
@@ -73,7 +76,8 @@ export function typeName(type: TypeId): string {
   return BUNDLES[locale.value].types[type]
 }
 
-/** Official name of a status, move, ability or item. */
-export function termName(term: TermId): string {
-  return BUNDLES[locale.value].terms[term]
+/** Official name of a type, status, move, ability or item. */
+export function refName(ref: Ref): string {
+  if (ref.kind === 'type') return typeName(ref.id)
+  return (BUNDLES[locale.value].names[ref.kind] as Record<string, string>)[ref.id]!
 }

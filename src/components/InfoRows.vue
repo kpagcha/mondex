@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { refKey } from '@/data/dex'
 import type { Entry } from '@/data/typeinfo'
-import { t, termName } from '@/i18n'
+import { t } from '@/i18n'
 import type { InfoRow } from '@/lib/interactions'
 import { formatMult, multClass } from '@/lib/typecalc'
+import DexRef from '@/components/DexRef.vue'
 import TypeIcon from '@/components/TypeIcon.vue'
 
 defineProps<{ rows: InfoRow[] }>()
@@ -29,11 +31,11 @@ function effectText(e: Entry): string {
     <template v-for="row in rows" :key="row.label">
       <dt class="muted">{{ row.label }}</dt>
       <dd>
-        <template v-for="(e, i) in row.entries" :key="`${e.of ?? ''}/${e.term}/${e.cond ?? ''}`">
+        <template v-for="(e, i) in row.entries" :key="`${e.of ?? ''}/${refKey(e.ref)}/${e.cond?.id ?? ''}`">
           <TypeIcon v-if="startsRun(row.entries!, i)" :type="e.of!" class="of" />
           <span class="term">
-            {{ termName(e.term) }}
-            <span v-if="e.cond" class="effect">({{ termName(e.cond) }})</span>
+            <DexRef :to="e.ref" />
+            <span v-if="e.cond" class="effect">(<DexRef :to="e.cond" />)</span>
             <span v-if="e.mult !== undefined" class="mult-tag" :class="multClass(e.mult)">
               {{ formatMult(e.mult) }}
             </span>

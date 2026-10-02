@@ -2,6 +2,7 @@
 // attacking. Each side is split by relevance: the major rows up front, the minor ones collapsed, and last the "more"
 // rows about specific moves and abilities.
 
+import { condition, move, refKey, sameRef } from '@/data/dex'
 import { chart, type TypeId } from '@/data/types'
 import {
   ATK_ROWS,
@@ -68,16 +69,18 @@ function addMore(out: SideInfo, infos: [TypeId, TypeInfo][], keys: readonly Entr
   }
 }
 
-/** Entries in order, keeping the first of each term (and condition): Poison and Steel both block poison. */
+/** Entries in order, keeping the first of each entry (and condition): Poison and Steel both block poison. */
 function dedupe(entries: Entry[]): Entry[] {
   const seen = new Set<string>()
   return entries.filter((e) => {
-    const id = `${e.term}/${e.cond ?? ''}`
+    const id = `${refKey(e.ref)}/${e.cond?.id ?? ''}`
     if (seen.has(id)) return false
     seen.add(id)
     return true
   })
 }
+
+const FREEZE_DRY = move('freezedry')
 
 /** What a Pokémon of `types` (one or two) takes from beyond the chart. */
 export function defenseInfo(types: readonly TypeId[]): SideInfo {
@@ -89,20 +92,20 @@ export function defenseInfo(types: readonly TypeId[]): SideInfo {
     let entries = dedupe(infos.flatMap(([, info]) => info[k] ?? []))
     if (k === 'hurt') {
       // Both of these come from the two types together. Freeze-Dry is Ice that hits Water 2×.
-      entries = entries.filter((e) => e.term !== 'freezedry')
+      entries = entries.filter((e) => !sameRef(e.ref, FREEZE_DRY))
       if (types.includes('water')) {
         const m = types.reduce((p, ty) => p * (ty === 'water' ? 2 : chart('ice', ty)), 1)
-        entries.unshift({ term: 'freezedry', mult: m })
+        entries.unshift({ ref: FREEZE_DRY, mult: m })
       }
       const rock = effectiveness('rock', types)
-      if (rock !== 1) entries.push({ term: 'stealthrock', mult: rock })
+      if (rock !== 1) entries.push({ ref: condition('stealthrock'), mult: rock })
     }
     addRow(out, label(k), entries)
   }
 
   // The berry for each weakness halves it, so a 4× weakness still takes 2×.
   const profile = defensiveProfile(types)
-  const berries = [...profile[4], ...profile[2]].map((ty) => ({ term: resistBerry(ty), vs: ty }))
+  const berries = [...profile[4], ...profile[2]].map((ty) => ({ ref: resistBerry(ty), vs: ty }))
   addRow(out, label('berries'), berries)
 
   addNotes(
