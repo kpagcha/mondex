@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router'
 import { AnimatePresence, MotionConfig, motion } from 'motion-v'
 import { FADE, PAGE, SPRING } from '@/lib/motion'
 import { t, typeName } from '@/i18n'
@@ -32,12 +32,17 @@ watchEffect(() => {
 })
 
 // Pages under Types that get a back link to it.
-const isTool = (name: unknown) => name === 'chart' || name === 'calc' || name === 'quiz'
+const isTool = (name: unknown) => name === 'chart' || name === 'calc' || name === 'calcSide' || name === 'quiz'
+// One side of the calculator leads back to the whole calculator, keeping the picks (and, with tabs, that side's tab).
+function backTo(r: RouteLocationNormalizedLoaded) {
+  if (r.name !== 'calcSide') return '/types'
+  return { path: '/types/calc', query: { ...r.query, mode: r.params.side === 'atk' ? 'atk' : undefined } }
+}
 
 // The header link to highlight: the dex section the current page belongs to.
 const section = computed(() => {
   const name = route.name
-  if (name === 'types' || name === 'chart' || name === 'calc') return 'types'
+  if (name === 'types' || name === 'chart' || name === 'calc' || name === 'calcSide') return 'types'
   if (name === 'quiz' || name === 'settings') return name
   return null
 })
@@ -108,7 +113,7 @@ const fadeVariants = {
             :transition="isPhone ? PAGE : FADE"
           >
             <!-- The type tools lead back to the Types page. -->
-            <RouterLink v-if="isTool(r.name)" to="/types" class="back font-display">
+            <RouterLink v-if="isTool(r.name)" :to="backTo(r)" class="back font-display">
               <span class="chevron" aria-hidden="true">‹</span> {{ t('nav.back') }}
             </RouterLink>
             <component :is="Component" />

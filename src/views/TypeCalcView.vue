@@ -18,7 +18,12 @@ function parseTypes(v: unknown, max: number): TypeId[] {
   return [...new Set(s.split(',').filter(isType))].slice(0, max)
 }
 
-const mode = computed(() => (route.query.mode === 'atk' ? 'atk' : 'def'))
+// `/types/calc/def` and `/types/calc/atk` show just that side, with no tabs or columns.
+const single = computed(() => {
+  const s = route.params.side
+  return s === 'def' || s === 'atk' ? s : null
+})
+const mode = computed(() => single.value ?? (route.query.mode === 'atk' ? 'atk' : 'def'))
 const def = computed(() => parseTypes(route.query.def, 2))
 const atk = computed(() => parseTypes(route.query.atk, 4))
 
@@ -29,6 +34,9 @@ const wide = ref(wideQuery.matches)
 const onWide = (e: MediaQueryListEvent) => (wide.value = e.matches)
 wideQuery.addEventListener('change', onWide)
 onScopeDispose(() => wideQuery.removeEventListener('change', onWide))
+const cols = computed(() => wide.value && !single.value)
+// The column headings open their side on its own, keeping the picks.
+const sideLink = (s: 'def' | 'atk') => ({ path: `/types/calc/${s}`, query: { ...route.query, mode: undefined } })
 
 function setQuery(patch: Record<string, string | undefined>) {
   const q: Record<string, string> = {}
@@ -41,7 +49,7 @@ function setQuery(patch: Record<string, string | undefined>) {
 // The side whose results the scrolling and the floating button follow: the open tab, or side by side, the last one
 // picked from.
 const lastPicked = ref<'def' | 'atk'>(mode.value)
-const side = computed(() => (wide.value ? lastPicked.value : mode.value))
+const side = computed(() => (cols.value ? lastPicked.value : mode.value))
 const defResults = useTemplateRef<HTMLElement>('defResults')
 const atkResults = useTemplateRef<HTMLElement>('atkResults')
 const results = computed(() => (side.value === 'def' ? defResults.value : atkResults.value))
@@ -85,20 +93,29 @@ const toResults = () => reveal(results.value)
 <template>
   <div class="panel">
     <h1>{{ t('title.calc') }}</h1>
-    <div v-if="wide" class="cols">
+    <div v-if="cols" class="cols">
       <section>
-        <h2>{{ t('calc.tabDef') }}</h2>
+        <h2>
+          <RouterLink :to="sideLink('def')" class="side-link">
+            {{ t('calc.tabDef') }} <span class="arrow" aria-hidden="true">›</span>
+          </RouterLink>
+        </h2>
         <p class="muted">{{ t('calc.pickDef') }}</p>
         <TypePicker :model-value="def" :max="2" compact @update:model-value="setDef" />
       </section>
       <section>
-        <h2>{{ t('calc.tabAtk') }}</h2>
+        <h2>
+          <RouterLink :to="sideLink('atk')" class="side-link">
+            {{ t('calc.tabAtk') }} <span class="arrow" aria-hidden="true">›</span>
+          </RouterLink>
+        </h2>
         <p class="muted">{{ t('calc.pickAtk') }}</p>
         <TypePicker :model-value="atk" :max="4" compact @update:model-value="setAtk" />
       </section>
     </div>
     <template v-else>
-      <nav class="tabs">
+      <h2 v-if="single">{{ t(single === 'def' ? 'calc.tabDef' : 'calc.tabAtk') }}</h2>
+      <nav v-else class="tabs">
         <RouterLink :to="{ query: { ...route.query, mode: undefined } }" :class="{ active: mode === 'def' }">
           {{ t('calc.tabDef') }}
         </RouterLink>
@@ -117,7 +134,7 @@ const toResults = () => reveal(results.value)
     </template>
   </div>
 
-  <div v-if="wide" class="cols">
+  <div v-if="cols" class="cols">
     <div>
       <div v-if="def.length" ref="defResults"><DefenseResults :types="def" /></div>
       <p v-else class="muted hint">{{ t('calc.selectHint') }}</p>
@@ -163,6 +180,17 @@ const toResults = () => reveal(results.value)
 /* Lets each column shrink to its half, so the pickers and results wrap instead of widening it. */
 .cols > * {
   min-width: 0;
+}
+
+.side-link {
+  color: var(--text);
+}
+.side-link:hover {
+  text-decoration: none;
+  color: var(--accent);
+}
+.arrow {
+  color: var(--accent);
 }
 
 .hint {

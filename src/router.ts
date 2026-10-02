@@ -36,6 +36,13 @@ export const router = createRouter({
       meta: { titleKey: 'title.calc', descKey: 'desc.calc' },
     },
     {
+      // One side of the calculator on its own, linked from the side-by-side headings.
+      path: '/types/calc/:side(def|atk)',
+      name: 'calcSide',
+      component: () => import('@/views/TypeCalcView.vue'),
+      meta: { titleKey: 'title.calc', descKey: 'desc.calc' },
+    },
+    {
       path: '/types/quiz',
       name: 'quiz',
       component: () => import('@/views/TypeQuizView.vue'),
