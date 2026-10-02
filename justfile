@@ -21,3 +21,7 @@ build:
 # Build, then serve the production site at http://localhost:4173/mondex/ (profile performance here)
 preview: build
     npm run preview
+
+# Regenerate src/data/generated/ from Pokémon Showdown and PokéAPI at the pinned commits (`just gen-data --update` repins to the latest)
+gen-data *args:
+    npm run gen-data -- {{args}}
