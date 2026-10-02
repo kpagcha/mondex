@@ -329,10 +329,10 @@ async function main() {
     )
     if (missing.length) throw new Error(`Names missing; add them to scripts/overrides.ts:\n  ${missing.join('\n  ')}`)
 
-    // Every entry by Showdown ID, and whether the regulation has it. Names only for those it has, the only ones
-    // the app shows.
-    // Showdown's descriptions, for the entries the regulation has: a short one and a long one (the short one again
-    // when there's nothing more to say). The source our own, curated descriptions are written from.
+    // `<key>.json`: every entry by Showdown ID and whether the regulation has it, plus, for the entries it has,
+    // Showdown's descriptions: a short one and a long one (the short one again when there's nothing more to say).
+    // They're the source our own, curated descriptions are written from. Names only for the entries the regulation
+    // has, the only ones the app shows.
     const text = c.text && dex.loadTextData()[c.text]
     if (text) {
       const missing = available.filter((e) => !text[e.id]?.shortDesc)
