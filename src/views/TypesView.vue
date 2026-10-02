@@ -89,7 +89,7 @@ function writeFlag(key: string, on: boolean) {
 </script>
 
 <template>
-  <QuickLinks compact class="tools" />
+  <QuickLinks class="tools" />
   <div class="panel">
     <h1 class="intro">{{ t('title.types') }}</h1>
     <p class="intro muted">{{ t('types.intro') }}</p>

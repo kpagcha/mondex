@@ -1,22 +1,18 @@
 <script setup lang="ts">
 import { t, type MessageKey } from '@/i18n'
 
-// Links to the type tools, as a row of cards. `compact` (the Types page) gives each a one-line description; otherwise
-// (the home page, with narrower cards) a slightly longer one that may wrap.
-defineProps<{ compact?: boolean }>()
-
-const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey }[] = [
-  { to: '/types/chart', label: 'nav.chart', desc: 'quick.chart', long: 'quick.chartLong' },
-  { to: '/types/matchups', label: 'nav.matchups', desc: 'quick.matchups', long: 'quick.matchupsLong' },
-  { to: '/types/quiz', label: 'nav.quiz', desc: 'quick.quiz', long: 'quick.quizLong' },
+// Links to the type tools, as a row of cards.
+const LINKS: { to: string; label: MessageKey }[] = [
+  { to: '/types/chart', label: 'nav.chart' },
+  { to: '/types/matchups', label: 'nav.matchups' },
+  { to: '/types/quiz', label: 'nav.quiz' },
 ]
 </script>
 
 <template>
-  <div class="quick-links" :class="{ compact }">
+  <div class="quick-links">
     <RouterLink v-for="l in LINKS" :key="l.to" :to="l.to" class="quick">
       <span class="quick-title font-display">{{ t(l.label) }} <span class="arrow" aria-hidden="true">›</span></span>
-      <span class="quick-desc muted">{{ t(compact ? l.desc : l.long) }}</span>
     </RouterLink>
   </div>
 </template>
@@ -27,7 +23,7 @@ const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
-/* Phones: titles only, in one row. Columns are sized to their titles, so a long one ("Enfrentamientos") gets more room
+/* Phones: in one row. Columns are sized to their titles, so a long one ("Enfrentamientos") gets more room
    than a short one. */
 @media (max-width: 560px) {
   .quick-links {
@@ -42,9 +38,6 @@ const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey
     align-items: center;
     justify-content: center;
     text-align: center;
-  }
-  .quick-desc {
-    display: none;
   }
 }
 .quick {
@@ -69,15 +62,5 @@ const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey
 }
 .arrow {
   color: var(--accent);
-}
-.quick-desc {
-  font-size: calc(12px * var(--text-scale));
-  line-height: 1.4;
-}
-/* One line, cut short with an ellipsis if a card gets too narrow. */
-.compact .quick-desc {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

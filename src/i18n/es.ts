@@ -91,12 +91,6 @@ export const messages: Record<keyof typeof en, string> = {
   'home.abilitiesDesc': 'Qué hace cada habilidad y qué Pokémon pueden tenerla.',
 
   'types.intro': 'Elige un tipo.',
-  'quick.chart': 'Cada tipo contra cada tipo.',
-  'quick.matchups': 'Debilidades, resistencias, cobertura.',
-  'quick.quiz': 'Repetición espaciada para la tabla.',
-  'quick.chartLong': 'Cada tipo atacante contra cada tipo defensor.',
-  'quick.matchupsLong': 'Debilidades, resistencias y cobertura de cualquier combinación de tipos.',
-  'quick.quizLong': 'Aprende la tabla de tipos con repetición espaciada.',
   'types.defending': 'Al defender',
   'types.attacking': 'Al atacar',
   'types.selectHint': 'Selecciona un tipo arriba para ver sus enfrentamientos.',
