@@ -3,7 +3,9 @@ import { computed } from 'vue'
 import type { Multiplier, TypeId } from '@/data/types'
 import { t, type MessageKey } from '@/i18n'
 import { defensiveProfile, formatMult, multClass } from '@/lib/typecalc'
+import { defenseInfo, hasInfo } from '@/lib/interactions'
 import TypeIcon from '@/components/TypeIcon.vue'
+import SideInteractions from '@/components/SideInteractions.vue'
 
 const props = defineProps<{ types: readonly TypeId[] }>()
 
@@ -16,6 +18,7 @@ const ROWS: { m: Multiplier; label: MessageKey }[] = [
 ]
 const profile = computed(() => defensiveProfile(props.types))
 const rows = computed(() => ROWS.filter((r) => profile.value[r.m].length))
+const info = computed(() => defenseInfo(props.types))
 </script>
 
 <template>
@@ -37,6 +40,11 @@ const rows = computed(() => ROWS.filter((r) => profile.value[r.m].length))
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div v-if="hasInfo(info)" class="panel">
+    <h2>{{ t('calc.effects') }}</h2>
+    <SideInteractions :info="info" />
   </div>
 </template>
 

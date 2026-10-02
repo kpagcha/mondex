@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import type { Entry } from '@/data/typeinfo'
 import { t, termName } from '@/i18n'
+import type { InfoRow } from '@/lib/interactions'
 import { formatMult, multClass } from '@/lib/typecalc'
 import TypeIcon from '@/components/TypeIcon.vue'
 
-export interface InfoRow {
-  label: string
-  /** Named entries, or plain notes. */
-  entries?: Entry[]
-  notes?: string[]
-}
-
 defineProps<{ rows: InfoRow[] }>()
+
+/** In rows mixing several move types, each run of one type's entries starts with its badge. */
+const startsRun = (list: { of?: unknown }[], i: number) => !!list[i]!.of && list[i]!.of !== list[i - 1]?.of
 
 /** What an entry does besides its multiplier: "+1 SpA", "Def 1.5×", "+1 priority", "sound moves". */
 function effectText(e: Entry): string {
@@ -28,16 +25,22 @@ function effectText(e: Entry): string {
     <template v-for="row in rows" :key="row.label">
       <dt class="muted">{{ row.label }}</dt>
       <dd>
-        <span v-for="e in row.entries" :key="e.term + (e.cond ?? '')" class="term">
-          {{ termName(e.term) }}
-          <span v-if="e.cond" class="effect">({{ termName(e.cond) }})</span>
-          <span v-if="e.mult !== undefined" class="mult-tag" :class="multClass(e.mult)">
-            {{ formatMult(e.mult) }}
+        <template v-for="(e, i) in row.entries" :key="`${e.of ?? ''}/${e.term}/${e.cond ?? ''}`">
+          <TypeIcon v-if="startsRun(row.entries!, i)" :type="e.of!" class="of" />
+          <span class="term">
+            {{ termName(e.term) }}
+            <span v-if="e.cond" class="effect">({{ termName(e.cond) }})</span>
+            <span v-if="e.mult !== undefined" class="mult-tag" :class="multClass(e.mult)">
+              {{ formatMult(e.mult) }}
+            </span>
+            <TypeIcon v-if="e.vs" :type="e.vs" />
+            <span v-if="effectText(e)" class="effect num">{{ effectText(e) }}</span>
           </span>
-          <TypeIcon v-if="e.vs" :type="e.vs" />
-          <span v-if="effectText(e)" class="effect num">{{ effectText(e) }}</span>
-        </span>
-        <span v-for="n in row.notes" :key="n" class="term">{{ n }}</span>
+        </template>
+        <template v-for="(n, i) in row.notes" :key="`${n.of ?? ''}/${n.text}`">
+          <TypeIcon v-if="startsRun(row.notes!, i)" :type="n.of!" class="of" />
+          <span class="term">{{ n.text }}</span>
+        </template>
       </dd>
     </template>
   </dl>
@@ -72,5 +75,12 @@ function effectText(e: Entry): string {
 }
 .effect {
   color: var(--muted);
+}
+/* A move type's badge leads its entries, a little apart from the previous type's. */
+.of:not(:first-child) {
+  margin-left: 6px;
+}
+.of {
+  align-self: center;
 }
 </style>

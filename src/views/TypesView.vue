@@ -3,15 +3,15 @@ import { computed, ref, useTemplateRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { AnimatePresence, motion } from 'motion-v'
 import { TYPES, isType, type Multiplier, type TypeId } from '@/data/types'
-import { ATK_ROWS, DEF_ROWS, MORE_ROWS, typeInfo, type EntryKey, type TypeInfo } from '@/data/typeinfo'
-import { t, typeName, type MessageKey } from '@/i18n'
+import { t, typeName } from '@/i18n'
+import { attackInfo, defenseInfo, hasInfo } from '@/lib/interactions'
 import { attackProfile, defensiveProfile, formatMult, multClass, type Profile } from '@/lib/typecalc'
 import { FADE, PRESS, SPRING } from '@/lib/motion'
 import { hintFor } from '@/lib/hints'
 import { reveal } from '@/lib/scroll'
 import TypeIcon from '@/components/TypeIcon.vue'
 import QuickLinks from '@/components/QuickLinks.vue'
-import InfoRows, { type InfoRow } from '@/components/InfoRows.vue'
+import SideInteractions from '@/components/SideInteractions.vue'
 
 // The selected type is the route param (`/types/fire`), validated by the route itself.
 const route = useRoute()
@@ -22,26 +22,11 @@ const type = computed(() => {
 
 const MULTS: Multiplier[] = [2, 0.5, 0]
 
-const info = computed<TypeInfo | null>(() => (type.value ? typeInfo(type.value) : null))
-
-/** Only the interactions this type actually has. */
-function infoRows(keys: readonly EntryKey[]): InfoRow[] {
-  const i = info.value
-  const name = type.value ? typeName(type.value) : ''
-  return keys.flatMap((k) =>
-    i?.[k]?.length ? [{ label: t(`info.${k}` as MessageKey, { type: name }), entries: i[k] }] : [],
-  )
-}
-
 const sections = computed(() => {
   const ty = type.value
   if (!ty) return []
   // Only the multipliers this type actually has.
   const rows = (p: Profile) => MULTS.filter((m) => p[m].length).map((m) => ({ m, types: p[m] }))
-  const notes = (side?: 'atk') => {
-    const list = info.value?.notes?.filter((n) => n.side === side).map((n) => t(n.key)) ?? []
-    return list.length ? [{ label: t('info.notes'), notes: list }] : []
-  }
   return [
     // Interactions go on the side they help: protecting the type's Pokémon, or its attacks (its moves, and its
     // Pokémon on the offense).
@@ -49,18 +34,16 @@ const sections = computed(() => {
       title: 'types.defending' as const,
       side: 'def' as const,
       rows: rows(defensiveProfile([ty])),
-      info: [...infoRows(DEF_ROWS), ...notes()],
+      info: defenseInfo([ty]),
     },
     {
       title: 'types.attacking' as const,
       side: 'atk' as const,
       rows: rows(attackProfile(ty)),
-      info: [...infoRows(ATK_ROWS), ...notes('atk')],
+      info: attackInfo([ty]),
     },
   ]
 })
-
-const more = computed(() => infoRows(MORE_ROWS))
 
 // Picking a type brings its panel into view (on phones it starts below the list); a panel taller than the screen
 // is scrolled to its top.
@@ -102,14 +85,6 @@ function writeFlag(key: string, on: boolean) {
   } catch {
     // Storage unavailable: the choice lasts for this page load.
   }
-}
-
-// Whether "More interactions" is open is remembered across visits.
-const MORE_KEY = 'mondex.types.more'
-const moreOpen = ref(readFlag(MORE_KEY))
-function onToggle(e: Event) {
-  moreOpen.value = (e.target as HTMLDetailsElement).open
-  writeFlag(MORE_KEY, moreOpen.value)
 }
 </script>
 
@@ -187,14 +162,9 @@ function onToggle(e: Event) {
                   </tr>
                 </tbody>
               </table>
-              <InfoRows v-if="s.info.length" :rows="s.info" class="info" />
+              <div v-if="hasInfo(s.info)" class="info"><SideInteractions :info="s.info" /></div>
             </section>
           </div>
-          <!-- Interactions with specific moves and abilities: useful, but secondary. -->
-          <details v-if="more.length" class="more" :open="moreOpen" @toggle="onToggle">
-            <summary class="muted">{{ t('info.more') }}</summary>
-            <InfoRows :rows="more" />
-          </details>
         </div>
       </motion.div>
     </AnimatePresence>
@@ -335,20 +305,6 @@ function onToggle(e: Event) {
 .info {
   padding: 8px 4px 0;
   border-top: 1px solid var(--border);
-}
-
-.more {
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
-  font-size: calc(12px * var(--text-scale));
-}
-.more summary {
-  cursor: pointer;
-  width: fit-content;
-}
-.more[open] summary {
-  margin-bottom: 8px;
 }
 
 .hint {

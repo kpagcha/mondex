@@ -1,6 +1,6 @@
 // Gen 9 interactions beyond the type chart, per type. Names come from the locale `terms` tables.
 
-import { chart, type TypeId } from '@/data/types'
+import type { TypeId } from '@/data/types'
 import type { MessageKey } from '@/i18n'
 
 /** Statuses, weather, groups of effects, and the moves, abilities and items referenced below. */
@@ -221,6 +221,8 @@ export interface Entry {
   priority?: number
   /** A short effect with no number, e.g. "no stat drops or status". */
   fx?: MessageKey
+  /** Overrides the term's relevance (see `MAJOR`) for this entry only. */
+  major?: boolean
 }
 
 export interface Note {
@@ -229,6 +231,8 @@ export interface Note {
   term?: TermId
   /** Shown under Attacking when it's about the type's Pokémon attacking; under Defending otherwise. */
   side?: 'atk'
+  /** Common in competitive play: shown up front rather than collapsed. */
+  major?: boolean
 }
 
 export interface TypeInfo {
@@ -268,19 +272,100 @@ export const MORE_ROWS = ['becomes', 'gives', 'loses', 'specific'] as const
 
 export type EntryKey = (typeof DEF_ROWS)[number] | (typeof ATK_ROWS)[number] | (typeof MORE_ROWS)[number]
 
-/** `type`'s interactions, without the ones whose term `game` doesn't have. */
+/**
+ * Interactions common in competitive play, shown up front; the rest are collapsed. An entry's `major` overrides its
+ * term's (Dry Skin blocks Water moves, which matters, but only slightly boosts Fire ones).
+ */
+const MAJOR = new Set<TermId>([
+  // Statuses, and what gets past their immunities
+  'brn',
+  'par',
+  'psn',
+  'frz',
+  'corrosion',
+  // Weather and terrain
+  'sun',
+  'rain',
+  'sandstorm',
+  'snow',
+  'terrains',
+  'electricterrain',
+  'grassyterrain',
+  'psychicterrain',
+  'mistyterrain',
+  'primordialsea',
+  'desolateland',
+  'deltastream',
+  // Hazards
+  'stealthrock',
+  'spikes',
+  'toxicspikes',
+  'stickyweb',
+  // Moves and groups of moves a type is immune to, and what grounds Flying types
+  'powder',
+  'leechseed',
+  'thunderwave',
+  'sheercold',
+  'gravity',
+  // Abilities
+  'prankster',
+  'scrappy',
+  'mindseye',
+  'trapping',
+  'arenatrap',
+  // What blocks or redirects a type's moves
+  'flashfire',
+  'wellbakedbody',
+  'waterabsorb',
+  'stormdrain',
+  'voltabsorb',
+  'lightningrod',
+  'motordrive',
+  'sapsipper',
+  'levitate',
+  'eartheater',
+  'eelevate',
+  'magnetrise',
+  'airballoon',
+  // Resist berries
+  'chilanberry',
+  'occaberry',
+  'passhoberry',
+  'wacanberry',
+  'rindoberry',
+  'yacheberry',
+  'chopleberry',
+  'kebiaberry',
+  'shucaberry',
+  'cobaberry',
+  'payapaberry',
+  'tangaberry',
+  'chartiberry',
+  'kasibberry',
+  'habanberry',
+  'colburberry',
+  'babiriberry',
+  'roseliberry',
+])
+
+export const isMajor = (e: Entry): boolean => e.major ?? MAJOR.has(e.term)
+
+/** `type`'s interactions, without the ones whose term `game` doesn't have. Stealth Rock is left to the caller, as
+ * a dual type's damage comes from both types together. */
 export function typeInfo(type: TypeId, game: Game = GAME): TypeInfo {
   const info = TYPE_INFO[type]
   const out: TypeInfo = { notes: info.notes?.filter((n) => available(n.term, game)) }
-  // Stealth Rock damage follows the type's Rock matchup.
-  const rock = chart('rock', type)
-  const hurt = rock === 1 ? info.hurt : [...(info.hurt ?? []), x('stealthrock', rock)]
   const gives = [...(info.gives ?? []), { term: 'reflecttype', fx: 'info.fx.reflectType' } as const]
   for (const k of [...DEF_ROWS, ...ATK_ROWS, ...MORE_ROWS] as EntryKey[]) {
-    const entries = k === 'hurt' ? hurt : k === 'gives' ? gives : info[k]
+    const entries = k === 'gives' ? gives : info[k]
     out[k] = entries?.filter((e) => available(e.term, game))
   }
   return out
+}
+
+/** The berry that halves a super effective hit of `type` (the second of its items, by the `items` helper below). */
+export function resistBerry(type: TypeId): TermId {
+  return TYPE_INFO[type].items![1]!.term
 }
 
 const is = (...terms: TermId[]): Entry[] => terms.map((term) => ({ term }))
@@ -328,7 +413,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     ],
     target: [
       x('waterabsorb', 0),
-      x('dryskin', 0),
+      { ...x('dryskin', 0), major: true },
       up('stormdrain', 'spa', 1, 0),
       up('watercompaction', 'def', 2),
       up('steamengine', 'spe', 6),
@@ -373,7 +458,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     bypass: is('corrosion'),
     notes: [
       { key: 'info.note.toxic', side: 'atk' },
-      { key: 'info.note.toxicSpikes' },
+      { key: 'info.note.toxicSpikes', major: true },
       { key: 'info.note.blackSludge', term: 'blacksludge' },
     ],
     items: items('poisonbarb', 'kebiaberry'),

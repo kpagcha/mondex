@@ -3,11 +3,14 @@ import { computed } from 'vue'
 import type { Multiplier, TypeId } from '@/data/types'
 import { t } from '@/i18n'
 import { formatMult, groupByRoot, multClass, offensiveProfile, typesLabel } from '@/lib/typecalc'
+import { attackInfo, hasInfo } from '@/lib/interactions'
 import TypeIcon from '@/components/TypeIcon.vue'
+import SideInteractions from '@/components/SideInteractions.vue'
 
 const props = defineProps<{ types: readonly TypeId[] }>()
 
 const coverage = computed(() => offensiveProfile(props.types))
+const info = computed(() => attackInfo(props.types))
 // Most to least effective, immunities last; ties keep type order (stable sort). Neutral ones are left out.
 const singles = computed(() =>
   coverage.value.filter((e) => e.def.length === 1 && e.best !== 1).sort((a, b) => b.best - a.best),
@@ -20,6 +23,9 @@ const counts = computed(() => {
 const immune = computed(() => coverage.value.filter((e) => e.best === 0))
 const resisted = computed(() => coverage.value.filter((e) => e.best > 0 && e.best <= 0.5))
 const immuneGroups = computed(() => groupByRoot(immune.value))
+// Every dual type with an immune single type is immune too, so only the single types and the pairs immune only
+// together are listed, and counted.
+const immuneShown = computed(() => immuneGroups.value.groups.length + immuneGroups.value.pairOnly.length)
 const resistedGroups = computed(() => groupByRoot(resisted.value))
 const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 function countTip(m: Multiplier) {
@@ -34,7 +40,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
 </script>
 
 <template>
-  <div class="panel">
+  <div v-if="singles.length" class="panel">
     <p class="muted">{{ t('calc.againstEach') }}</p>
     <div class="single-grid">
       <div v-for="e in singles" :key="e.def[0]" class="single" :class="multClass(e.best)">
@@ -42,27 +48,16 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
         <b class="num">{{ formatMult(e.best) }}</b>
       </div>
     </div>
-
-    <p class="muted counts-title">{{ t('calc.acrossAll', { n: coverage.length }) }}</p>
-    <div class="count-bar">
-      <div
-        v-for="m in COUNT_ORDER.filter((m) => counts[m])"
-        :key="m"
-        class="seg"
-        :class="multClass(m)"
-        :style="{ flexGrow: counts[m] }"
-        v-tip:counts="countTip(m)"
-      >
-        {{ formatMult(m) }}
-      </div>
-    </div>
   </div>
 
-  <div v-if="immune.length" class="panel">
-    <h2>{{ t('calc.immuneTitle', { n: immune.length }) }}</h2>
-    <div v-for="g in immuneGroups.groups" :key="g.root.def[0]" class="root-row">
-      <span class="chip" :class="multClass(0)"><TypeIcon :type="g.root.def[0]!" /></span>
-      <span class="muted">{{ t('calc.everyDual') }}</span>
+  <div v-if="immuneShown" class="panel">
+    <h2>{{ t('calc.immuneTitle', { n: immuneShown }) }}</h2>
+    <div v-if="immuneGroups.groups.length" class="root-row">
+      <span class="combos">
+        <span v-for="g in immuneGroups.groups" :key="g.root.def[0]" class="chip" :class="multClass(0)">
+          <TypeIcon :type="g.root.def[0]!" />
+        </span>
+      </span>
     </div>
     <div v-if="immuneGroups.pairOnly.length" class="root-row">
       <span class="muted pair-lbl">{{ t('calc.combosOnly') }}</span>
@@ -77,6 +72,29 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
           <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
         </span>
       </span>
+    </div>
+  </div>
+
+  <div v-if="hasInfo(info)" class="panel">
+    <h2>{{ t('calc.effects') }}</h2>
+    <SideInteractions :info="info" />
+  </div>
+
+  <!-- How the whole moveset fares across every defending type, as one bar. -->
+  <div class="panel">
+    <h2>{{ t('calc.coverageTitle') }}</h2>
+    <p class="muted counts-title">{{ t('calc.acrossAll', { n: coverage.length }) }}</p>
+    <div class="count-bar">
+      <div
+        v-for="m in COUNT_ORDER.filter((m) => counts[m])"
+        :key="m"
+        class="seg"
+        :class="multClass(m)"
+        :style="{ flexGrow: counts[m] }"
+        v-tip:counts="countTip(m)"
+      >
+        {{ formatMult(m) }}
+      </div>
     </div>
   </div>
 
@@ -125,7 +143,6 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
   gap: 4px;
-  margin-bottom: 12px;
 }
 .single {
   display: flex;
