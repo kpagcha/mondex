@@ -14,6 +14,7 @@ import {
 import { MULTIPLIERS, formatMult, multClass } from '@/lib/typecalc'
 import TypeIcon from '@/components/TypeIcon.vue'
 import { STYLES, useStyle, type Style } from '@/composables/useStyle'
+import DevZone from '@/dev/DevZone.vue'
 
 const { style, setStyle } = useStyle()
 
@@ -37,9 +38,8 @@ onMounted(loadAll)
 </script>
 
 <template>
-  <!-- Fenced off from the public settings above: a striped, dashed zone with a yellow label on its top edge. -->
-  <section class="dev-zone" aria-labelledby="dev-zone-title">
-    <span id="dev-zone-title" class="tag font-display">Dev only</span>
+  <!-- Fenced off from the public settings above. -->
+  <DevZone class="zone">
     <p class="muted intro">
       Only shown in <code>npm run dev</code>. Style and font picks apply across the whole app and are saved in this
       browser, so you can browse the real pages with them. Production builds always use the retro style.
@@ -117,7 +117,7 @@ onMounted(loadAll)
         <button v-for="m in MULTIPLIERS" :key="m" type="button" class="btn num ans">{{ formatMult(m) }}</button>
       </div>
     </div>
-  </section>
+  </DevZone>
 </template>
 
 <style scoped>
@@ -153,34 +153,8 @@ select {
   padding: 2px 4px;
 }
 
-.dev-zone {
-  position: relative;
+.zone {
   margin-top: 36px;
-  padding: 26px 12px 1px;
-  border: 2px dashed var(--border-strong);
-  /* Faint diagonal stripes so the zone reads as "not part of the app" at a glance. */
-  background: repeating-linear-gradient(
-    -45deg,
-    transparent 0 10px,
-    color-mix(in srgb, var(--muted) 8%, transparent) 10px 20px
-  );
-}
-/* Sits centered on the zone's top border, like a fieldset legend. */
-.tag {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  translate: -50% -50%;
-  white-space: nowrap;
-  padding: 3px 10px;
-  /* Fixed hazard colors, the same in light and dark. */
-  border: 2px solid #141414;
-  background: #ffd23f;
-  color: #141414;
-  font-weight: bold;
-  font-size: calc(12px * var(--text-scale));
-  letter-spacing: 1px;
-  text-transform: uppercase;
 }
 .intro {
   margin: 0 0 12px;

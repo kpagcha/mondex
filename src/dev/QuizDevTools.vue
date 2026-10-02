@@ -3,6 +3,7 @@
 // Loaded by TypeQuizView only when import.meta.env.DEV is true. Not translated.
 import type { Deck } from '@/lib/srs'
 import { graduate, simulateAnswers, skipDay } from '@/dev/quizSim'
+import DevZone from '@/dev/DevZone.vue'
 
 const props = defineProps<{
   deck: Deck
@@ -34,8 +35,7 @@ function nextDay() {
 </script>
 
 <template>
-  <div class="panel dev small">
-    <h2>Dev</h2>
+  <DevZone compact class="zone">
     <div class="row">
       <span class="muted">This card</span>
       <button type="button" class="btn" :disabled="!canAnswer" @click="simulate(true)">Correct</button>
@@ -50,12 +50,17 @@ function nextDay() {
       <button type="button" class="btn" @click="nextDay">+1 day</button>
     </div>
     <p class="muted">Answers are 80% correct. Keys: C correct, X wrong.</p>
-  </div>
+  </DevZone>
 </template>
 
 <style scoped>
-.dev {
-  border-style: dashed;
+.zone {
+  /* Room for the label that sits on the zone's top edge. */
+  margin: 8px 0 12px;
+}
+.btn {
+  min-height: 22px;
+  padding: 1px 6px;
 }
 .row {
   display: flex;
