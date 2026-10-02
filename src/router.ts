@@ -60,6 +60,18 @@ export const router = createRouter({
       meta: { titleKey: 'title.quiz', descKey: 'desc.quiz' },
     },
     {
+      path: '/abilities',
+      name: 'abilities',
+      component: () => import('@/views/AbilitiesView.vue'),
+      meta: { titleKey: 'title.abilities', dexNames: true },
+    },
+    {
+      path: '/abilities/:id',
+      name: 'ability',
+      component: () => import('@/views/AbilityView.vue'),
+      meta: { titleKey: 'title.abilities', dexNames: true },
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),

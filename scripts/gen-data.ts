@@ -234,6 +234,8 @@ interface Category {
   text?: TextTable
   /** Our curated descriptions written from Showdown's, checked for drift (`src/i18n/en/<key>.ts`). */
   curated?: Record<string, { source: string }>
+  /** The legal Pokémon with each entry the regulation has, for categories whose pages list them (`<key>.holders.json`). */
+  holders?: (id: string) => string[]
   /**
    * Builds a locale's names from the names its sources give (by ID), for categories whose entries the sources don't
    * name one by one: Pokémon formes.
@@ -294,6 +296,7 @@ async function main() {
       pokeapi: ['abilities', 'ability_names', 'ability_id'],
       text: 'Abilities',
       curated: ABILITY_DESCRIPTIONS,
+      holders,
     },
     {
       // Available when a legal Pokémon learns it, and the game has it: the Champions mod drops some moves Pokémon
@@ -376,7 +379,7 @@ async function main() {
     }
     const data = (e: Entry & { available: boolean }) =>
       text && e.available
-        ? { available: true, short: text[e.id]!.shortDesc, long: text[e.id]!.desc, holders: holders(e.id) }
+        ? { available: true, short: text[e.id]!.shortDesc, long: text[e.id]!.desc }
         : { available: e.available }
     await writeJson(`${c.key}.json`, Object.fromEntries(entries.map((e) => [e.id, data(e)])))
     if (text && c.curated) {
@@ -387,6 +390,9 @@ async function main() {
         `${c.key}.names.${locale}.json`,
         Object.fromEntries(available.map((e) => [e.id, names[locale].get(e.id)!])),
       )
+    }
+    if (c.holders) {
+      await writeJson(`${c.key}.holders.json`, Object.fromEntries(available.map((e) => [e.id, c.holders!(e.id)])))
     }
     availableIds[c.key] = available.map((e) => e.id)
     console.log(`${available.length} of ${entries.length} ${c.key} available`)

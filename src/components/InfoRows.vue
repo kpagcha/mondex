@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { refKey } from '@/data/dex'
-import type { Entry } from '@/data/typeinfo'
-import { t } from '@/i18n'
-import type { InfoRow } from '@/lib/interactions'
+import { effectText, type InfoRow } from '@/lib/interactions'
 import { formatMult, multClass } from '@/lib/typecalc'
 import DexRef from '@/components/DexRef.vue'
 import TypeIcon from '@/components/TypeIcon.vue'
@@ -11,19 +9,6 @@ defineProps<{ rows: InfoRow[] }>()
 
 /** In rows mixing several move types, each run of one type's entries starts with its badge. */
 const startsRun = (list: { of?: unknown }[], i: number) => !!list[i]!.of && list[i]!.of !== list[i - 1]?.of
-
-/** What an entry does besides its multiplier: "+1 SpA", "Def 1.5×", "+1 priority", "sound moves", or several of
- * them ("redirects, +1 SpA"). */
-function effectText(e: Entry): string {
-  const parts: string[] = []
-  if (e.fx) parts.push(t(e.fx))
-  if (e.priority) parts.push(t('info.priority', { n: e.priority }))
-  if (e.stat) {
-    const stat = t(`stat.${e.stat}`)
-    parts.push(e.stages ? `+${e.stages} ${stat}` : `${stat} ${formatMult(e.statMult ?? 1)}`)
-  }
-  return parts.join(', ')
-}
 </script>
 
 <template>

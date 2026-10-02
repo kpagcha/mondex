@@ -2,11 +2,12 @@
 // attacking. Each side is split by relevance: the major rows up front, the minor ones collapsed, and last the "more"
 // rows about specific moves and abilities.
 
-import { condition, move, refKey, sameRef } from '@/data/dex'
-import { chart, type TypeId } from '@/data/types'
+import { condition, move, refKey, sameRef, type Ref } from '@/data/dex'
+import { chart, TYPES, type TypeId } from '@/data/types'
 import {
   ATK_ROWS,
   DEF_ROWS,
+  MORE_ROWS,
   isMajor,
   resistBerry,
   typeInfo,
@@ -15,7 +16,7 @@ import {
   type TypeInfo,
 } from '@/data/typeinfo'
 import { t, typeName, type MessageKey } from '@/i18n'
-import { defensiveProfile, effectiveness } from '@/lib/typecalc'
+import { defensiveProfile, effectiveness, formatMult } from '@/lib/typecalc'
 
 /** An entry, with the move type it's about when a row mixes several. */
 export interface InfoEntry extends Entry {
@@ -37,6 +38,36 @@ export interface SideInfo {
 }
 
 export const hasInfo = (i: SideInfo) => i.major.length + i.minor.length + i.more.length > 0
+
+/** What an entry does besides its multiplier: "+1 SpA", "Def 1.5×", "+1 priority", "sound moves", or several of
+ * them ("redirects, +1 SpA"). */
+export function effectText(e: Entry): string {
+  const parts: string[] = []
+  if (e.fx) parts.push(t(e.fx))
+  if (e.priority) parts.push(t('info.priority', { n: e.priority }))
+  if (e.stat) {
+    const stat = t(`stat.${e.stat}`)
+    parts.push(e.stages ? `+${e.stages} ${stat}` : `${stat} ${formatMult(e.statMult ?? 1)}`)
+  }
+  return parts.join(', ')
+}
+
+/** An interaction beyond the type chart that mentions an entry: the type it's about, its row, and the entry. */
+export interface RefInteraction {
+  type: TypeId
+  row: EntryKey
+  entry: Entry
+}
+
+/** Every interaction mentioning `ref`, by type in chart order (for an ability's page: what Levitate does to Ground). */
+export function interactionsOf(ref: Ref): RefInteraction[] {
+  return TYPES.flatMap((type) => {
+    const info = typeInfo(type)
+    return [...DEF_ROWS, ...ATK_ROWS, ...MORE_ROWS].flatMap((row) =>
+      (info[row] ?? []).filter((entry) => sameRef(entry.ref, ref)).map((entry) => ({ type, row, entry })),
+    )
+  })
+}
 
 const label = (k: EntryKey | 'berries', type?: TypeId) =>
   t(`info.${k}` as MessageKey, { type: type ? typeName(type) : '' })

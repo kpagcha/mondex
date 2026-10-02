@@ -74,6 +74,7 @@ export const group = (id: GroupId): Ref<'group'> => ({ kind: 'group', id })
 export const move = (id: MoveId): Ref<'move'> => ({ kind: 'move', id })
 export const ability = (id: AbilityId): Ref<'ability'> => ({ kind: 'ability', id })
 export const item = (id: ItemId): Ref<'item'> => ({ kind: 'item', id })
+export const pokemon = (id: PokemonId): Ref<'pokemon'> => ({ kind: 'pokemon', id })
 
 /** A string unique to `ref` across categories, for keys and sets. */
 export const refKey = (ref: Ref): string => `${ref.kind}:${ref.id}`
@@ -95,6 +96,11 @@ export function available(ref: Ref | undefined): boolean {
   if (!ref) return true
   const ids = AVAILABLE_IDS[ref.kind as keyof typeof AVAILABLE_IDS] as Set<string> | undefined
   return ids ? ids.has(ref.id) : true // Types, conditions and groups are all in the game
+}
+
+/** The entries the current regulation has, of a generated category, in ID order. */
+export function availableIds<K extends keyof typeof AVAILABLE_IDS>(kind: K): Ids[K][] {
+  return [...AVAILABLE_IDS[kind]] as Ids[K][]
 }
 
 const AVAILABLE_IDS = {

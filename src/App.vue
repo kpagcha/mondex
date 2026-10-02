@@ -38,6 +38,7 @@ function backLink(r: RouteLocationNormalizedLoaded): { to: RouteLocationRaw; lab
     const query = { ...r.query, mode: r.params.side === 'atk' ? 'atk' : undefined }
     return { to: { path: '/types/matchups', query }, label: 'nav.matchups' }
   }
+  if (r.name === 'ability') return { to: '/abilities', label: 'title.abilities' }
   const tool = r.name === 'chart' || r.name === 'matchups' || r.name === 'quiz'
   return tool ? { to: '/types', label: 'nav.types' } : null
 }
