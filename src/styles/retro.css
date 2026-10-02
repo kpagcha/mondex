@@ -175,12 +175,22 @@
 
 /* ---------- Controls ---------- */
 :root[data-style='retro'] select,
-:root[data-style='retro'] input[type='number'] {
+:root[data-style='retro'] input[type='number'],
+:root[data-style='retro'] input[type='search'] {
   border: 2px solid var(--ink);
 }
 
+/* Fields show focus in themselves, an accent border and the hard shadow, rather than a ring around them. On `:focus`
+   rather than `:focus-visible`, which browsers apply to a clicked select on phones but not on desktop. */
+:root[data-style='retro'] :is(select, textarea, input:not([type='radio'], [type='checkbox'])):focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--hard-sm);
+}
+
+/* Everything else keeps a ring for keyboard users. */
 :root[data-style='retro'] :focus-visible {
-  outline: 2px dashed var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
