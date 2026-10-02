@@ -89,6 +89,7 @@ export interface Page {
 /** Each category's entry page. Mentions of a category without one are plain text; registering it links them all. */
 export const PAGES: Partial<Record<Kind, Page>> = {
   type: { route: 'types', param: 'type' },
+  ability: { route: 'ability' },
 }
 
 /** Whether the current regulation has `ref` (or there's no ref to check), so its interactions are shown. */
