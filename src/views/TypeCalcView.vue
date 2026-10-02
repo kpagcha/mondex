@@ -206,7 +206,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
         </span>
         <template v-if="g.combos.length">
           <span class="muted">+</span>
-          <fieldset v-for="tier in tiers(g.combos, (c) => c.entry.best)" :key="tier.m" class="tier">
+          <fieldset v-for="tier in tiers(g.combos, (c) => c.entry.best)" :key="tier.m" class="resist-tier">
             <legend>{{ formatMult(tier.m) }}</legend>
             <span
               v-for="c in tier.items"
@@ -220,7 +220,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
       </div>
       <div v-if="resistedGroups.pairOnly.length" class="resist-row">
         <span class="muted pair-lbl">{{ t('calc.combosOnly') }}</span>
-        <fieldset v-for="tier in tiers(resistedGroups.pairOnly, (e) => e.best)" :key="tier.m" class="tier pairs">
+        <fieldset v-for="tier in tiers(resistedGroups.pairOnly, (e) => e.best)" :key="tier.m" class="resist-tier pairs">
           <legend>{{ formatMult(tier.m) }}</legend>
           <span
             v-for="e in tier.items"
@@ -369,7 +369,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
   gap: 4px 8px;
   padding: 4px 0;
 }
-.tier {
+.resist-tier {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
@@ -379,13 +379,13 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
   border: 1px solid var(--border);
   border-radius: 3px;
 }
-.tier legend {
+.resist-tier legend {
   padding: 0 4px;
   font-family: var(--font-num, inherit);
   font-size: calc(11px * var(--text-scale));
   color: var(--muted);
 }
-.tier.pairs {
+.resist-tier.pairs {
   gap: 4px 10px;
 }
 .pair {
