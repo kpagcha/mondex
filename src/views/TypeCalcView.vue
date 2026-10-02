@@ -92,6 +92,10 @@ const resisted = computed(() => coverage.value?.filter((e) => e.best > 0 && e.be
 const immuneGroups = computed(() => groupByRoot(immune.value))
 const resistedGroups = computed(() => groupByRoot(resisted.value))
 const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
+function countTip(m: Multiplier) {
+  const n = counts.value[m]!
+  return `${formatMult(m)}: ${t(n === 1 ? 'calc.typeCountOne' : 'calc.typeCount', { n })}`
+}
 // Resisted combos are split by multiplier, so a chip's background never has to compete with a red type badge.
 const RESIST_TIERS: Multiplier[] = [0.5, 0.25]
 function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
@@ -154,10 +158,16 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
       </div>
 
       <p class="muted counts-title">{{ t('calc.acrossAll', { n: coverage.length }) }}</p>
-      <div class="counts">
-        <div v-for="m in COUNT_ORDER" :key="m" class="count">
-          <span class="mult-tag" :class="multClass(m)">{{ formatMult(m) }}</span>
-          <b class="num">{{ counts[m] }}</b>
+      <div class="count-bar">
+        <div
+          v-for="m in COUNT_ORDER.filter((m) => counts[m])"
+          :key="m"
+          class="seg"
+          :class="multClass(m)"
+          :style="{ flexGrow: counts[m] }"
+          v-tip:counts="countTip(m)"
+        >
+          {{ formatMult(m) }}
         </div>
       </div>
     </div>
@@ -304,17 +314,29 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
 .counts-title {
   margin-bottom: 4px;
 }
-.counts {
+/* Segments grow with their count but never shrink below their label; the count itself is in the tooltip. */
+.count-bar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
 }
-.count {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.seg {
+  flex: 0 1 0;
+  min-width: 2.4em;
+  padding: 1px 4px;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-num, inherit);
+  font-size: calc(11px * var(--text-scale));
+  cursor: default;
 }
-
+.seg + .seg {
+  border-left: 1px solid var(--border);
+}
+.seg.m-1 {
+  background: var(--panel-alt);
+}
 .combos {
   display: flex;
   flex-wrap: wrap;

@@ -392,6 +392,8 @@ export const messages = {
   'calc.immune': 'Immune',
   'calc.againstEach': 'Against each type:',
   'calc.acrossAll': 'Across all {n} single and dual types:',
+  'calc.typeCountOne': '1 type',
+  'calc.typeCount': '{n} types',
   'calc.immuneTitle': 'Immune ({n})',
   'calc.noImmune': 'Nothing is immune to this coverage.',
   'calc.everyDual': 'and every dual type with it',

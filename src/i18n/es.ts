@@ -397,6 +397,8 @@ export const messages: Record<keyof typeof en, string> = {
   'calc.immune': 'Inmune',
   'calc.againstEach': 'Contra cada tipo:',
   'calc.acrossAll': 'En los {n} tipos simples y dobles:',
+  'calc.typeCountOne': '1 tipo',
+  'calc.typeCount': '{n} tipos',
   'calc.immuneTitle': 'Inmunes ({n})',
   'calc.noImmune': 'Nada es inmune a esta cobertura.',
   'calc.everyDual': 'y todos los tipos dobles que lo incluyen',
