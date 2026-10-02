@@ -11,6 +11,10 @@ export default defineConfig(({ command, isPreview }) => ({
   // Listen on the network too, so the dev server can be opened from a phone on the same Wi-Fi.
   server: { host: true },
   plugins: [vue()],
+  // JSON modules as one `JSON.parse` with a default export, instead of a named export per key: the generated data is
+  // only ever imported whole, and this halves its chunks. `namedExports: false` is what does it; `stringify` alone
+  // doesn't.
+  json: { stringify: true, namedExports: false },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

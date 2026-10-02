@@ -2,9 +2,12 @@
 // so it renders through `DexRef` and becomes a link once its category has a page (see `PAGES`). Names come from the
 // generated data (`src/data/generated/`, by `npm run gen-data`) or, for the rest, the locale `names` tables.
 
-import ABILITIES from '@/data/generated/abilities.json'
-import ITEMS from '@/data/generated/items.json'
-import MOVES from '@/data/generated/moves.json'
+// Type-only: the full files give the IDs, and stay out of the bundle. `available.json` is the compact part needed at
+// run time.
+import type ABILITIES from '@/data/generated/abilities.json'
+import AVAILABLE from '@/data/generated/available.json'
+import type ITEMS from '@/data/generated/items.json'
+import type MOVES from '@/data/generated/moves.json'
 import type { TypeId } from '@/data/types'
 
 // Abilities, moves and items are generated: every one in the games, and whether the current regulation has it.
@@ -81,8 +84,12 @@ export const PAGES: Partial<Record<Kind, string>> = {}
 /** Whether the current regulation has `ref` (or there's no ref to check), so its interactions are shown. */
 export function available(ref: Ref | undefined): boolean {
   if (!ref) return true
-  if (ref.kind === 'ability') return ABILITIES[ref.id].available
-  if (ref.kind === 'move') return MOVES[ref.id].available
-  if (ref.kind === 'item') return ITEMS[ref.id].available
-  return true // Types, conditions and groups are all in the game
+  const ids = AVAILABLE_IDS[ref.kind as keyof typeof AVAILABLE_IDS] as Set<string> | undefined
+  return ids ? ids.has(ref.id) : true // Types, conditions and groups are all in the game
+}
+
+const AVAILABLE_IDS = {
+  ability: new Set(AVAILABLE.abilities),
+  move: new Set(AVAILABLE.moves),
+  item: new Set(AVAILABLE.items),
 }

@@ -396,6 +396,7 @@ async function main() {
   ]
 
   const pins: Record<string, number> = {}
+  const availableIds: Record<string, string[]> = {}
   for (const c of categories) {
     const es = await spanishNames(sources.pokeapi, ...c.pokeapi)
     const entries = c.entries().sort((a, b) => a.id.localeCompare(b.id))
@@ -431,8 +432,12 @@ async function main() {
       `${c.key}.names.es.json`,
       Object.fromEntries(available.map((e) => [e.id, overrides[e.id] ?? es.get(e.id)!])),
     )
+    availableIds[c.key] = available.map((e) => e.id)
     console.log(`${available.length} of ${entries.length} ${c.key} available`)
   }
+  // The IDs the regulation has, per category: all the app needs to know at run time to hide the rest (the files
+  // above give it the types, and the category pages their data).
+  await writeJson('available.json', availableIds)
   sources.bulbapedia = Object.fromEntries(Object.entries(pins).sort(([a], [b]) => a.localeCompare(b)))
 
   // Where all of the above came from.
