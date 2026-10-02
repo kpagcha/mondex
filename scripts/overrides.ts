@@ -1,11 +1,19 @@
-// Hand-picked data for `gen-data.ts`, where its sources are wrong.
+// Hand-picked data for `gen-data.ts`, where its sources are wrong or have nothing to give.
 
 /**
- * Official Spanish (Spain) names by Showdown ID, overriding PokéAPI and Bulbapedia. Only for corrections: names the
- * sources lack come from Bulbapedia's pages automatically. The script says when an override matches the sources again.
+ * Spanish (Spain) names by Showdown ID, overriding PokéAPI and Bulbapedia: corrections, and names for entries the games
+ * don't name on their own. Names the sources merely lack come from Bulbapedia's pages automatically. The script says
+ * when an override matches the sources again.
  */
 export const ES_NAMES: Record<'abilities' | 'moves' | 'items', Record<string, string>> = {
   abilities: {
+    // Showdown splits Embody Aspect ("Evocarrecuerdos") into one ability per Ogerpon mask, labelled with the mask's
+    // name minus "Mask"; the games show one name. Ours do the same with the masks' official Spanish names (PokéAPI),
+    // minus "Máscara": Máscara Turquesa, Máscara Horno, Máscara Fuente, Máscara Cimiento.
+    embodyaspectteal: 'Evocarrecuerdos (Turquesa)',
+    embodyaspecthearthflame: 'Evocarrecuerdos (Horno)',
+    embodyaspectwellspring: 'Evocarrecuerdos (Fuente)',
+    embodyaspectcornerstone: 'Evocarrecuerdos (Cimiento)',
     // Renamed from Generation IX; PokéAPI still has "Lodo Líquido" (Generations III–VIII).
     // https://bulbapedia.bulbagarden.net/wiki/Liquid_Ooze_(Ability)
     liquidooze: 'Viscosecreción',

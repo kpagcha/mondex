@@ -301,8 +301,8 @@ async function writeJson(file: string, data: Record<string, unknown>) {
 interface Category {
   /** Output files (`<key>.json`, `<key>.names.<locale>.json`) and the `overrides.ts` key. */
   key: keyof typeof ES_NAMES
-  /** Every entry, with whether the regulation has it. Spanish names (PokéAPI's) can decide how entries merge. */
-  entries: (es: Map<string, string>) => (Entry & { available: boolean })[]
+  /** Every entry, with whether the regulation has it. */
+  entries: () => (Entry & { available: boolean })[]
   /** PokéAPI's table, its names table and the names table's key column. */
   pokeapi: [table: string, names: string, key: string]
   /** Bulbapedia page titles that may be an entry's, in order of preference. */
@@ -345,20 +345,16 @@ async function main() {
     {
       // Available when a legal Pokémon can have it.
       key: 'abilities',
-      entries: (es) => {
-        const byId = new Map<string, Entry & { available: boolean }>()
-        for (const a of dex.abilities.all()) {
-          if (a.num <= 0) continue
-          const available = abilitiesHeld.has(a.id) && !a.isNonstandard && !rules.isBanned(`ability:${a.id}`)
-          // Showdown splits some abilities into variants the games don't, like "Embody Aspect (Teal)", one per
-          // Ogerpon mask. When the games (PokéAPI) only know the base ability, the variants merge into it.
-          const base = a.name.match(/^(.+) \(.+\)$/)?.[1]
-          const merged = base && !es.has(a.id) && !ES_NAMES.abilities[a.id] && es.has(toId(base))
-          const entry = merged ? { ...a, id: toId(base), name: base } : a
-          byId.set(entry.id, { ...entry, available: available || !!byId.get(entry.id)?.available })
-        }
-        return [...byId.values()]
-      },
+      // Showdown's split ones stay split, like "Embody Aspect (Teal)", one per Ogerpon mask, though the games show
+      // one name: their Spanish names are in `overrides.ts`.
+      entries: () =>
+        dex.abilities
+          .all()
+          .filter((a) => a.num > 0)
+          .map((a) => ({
+            ...a,
+            available: abilitiesHeld.has(a.id) && !a.isNonstandard && !rules.isBanned(`ability:${a.id}`),
+          })),
       pokeapi: ['abilities', 'ability_names', 'ability_id'],
       pages: (name) => [`${name} (Ability)`],
     },
@@ -394,7 +390,7 @@ async function main() {
   const pins: Record<string, number> = {}
   for (const c of categories) {
     const es = await spanishNames(sources.pokeapi, ...c.pokeapi)
-    const entries = c.entries(es).sort((a, b) => a.id.localeCompare(b.id))
+    const entries = c.entries().sort((a, b) => a.id.localeCompare(b.id))
     const available = entries.filter((e) => e.available)
     const overrides: Record<string, string> = ES_NAMES[c.key]
 
