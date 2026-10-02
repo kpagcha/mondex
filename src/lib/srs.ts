@@ -1,7 +1,8 @@
 // SM-2 (SuperMemo-2) spaced repetition with Anki-style in-session learning steps.
 //
 // Review cards follow SM-2: intervals 1d -> 6d -> interval × ease, where ease
-// moves with answer quality. A wrong answer is a lapse: ease drops, the card
+// moves with answer quality. A wrong answer is a lapse: ease drops (once, for a
+// card in review, not again for misses while relearning), the card
 // loses its interval and re-enters "learning", where it is re-asked after a
 // few other cards (LEARN_STEPS, counted in answers, not time) until it is
 // answered correctly enough times to graduate again.
@@ -85,10 +86,12 @@ export function grade(deck: Deck, id: string, quality: number, now = Date.now())
   deck.tick++
 
   if (quality < 3) {
+    // Only forgetting a graduated card costs ease; misses while still learning
+    // (or on a card's first sight) are part of learning it.
+    if (c.step < 0 && c.reps > 0) c.ease = Math.max(MIN_EASE, c.ease - 0.2)
     c.lapses++
     c.reps = 0
     c.interval = 0
-    c.ease = Math.max(MIN_EASE, c.ease - 0.2)
     c.step = 0
     c.learnAt = deck.tick + LEARN_STEPS[0]!
     return c
