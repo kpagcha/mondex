@@ -93,16 +93,24 @@ function showdownCheckout(commit: string): string {
  * The body of a GET request. Uses `node:https` rather than `fetch`: Bulbapedia's Cloudflare answers most of `fetch`'s
  * requests with a bot challenge (HTTP 403), but lets `https` (and curl) through.
  */
-function get(url: string): Promise<string> {
+async function get(url: string): Promise<string> {
+  // Server errors and dropped connections are usually brief (Bulbapedia answers the odd 504): try a few times.
+  for (let attempt = 1; ; attempt++) {
+    const res = await getOnce(url).catch((error: Error) => ({ status: 0, body: '', error }))
+    if (res.status === 200) return res.body
+    const retry = res.status === 0 || res.status >= 500
+    if (!retry || attempt === 4) throw new Error(`${url}: ${'error' in res ? res.error.message : `HTTP ${res.status}`}`)
+    await new Promise((wait) => setTimeout(wait, 2000 * attempt))
+  }
+}
+
+function getOnce(url: string): Promise<{ status: number; body: string }> {
   return new Promise((ok, fail) => {
     https
       .get(url, { headers: { 'User-Agent': USER_AGENT, Accept: '*/*' } }, (res) => {
         const chunks: Buffer[] = []
         res.on('data', (c: Buffer) => chunks.push(c))
-        res.on('end', () => {
-          if (res.statusCode === 200) ok(Buffer.concat(chunks).toString('utf8'))
-          else fail(new Error(`${url}: HTTP ${res.statusCode}`))
-        })
+        res.on('end', () => ok({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString('utf8') }))
       })
       .on('error', fail)
   })
@@ -396,10 +404,12 @@ async function main() {
 
     // Spanish names PokéAPI doesn't have yet (for entries the regulation has) come from Bulbapedia.
     const lacking = available.filter((e) => !overrides[e.id] && !es.has(e.id))
-    const wiki = await bulbapedia(
-      lacking.flatMap((e) => c.pages(e.name)),
-      sources.bulbapedia,
-    )
+    // An entry whose page is already pinned needs no other: "Leek" is, so "Leek (item)" isn't looked up again.
+    const candidates = (e: Entry) => {
+      const pinned = c.pages(e.name).find((t) => sources.bulbapedia[t])
+      return pinned ? [pinned] : c.pages(e.name)
+    }
+    const wiki = await bulbapedia(lacking.flatMap(candidates), sources.bulbapedia)
     for (const e of lacking) {
       const page = c.pages(e.name).find((t) => wiki.text.has(t))
       const name = page && bulbapediaSpanish(wiki.text.get(page)!)
