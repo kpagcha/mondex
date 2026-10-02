@@ -92,6 +92,11 @@ const resisted = computed(() => coverage.value?.filter((e) => e.best > 0 && e.be
 const immuneGroups = computed(() => groupByRoot(immune.value))
 const resistedGroups = computed(() => groupByRoot(resisted.value))
 const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
+// Resisted combos are split by multiplier, so a chip's background never has to compete with a red type badge.
+const RESIST_TIERS: Multiplier[] = [0.5, 0.25]
+function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
+  return RESIST_TIERS.map((m) => ({ m, items: items.filter((x) => mult(x) === m) })).filter((tier) => tier.items.length)
+}
 </script>
 
 <template>
@@ -185,47 +190,39 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
         <h2>{{ t('calc.resistedTitle', { n: resisted.length }) }}</h2>
       </summary>
       <p v-if="!resisted.length" class="muted">{{ t('calc.noResist') }}</p>
-      <div v-for="g in resistedGroups.groups" :key="g.root.def[0]" class="root-row">
-        <span
-          class="chip"
-          :class="multClass(g.root.best)"
-          v-tip:chips="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`"
-        >
+      <div v-for="g in resistedGroups.groups" :key="g.root.def[0]" class="resist-row">
+        <span v-tip:chips="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`">
           <TypeIcon :type="g.root.def[0]!" />
         </span>
         <template v-if="g.combos.length">
           <span class="muted">+</span>
-          <span class="combos">
+          <fieldset v-for="tier in tiers(g.combos, (c) => c.entry.best)" :key="tier.m" class="tier">
+            <legend>{{ formatMult(tier.m) }}</legend>
             <span
-              v-for="c in g.combos"
+              v-for="c in tier.items"
               :key="c.partner"
-              class="chip"
-              :class="multClass(c.entry.best)"
               v-tip:chips="`${typesLabel(c.entry.def)}: ${formatMult(c.entry.best)}`"
             >
               <TypeIcon :type="c.partner" lazy />
             </span>
-          </span>
+          </fieldset>
         </template>
       </div>
-      <div v-if="resistedGroups.pairOnly.length" class="root-row">
+      <div v-if="resistedGroups.pairOnly.length" class="resist-row">
         <span class="muted pair-lbl">{{ t('calc.combosOnly') }}</span>
-        <span class="combos">
+        <fieldset v-for="tier in tiers(resistedGroups.pairOnly, (e) => e.best)" :key="tier.m" class="tier pairs">
+          <legend>{{ formatMult(tier.m) }}</legend>
           <span
-            v-for="e in resistedGroups.pairOnly"
+            v-for="e in tier.items"
             :key="e.def.join()"
-            class="chip"
-            :class="multClass(e.best)"
+            class="pair"
             v-tip:chips="`${typesLabel(e.def)}: ${formatMult(e.best)}`"
           >
             <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
           </span>
-        </span>
+        </fieldset>
       </div>
-      <p v-if="resisted.length" class="muted small legend">
-        <span class="mult-tag m-0_5">½×</span> <span class="mult-tag m-0_25">¼×</span>
-        {{ t('calc.partnersNote') }}
-      </p>
+      <p v-if="resisted.length" class="muted small note">{{ t('calc.partnersNote') }}</p>
     </details>
   </template>
 
@@ -343,10 +340,37 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 .pair-lbl {
   white-space: nowrap;
 }
-.legend {
+.resist-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 8px;
+  padding: 4px 0;
+}
+.tier {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+.tier legend {
+  padding: 0 4px;
+  font-family: var(--font-num, inherit);
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+}
+.tier.pairs {
+  gap: 4px 10px;
+}
+.pair {
+  display: inline-flex;
+  gap: 2px;
+}
+.note {
   margin: 8px 0 0;
 }
 .small {
