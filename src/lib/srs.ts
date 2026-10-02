@@ -45,8 +45,23 @@ export interface Deck {
 
 export const DEFAULT_NEW_LIMIT = 20
 
+/** Local hour a new study day starts at, as in Anki, so a session past midnight still counts as the same day. */
+const DAY_START_HOUR = 4
+
+/** Start (ms) of the study day `days` after the one containing `now`. */
+function dayStart(now: number, days = 0): number {
+  const d = new Date(now)
+  if (d.getHours() < DAY_START_HOUR) d.setDate(d.getDate() - 1)
+  d.setDate(d.getDate() + days)
+  d.setHours(DAY_START_HOUR, 0, 0, 0)
+  return d.getTime()
+}
+
+/** The study day containing `now`, as a local YYYY-MM-DD date. */
 export function today(now = Date.now()): string {
-  return new Date(now).toISOString().slice(0, 10)
+  const d = new Date(dayStart(now))
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 export function newSeed(): number {
