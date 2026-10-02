@@ -32,8 +32,8 @@ const rowText = (row: string) => tSplit(`ability.row.${row}` as MessageKey, 'typ
   <div class="panel">
     <template v-if="exists">
       <h1>{{ refName(ref) }}</h1>
-      <p v-if="text" class="short"><DexText :text="text.short" /></p>
-      <p v-if="text?.long"><DexText :text="text.long" /></p>
+      <!-- The long description; the short one is for the list, and stands in when there's nothing more to say. -->
+      <p v-if="text"><DexText :text="text.long ?? text.short" /></p>
 
       <section v-if="interactions.length">
         <h2>{{ t('ability.interactions') }}</h2>
@@ -67,9 +67,6 @@ const rowText = (row: string) => tSplit(`ability.row.${row}` as MessageKey, 'typ
 </template>
 
 <style scoped>
-.short {
-  font-weight: bold;
-}
 section {
   margin-top: 16px;
 }
