@@ -122,7 +122,7 @@ function onAnswered(correct: boolean, ms: number) {
   }
   const secs = c.kind === 'mult' ? settings.value.slowMult : settings.value.slowMulti
   const slow = secs > 0 && ms > secs * 1000
-  grade(deck.value, c.id, correct ? (slow ? 3 : 4) : 1)
+  grade(deck.value, c.id, correct ? (slow ? 3 : 5) : 1)
   saveDeck(deck.value)
   triggerRef(deck)
   session.value.seen++

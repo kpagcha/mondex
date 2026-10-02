@@ -74,7 +74,8 @@ function newCard(): CardState {
 /**
  * Record an answer. `quality` is the SM-2 grade (0–5); anything below 3 is a
  * lapse. The quiz grades automatically: wrong = 1, correct but slow = 3,
- * correct and quick = 4.
+ * correct and quick = 5. Quick answers raise ease by 0.1 and slow ones lower it
+ * by 0.14, so a card's ease recovers once it stops giving trouble.
  */
 export function grade(deck: Deck, id: string, quality: number, now = Date.now()): CardState {
   let c = deck.cards[id]

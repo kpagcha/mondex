@@ -14,7 +14,7 @@ export function simulateAnswers(deck: Deck, n: number, rate: number, pick: (avoi
   for (let i = 0; i < n; i++) {
     const id = pick(last)
     if (!id) break
-    grade(deck, id, Math.random() < rate ? 4 : 1)
+    grade(deck, id, Math.random() < rate ? 5 : 1)
     last = id
   }
   deck.newToday = newToday
@@ -26,7 +26,7 @@ export function graduate(deck: Deck, ids: Iterable<string>, n: number) {
   for (const id of ids) {
     if (n <= 0) break
     if (deck.cards[id]) continue
-    grade(deck, id, 4)
+    grade(deck, id, 5)
     n--
   }
   deck.newToday = newToday
