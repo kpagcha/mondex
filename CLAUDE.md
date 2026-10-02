@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-mondex is a competitive Pokémon dex (in the spirit of the Smogon and Showdown dexes): a Vue 3 + TypeScript + Vite SPA, deployed to GitHub Pages at `https://kpagcha.github.io/mondex/`. It currently has the type chart (`/types`), the type calculator (`/types/calc`), a spaced-repetition type quiz (`/types/quiz`) and a settings page (`/settings`: style, theme, language), in English and Spanish.
+mondex is a competitive Pokémon dex (in the spirit of the Smogon and Showdown dexes): a Vue 3 + TypeScript + Vite SPA, deployed to GitHub Pages at `https://kpagcha.github.io/mondex/`. It currently has the type chart (`/types`), the type calculator (`/types/calc`), a spaced-repetition type quiz (`/types/quiz`) a settings page (`/settings`: theme, language) and a credits page (`/credits`, linked from the footer), in English and Spanish.
 
 ## Commands
 
@@ -17,7 +17,7 @@ There is no test suite, and none should be added. Verify changes with `npm run b
 
 ## Architecture
 
-- **`src/data/types.ts`**: the Gen 6+ type chart, stored as a sparse attacker→defender map (pairs left out are 1×), exposed through `chart(atk, def)`. Type icons are Showdown sprites loaded by URL. `TypeId` is the canonical type key everywhere.
+- **`src/data/types.ts`**: the Gen 6+ type chart, stored as a sparse attacker→defender map (pairs left out are 1×), exposed through `chart(atk, def)`. `iconUrl` gives the Showdown sprites the dev-only `pixel` style loads by URL; the default style's badges use the Bulbagarden Archives glyphs (`src/data/typeGlyphs.ts`). `TypeId` is the canonical type key everywhere.
 - **`src/lib/`**: pure logic with no Vue components. `typecalc.ts` (effectiveness, defensive profiles, coverage, multiplier formatting/CSS classes), `quiz.ts` (builds the quiz cards: "pick the multiplier" and "tick all types that apply"), `srs.ts` (SM-2 scheduling with Anki-style learning steps counted in answers rather than time; the deck is saved to localStorage under `mondex.quiz.v1`), `motion.ts` (shared `SPRING`/`FADE`/`PRESS` animation settings).
 - **`src/views/`**: one lazy-loaded view per route (`src/router.ts`). Route `meta.titleKey` sets the document title. View state that should be shareable is kept in the URL query (calculator picks, the selected chart cell) and updated with `router.replace`.
 - **i18n (`src/i18n/`)**: a small hand-rolled module, not vue-i18n. `en.ts` is the source of truth for `MessageKey`. Other locales are typed as `Record<keyof typeof en.messages, string>`, so a missing key is a compile error. Each locale also exports the official in-game type names. Use `t(key, params)` for `{name}` placeholders, `tSplit` to render a component (e.g. a type badge) in the middle of a message, and `typeName(type)`. To add a language: create `src/i18n/<code>.ts` and register it in `LOCALES`/`BUNDLES` in `src/i18n/index.ts`.

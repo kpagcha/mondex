@@ -482,6 +482,13 @@ export const messages: Record<keyof typeof en, string> = {
   'quiz.reset': 'Reiniciar progreso',
   'quiz.resetConfirm': '¿Reiniciar todo el progreso del test?',
 
-  'footer.icons': 'Iconos de tipos de',
   'footer.copyright': 'Pokémon © Nintendo, Game Freak, The Pokémon Company.',
+
+  'title.credits': 'Créditos',
+  'desc.credits': 'Créditos de mondex, una Pokédex competitiva para {game}.',
+  'credits.intro':
+    'mondex es un proyecto de fans no oficial, sin relación con Nintendo, Game Freak ni The Pokémon Company.',
+  'credits.iconsTitle': 'Iconos de tipos',
+  'credits.iconsBody': 'Los iconos de tipos vienen de los {source}, tal y como se usan en',
+  'credits.trademarks': 'Pokémon y los nombres de los Pokémon y de los tipos son marcas registradas de Nintendo.',
 }

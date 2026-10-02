@@ -476,6 +476,13 @@ export const messages = {
   'quiz.reset': 'Reset progress',
   'quiz.resetConfirm': 'Reset all quiz progress?',
 
-  'footer.icons': 'Type icons from',
   'footer.copyright': 'Pokémon © Nintendo, Game Freak, The Pokémon Company.',
+
+  'title.credits': 'Credits',
+  'desc.credits': 'Credits for mondex, a competitive dex for {game}.',
+  'credits.intro':
+    'mondex is an unofficial fan project, not affiliated with Nintendo, Game Freak or The Pokémon Company.',
+  'credits.iconsTitle': 'Type icons',
+  'credits.iconsBody': 'The type icons come from the {source}, as used on',
+  'credits.trademarks': 'Pokémon and Pokémon character and type names are trademarks of Nintendo.',
 }

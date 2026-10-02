@@ -47,6 +47,12 @@ export const router = createRouter({
       component: () => import('@/views/SettingsView.vue'),
       meta: { titleKey: 'title.settings' },
     },
+    {
+      path: '/credits',
+      name: 'credits',
+      component: () => import('@/views/CreditsView.vue'),
+      meta: { titleKey: 'title.credits', descKey: 'desc.credits' },
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })

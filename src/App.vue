@@ -118,10 +118,8 @@ const fadeVariants = {
     </main>
     <footer class="wrap footer muted">
       <div class="credits">
-        <span>
-          {{ t('footer.icons') }} <a href="https://pokemonshowdown.com/" rel="noopener">Pokémon Showdown</a>.
-          {{ t('footer.copyright') }}
-        </span>
+        <span>{{ t('footer.copyright') }}</span>
+        <RouterLink to="/credits">{{ t('title.credits') }}</RouterLink>
       </div>
     </footer>
     <ConfirmDialog />
