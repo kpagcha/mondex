@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "gen-data": "node scripts/gen-data.ts",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "check-text": "node scripts/check-text.ts",
+    "build": "run-p check-text type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
