@@ -4,7 +4,8 @@ import { crossFade } from '@/composables/useTheme'
 /**
  * The app's visual style, independent of light/dark. `retro` (the default) has square corners, ink outlines, hard
  * shadows and flat type badges (`src/styles/retro.css`); `pixel` is the softer original look with Showdown's type
- * sprites. Applied as `data-style` on <html>, which index.html also sets before first paint.
+ * sprites. Applied as `data-style` on <html>, which index.html also sets before first paint. Only picked from the
+ * dev settings; production builds always use `retro`.
  */
 export type Style = 'retro' | 'pixel'
 
@@ -13,6 +14,7 @@ export const STYLES: readonly Style[] = ['retro', 'pixel']
 const KEY = 'mondex.style'
 
 function read(): Style {
+  if (!import.meta.env.DEV) return 'retro'
   try {
     if (localStorage.getItem(KEY) === 'pixel') return 'pixel'
   } catch {

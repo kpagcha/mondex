@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
-import { STYLES, useStyle } from '@/composables/useStyle'
 import { THEME_MODES, useTheme } from '@/composables/useTheme'
 import { LOCALES, locale, setLocale, t, type Locale } from '@/i18n'
 
-const { style, setStyle } = useStyle()
 const { mode, setMode } = useTheme()
 
 // Dev-only font lab; the import is dropped from production builds.
@@ -37,19 +35,6 @@ const DevSettings = import.meta.env.DEV ? defineAsyncComponent(() => import('@/d
         <span class="opt-text">
           <span class="opt-name font-display">{{ t(`theme.${m}`) }}</span>
           <span v-if="m === 'auto'" class="muted small">{{ t('theme.autoDesc') }}</span>
-        </span>
-      </label>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h2>{{ t('style.label') }}</h2>
-    <div class="opts">
-      <label v-for="s in STYLES" :key="s" class="opt" :class="{ on: style === s }">
-        <input type="radio" name="style" :value="s" :checked="style === s" @change="setStyle(s)" />
-        <span class="opt-text">
-          <span class="opt-name font-display">{{ t(`style.${s}`) }}</span>
-          <span class="muted small">{{ t(`style.${s}Desc`) }}</span>
         </span>
       </label>
     </div>

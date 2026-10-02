@@ -16,11 +16,13 @@
     />
     <link rel="preconnect" href="https://play.pokemonshowdown.com" />
     <script>
-      // Apply the saved theme and style before first paint to avoid a flash.
+      // Apply the saved theme and style before first paint to avoid a flash. The style can only be picked in dev, so a
+      // saved one is ignored in production builds.
       try {
         var t = localStorage.getItem('mondex.theme')
         if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
-        if (localStorage.getItem('mondex.style') === 'pixel') document.documentElement.dataset.style = 'pixel'
+        if ('%MODE%' === 'development' && localStorage.getItem('mondex.style') === 'pixel')
+          document.documentElement.dataset.style = 'pixel'
       } catch (e) {}
     </script>
   </head>
