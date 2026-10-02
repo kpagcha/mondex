@@ -7,7 +7,6 @@
 // few other cards (LEARN_STEPS, counted in answers, not time) until it is
 // answered correctly enough times to graduate again.
 
-const DAY = 86_400_000
 const MIN_EASE = 1.3
 /** Cards to wait before re-asking a card in learning, per step. */
 export const LEARN_STEPS = [3, 8]
@@ -20,7 +19,7 @@ export interface CardState {
   reps: number
   /** Total wrong answers. */
   lapses: number
-  /** Timestamp (ms) when the card is next due for review. */
+  /** Timestamp (ms) when the card is next due for review: the start of a study day. */
   due: number
   /** Learning step index, or -1 when the card is in review. */
   step: number
@@ -123,7 +122,7 @@ export function grade(deck: Deck, id: string, quality: number, now = Date.now())
     c.step = -1
     c.reps = 1
     c.interval = 1
-    c.due = now + DAY
+    c.due = dayStart(now, 1)
     return c
   }
 
@@ -131,7 +130,7 @@ export function grade(deck: Deck, id: string, quality: number, now = Date.now())
   c.interval = c.reps === 1 ? 1 : c.reps === 2 ? 6 : Math.round(c.interval * c.ease)
   const q = Math.min(5, quality)
   c.ease = Math.max(MIN_EASE, c.ease + 0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
-  c.due = now + c.interval * DAY
+  c.due = dayStart(now, c.interval)
   return c
 }
 
