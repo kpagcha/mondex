@@ -108,16 +108,28 @@ onMounted(async () => {
 .chart {
   /* Keep the dense chart compact: icons stay 1× on phones. */
   --icon-scale: 1;
-  border-collapse: collapse;
+  /* Separate borders (each cell draws its right/bottom edge, the first row/column add top/left) rather than
+     collapsed: collapsed borders are shared half-and-half between cells, which on fractional-DPR phones leaves a
+     sliver to the left of the sticky column where scrolled cells show through. */
+  border-collapse: separate;
+  border-spacing: 0;
   font-weight: bold;
   background: var(--panel);
 }
 
 .chart th,
 .chart td {
-  border: 1px solid var(--border);
+  border: 0 solid var(--border);
+  border-width: 0 1px 1px 0;
   padding: 0;
   text-align: center;
+}
+.chart thead th {
+  border-top-width: 1px;
+}
+.chart .corner,
+.chart .rowh {
+  border-left-width: 1px;
 }
 
 .chart thead th {
