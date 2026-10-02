@@ -78,8 +78,10 @@ const defRows = computed(() => DEF_ROWS.filter((r) => defProfile.value?.[r.m].le
 
 // ---- Offense ----
 const coverage = computed(() => (atk.value.length ? offensiveProfile(atk.value) : null))
-// Most to least effective, immunities last; ties keep type order (stable sort).
-const singles = computed(() => coverage.value?.filter((e) => e.def.length === 1).sort((a, b) => b.best - a.best) ?? [])
+// Most to least effective, immunities last; ties keep type order (stable sort). Neutral ones are left out.
+const singles = computed(
+  () => coverage.value?.filter((e) => e.def.length === 1 && e.best !== 1).sort((a, b) => b.best - a.best) ?? [],
+)
 const counts = computed(() => {
   const c: Record<number, number> = { 0: 0, 0.25: 0, 0.5: 0, 1: 0, 2: 0, 4: 0 }
   for (const e of coverage.value ?? []) c[e.best]!++
@@ -89,7 +91,6 @@ const immune = computed(() => coverage.value?.filter((e) => e.best === 0) ?? [])
 const resisted = computed(() => coverage.value?.filter((e) => e.best > 0 && e.best <= 0.5) ?? [])
 const immuneGroups = computed(() => groupByRoot(immune.value))
 const resistedGroups = computed(() => groupByRoot(resisted.value))
-const neutral = computed(() => coverage.value?.filter((e) => e.best === 1) ?? [])
 const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 </script>
 
@@ -179,8 +180,10 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
       </div>
     </div>
 
-    <div class="panel">
-      <h2>{{ t('calc.resistedTitle', { n: resisted.length }) }}</h2>
+    <details class="panel">
+      <summary>
+        <h2>{{ t('calc.resistedTitle', { n: resisted.length }) }}</h2>
+      </summary>
       <p v-if="!resisted.length" class="muted">{{ t('calc.noResist') }}</p>
       <div v-for="g in resistedGroups.groups" :key="g.root.def[0]" class="root-row">
         <span
@@ -223,17 +226,6 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
         <span class="mult-tag m-0_5">½×</span> <span class="mult-tag m-0_25">¼×</span>
         {{ t('calc.partnersNote') }}
       </p>
-    </div>
-
-    <details class="panel">
-      <summary>
-        <h2>{{ t('calc.neutralTitle', { n: neutral.length }) }}</h2>
-      </summary>
-      <div class="combos">
-        <span v-for="e in neutral" :key="e.def.join()" class="chip plain" v-tip:chips="typesLabel(e.def)">
-          <TypeIcon v-for="t in e.def" :key="t" :type="t" lazy />
-        </span>
-      </div>
     </details>
   </template>
 
@@ -360,10 +352,6 @@ const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 .small {
   font-size: calc(11px * var(--text-scale));
 }
-.chip.plain {
-  background: var(--panel-alt);
-}
-
 summary {
   cursor: pointer;
 }

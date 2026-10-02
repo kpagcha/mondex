@@ -404,7 +404,6 @@ export const messages: Record<keyof typeof en, string> = {
   'calc.resistedTitle': 'Resistentes ({n})',
   'calc.noResist': 'Nada resiste esta cobertura.',
   'calc.partnersNote': 'Cada combinación aparece una sola vez, bajo el primer tipo que resiste por sí solo.',
-  'calc.neutralTitle': 'Solo neutros ({n})',
   'calc.toResults': 'Resultados',
   'calc.selectHint': 'Selecciona un tipo arriba para ver los resultados.',
 

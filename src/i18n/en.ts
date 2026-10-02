@@ -399,7 +399,6 @@ export const messages = {
   'calc.resistedTitle': 'Resisted ({n})',
   'calc.noResist': 'Nothing resists this coverage.',
   'calc.partnersNote': 'Partners are listed once, under the first type that resists on its own.',
-  'calc.neutralTitle': 'Only neutral ({n})',
   'calc.toResults': 'Results',
   'calc.selectHint': 'Select a type above to see results.',
 
