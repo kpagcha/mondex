@@ -13,6 +13,8 @@ npm run lint        # ESLint (lint:fix to autofix)
 npm run format      # Prettier (no semicolons, single quotes, 120 columns)
 ```
 
+The `justfile` wraps these for the user (`just dev`, `just build`, `just preview`, which builds and then serves the production site at `http://localhost:4173/mondex/`); keep it in sync when scripts change.
+
 There is no test suite, and none should be added. Verify changes with `npm run build` plus checking the app in the browser. The pre-commit hook (simple-git-hooks + lint-staged) runs `eslint --max-warnings=0` and Prettier on staged files, so any lint warning blocks a commit. CI (`.github/workflows/deploy.yml`) runs lint + build on every push to `main` and deploys, copying `index.html` to `404.html` so deep links work.
 
 ## Architecture

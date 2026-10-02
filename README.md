@@ -23,4 +23,6 @@ npm run lint       # ESLint
 npm run lint:fix   # ESLint with autofix
 ```
 
+With [just](https://github.com/casey/just), `just` lists shortcuts: `just dev`, `just build`, and `just preview` (build, then serve the production site at http://localhost:4173/mondex/, the place to measure performance).
+
 A pre-commit hook lints the staged `.ts` and `.vue` files and blocks the commit on any problem.
