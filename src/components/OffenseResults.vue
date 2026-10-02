@@ -156,7 +156,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
   text-align: center;
   white-space: nowrap;
   font-family: var(--font-num, inherit);
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(9px * var(--text-scale));
   cursor: default;
 }
 .seg + .seg {
