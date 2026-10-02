@@ -8,11 +8,13 @@
 // an ability is available when one of them can have it, a move when one of them learns it.
 
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createJiti } from 'jiti'
 import * as prettier from 'prettier'
+import { descriptions as ABILITY_DESCRIPTIONS } from '../src/i18n/en/abilities.ts'
 import { LOCALES, type Locale } from '../src/i18n/locales.ts'
 import { LANGUAGES, type Language } from './languages.ts'
 import { NAMES, type CategoryKey } from './overrides.ts'
@@ -62,7 +64,13 @@ interface ModdedDex {
   items: { all(): readonly Entry[] }
   formats: { all(): readonly Format[]; getRuleTable(format: Format): RuleTable }
   forFormat(format: Format): ModdedDex
+  /**
+   * Descriptions by ID, resolved for this dex: its mod's own text when it has one (Champions changes some abilities),
+   * else its generation's, else the latest; a missing `desc` or `shortDesc` falls back to the other.
+   */
+  loadTextData(): Record<TextTable, Record<string, { desc: string; shortDesc: string }>>
 }
+type TextTable = 'Abilities' | 'Moves' | 'Items'
 
 function git(cwd: string, ...args: string[]): string {
   return execFileSync('git', args, { cwd, encoding: 'utf8' }).trim()
@@ -177,6 +185,38 @@ async function writeJson(file: string, data: Record<string, unknown>) {
   console.log(`Wrote ${file}`)
 }
 
+/** A short fingerprint of a source description, recorded by the curated text written from it. */
+function hashText(short: string, long: string): string {
+  return createHash('sha256')
+    .update(
+      `${short}
+${long}`,
+    )
+    .digest('hex')
+    .slice(0, 8)
+}
+
+/**
+ * Compares curated descriptions with the source they were written from: entries whose source changed since (to
+ * revise), entries the regulation has with no curated text yet, and curated entries it no longer has.
+ */
+function reportDrift(
+  key: string,
+  available: Entry[],
+  curated: Record<string, { source: string }>,
+  hash: (e: Entry) => string,
+) {
+  const changed = available.filter((e) => curated[e.id] && curated[e.id]!.source !== hash(e))
+  const unwritten = available.filter((e) => !curated[e.id])
+  const gone = Object.keys(curated).filter((id) => !available.some((e) => e.id === id))
+  if (changed.length) {
+    console.warn(`Showdown's text changed for these ${key}; revise their descriptions in src/i18n/en/${key}.ts:`)
+    for (const e of changed) console.warn(`  ${e.id}: source ${curated[e.id]!.source} -> ${hash(e)}`)
+  }
+  if (gone.length) console.warn(`Described ${key} the regulation no longer has: ${gone.join(', ')}`)
+  console.log(`${key} descriptions: ${available.length - unwritten.length} of ${available.length} written`)
+}
+
 /** A dex category the script generates. */
 interface Category {
   /** Output files (`<key>.json`, `<key>.names.<locale>.json`) and the `overrides.ts` key. */
@@ -185,6 +225,10 @@ interface Category {
   entries: () => (Entry & { available: boolean })[]
   /** PokéAPI's table, its names table and the names table's key column. */
   pokeapi: [table: string, names: string, key: string]
+  /** Showdown's text table, for categories whose descriptions go in `<key>.json`. */
+  text?: TextTable
+  /** Our curated descriptions written from Showdown's, checked for drift (`src/i18n/en/<key>.ts`). */
+  curated?: Record<string, { source: string }>
 }
 
 async function main() {
@@ -234,6 +278,8 @@ async function main() {
             available: abilitiesHeld.has(a.id) && !a.isNonstandard && !rules.isBanned(`ability:${a.id}`),
           })),
       pokeapi: ['abilities', 'ability_names', 'ability_id'],
+      text: 'Abilities',
+      curated: ABILITY_DESCRIPTIONS,
     },
     {
       // Available when a legal Pokémon learns it, and the game has it: the Champions mod drops some moves Pokémon
@@ -285,7 +331,21 @@ async function main() {
 
     // Every entry by Showdown ID, and whether the regulation has it. Names only for those it has, the only ones
     // the app shows.
-    await writeJson(`${c.key}.json`, Object.fromEntries(entries.map((e) => [e.id, { available: e.available }])))
+    // Showdown's descriptions, for the entries the regulation has: a short one and a long one (the short one again
+    // when there's nothing more to say). The source our own, curated descriptions are written from.
+    const text = c.text && dex.loadTextData()[c.text]
+    if (text) {
+      const missing = available.filter((e) => !text[e.id]?.shortDesc)
+      if (missing.length) throw new Error(`Showdown has no description for ${missing.map((e) => e.name).join(', ')}`)
+    }
+    const data = (e: Entry & { available: boolean }) =>
+      text && e.available
+        ? { available: true, short: text[e.id]!.shortDesc, long: text[e.id]!.desc }
+        : { available: e.available }
+    await writeJson(`${c.key}.json`, Object.fromEntries(entries.map((e) => [e.id, data(e)])))
+    if (text && c.curated) {
+      reportDrift(c.key, available, c.curated, (e) => hashText(text[e.id]!.shortDesc, text[e.id]!.desc))
+    }
     for (const locale of Object.keys(LOCALES) as Locale[]) {
       await writeJson(
         `${c.key}.names.${locale}.json`,
