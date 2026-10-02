@@ -1,6 +1,6 @@
 // Generates `src/data/generated/` from Pokémon Showdown's Champions mod, at the commit pinned in `sources.json`, and
-// names in every locale from PokéAPI's data (`languages.ts` says where), falling back to Bulbapedia for what PokéAPI
-// doesn't have yet. The regulation is `VITE_REGULATION` in `.env`. Run with `npm run gen-data`; `npm run gen-data -- --update` first moves every pin to
+// names in every locale from PokéAPI's data (`languages.ts` says where) and `overrides.ts`, which fills in what
+// PokéAPI lacks or has outdated. The regulation is `VITE_REGULATION` in `.env`. Run with `npm run gen-data`; `npm run gen-data -- --update` first moves every pin to
 // the latest version.
 //
 // Showdown's own code loads the data (through jiti, which runs its TypeScript), so the Champions mod is merged over
@@ -8,7 +8,6 @@
 // an ability is available when one of them can have it, a move when one of them learns it.
 
 import { execFileSync } from 'node:child_process'
-import https from 'node:https'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -25,16 +24,12 @@ const OUT = join(ROOT, 'src/data/generated')
 
 const SHOWDOWN_REPO = 'https://github.com/smogon/pokemon-showdown.git'
 const POKEAPI_RAW = 'https://raw.githubusercontent.com/PokeAPI/pokeapi'
-const BULBAPEDIA_API = 'https://bulbapedia.bulbagarden.net/w/api.php'
-const USER_AGENT = 'mondex gen-data (https://github.com/kpagcha/mondex)'
 /** The parts of Showdown's repo its `Dex` needs. */
 const SHOWDOWN_PATHS = ['/data/', '/sim/', '/lib/', '/config/', '/package.json']
 
 interface Sources {
   showdown: string
   pokeapi: string
-  /** The Bulbapedia pages used, by title, each pinned to a revision. */
-  bulbapedia: Record<string, number>
 }
 
 // The little of Showdown's API used here.
@@ -91,31 +86,16 @@ function showdownCheckout(commit: string): string {
   return dir
 }
 
-/**
- * The body of a GET request. Uses `node:https` rather than `fetch`: Bulbapedia's Cloudflare answers most of `fetch`'s
- * requests with a bot challenge (HTTP 403), but lets `https` (and curl) through.
- */
+/** The body of a GET request. Server errors and dropped connections are usually brief: try a few times. */
 async function get(url: string): Promise<string> {
-  // Server errors and dropped connections are usually brief (Bulbapedia answers the odd 504): try a few times.
   for (let attempt = 1; ; attempt++) {
-    const res = await getOnce(url).catch((error: Error) => ({ status: 0, body: '', error }))
-    if (res.status === 200) return res.body
-    const retry = res.status === 0 || res.status >= 500
-    if (!retry || attempt === 4) throw new Error(`${url}: ${'error' in res ? res.error.message : `HTTP ${res.status}`}`)
+    const res = await fetch(url).catch((error: Error) => error)
+    if (res instanceof Response && res.ok) return res.text()
+    const retry = !(res instanceof Response) || res.status >= 500
+    if (!retry || attempt === 4)
+      throw new Error(`${url}: ${res instanceof Response ? `HTTP ${res.status}` : res.message}`)
     await new Promise((wait) => setTimeout(wait, 2000 * attempt))
   }
-}
-
-function getOnce(url: string): Promise<{ status: number; body: string }> {
-  return new Promise((ok, fail) => {
-    https
-      .get(url, { headers: { 'User-Agent': USER_AGENT, Accept: '*/*' } }, (res) => {
-        const chunks: Buffer[] = []
-        res.on('data', (c: Buffer) => chunks.push(c))
-        res.on('end', () => ok({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString('utf8') }))
-      })
-      .on('error', fail)
-  })
 }
 
 /** A PokéAPI CSV at `commit`, cached, as rows of named columns. */
@@ -186,117 +166,6 @@ async function pokeapiNames(
   return names
 }
 
-interface WikiPage {
-  title: string
-  missing?: boolean
-  revisions?: { revid: number; slots: { main: { content: string } } }[]
-}
-
-/** Bulbapedia pages (with their latest revision, or the given `revids`), up to 50 per request. Titles are matched
- * through Bulbapedia's normalizations and redirects, so the result is keyed by the title asked for. */
-async function wikiQuery(by: 'titles' | 'revids', keys: string[]): Promise<Map<string, WikiPage>> {
-  const out = new Map<string, WikiPage>()
-  for (let i = 0; i < keys.length; i += 50) {
-    const batch = keys.slice(i, i + 50)
-    const params = new URLSearchParams({
-      action: 'query',
-      prop: 'revisions',
-      rvprop: 'ids|content',
-      rvslots: 'main',
-      redirects: '1',
-      format: 'json',
-      formatversion: '2',
-      [by]: batch.join('|'),
-    })
-    const { query } = JSON.parse(await get(`${BULBAPEDIA_API}?${params}`)) as {
-      query: {
-        pages: WikiPage[]
-        normalized?: { from: string; to: string }[]
-        redirects?: { from: string; to: string }[]
-      }
-    }
-    const final = (title: string) => {
-      for (const list of [query.normalized, query.redirects]) title = list?.find((r) => r.from === title)?.to ?? title
-      return title
-    }
-    for (const key of batch) {
-      const page =
-        by === 'titles'
-          ? query.pages.find((p) => p.title === final(key))
-          : query.pages.find((p) => p.revisions?.some((r) => String(r.revid) === key))
-      if (page) out.set(key, page)
-    }
-  }
-  return out
-}
-
-/**
- * The wikitext of Bulbapedia pages by title: at the pinned revision (from the cache when possible), or else the
- * latest, which gets pinned. Pages that don't exist are left out. Also returns the pins of the pages found.
- */
-async function bulbapedia(titles: string[], pins: Record<string, number>) {
-  const text = new Map<string, string>()
-  const found: Record<string, number> = {}
-  const cached = (revid: number) => join(CACHE, 'bulbapedia', `${revid}.wikitext`)
-  const keep = (title: string, revid: number, content: string) => {
-    mkdirSync(dirname(cached(revid)), { recursive: true })
-    writeFileSync(cached(revid), content)
-    text.set(title, content)
-    found[title] = revid
-  }
-  const pinned = titles.filter((t) => pins[t])
-  for (const t of pinned.filter((t) => existsSync(cached(pins[t]!)))) {
-    text.set(t, readFileSync(cached(pins[t]!), 'utf8'))
-    found[t] = pins[t]!
-  }
-  const toFetch = pinned.filter((t) => !text.has(t))
-  const byRevid = await wikiQuery(
-    'revids',
-    toFetch.map((t) => String(pins[t])),
-  )
-  for (const t of toFetch) {
-    const rev = byRevid.get(String(pins[t]))?.revisions?.[0]
-    if (!rev) throw new Error(`Bulbapedia has no revision ${pins[t]} of "${t}"`)
-    keep(t, rev.revid, rev.slots.main.content)
-  }
-  const latest = await wikiQuery(
-    'titles',
-    titles.filter((t) => !pins[t]),
-  )
-  for (const [t, page] of latest) {
-    const rev = page.revisions?.[0]
-    if (!page.missing && rev) keep(t, rev.revid, rev.slots.main.content)
-  }
-  return { text, found }
-}
-
-/**
- * The name in a Bulbapedia page's "In other languages" table: the first of `fields` it has (`es_eu`, else `es` on
- * pages where Spain and Latin America share it). When the name changed, the current one comes first, before a
- * `<br>`, and notes like `<sup>{{gen|VI}}+</sup>` or "(games)" follow it. `{{tt|Elec.|Electricidad}}` is a word the
- * games abbreviate to fit, with its full form as a tooltip: we use the full form ("Absorbe Electricidad", as PokéAPI
- * has it). `{{tt|*|...}}` is a footnote marker, not part of the name.
- */
-function bulbapediaName(wikitext: string, fields: string[]): string | undefined {
-  const start = wikitext.search(/\{\{langtable/i)
-  if (start < 0) return undefined
-  const table = wikitext.slice(start)
-  const field = fields.map((f) => table.match(new RegExp(`^\\s*\\|\\s*${f}\\s*=(.*)$`, 'm'))).find(Boolean)
-  if (!field) return undefined
-  const name = field[1]!
-    .replace(/<!--.*?-->/g, '')
-    .split(/<br\s*\/?>/i)[0]!
-    .replace(/<sup>.*?<\/sup>/gi, '')
-    .replace(/\{\{tt\|([^|}]*)\|([^}]*)\}\}/gi, (_, short: string, full: string) => (short === '*' ? '' : full))
-    .replace(/\{\{[^{}]*\}\}/g, '') // Other templates: `{{sup/9|ZA}}` (since Legends: Z-A)...
-    .replace(/\}\}\s*$/, '') // ...and the table's own end, when the field is its last line
-    .replace(/\[\[(?:[^|\]]*\|)?([^\]]*)\]\]/g, '$1')
-    .replace(/''+/g, '')
-    .replace(/\s*\(.*\)\s*$/, '')
-    .trim()
-  return name || undefined
-}
-
 /** A JSON object with one entry per line (so diffs are one line per change), formatted with the project's Prettier
  * settings. */
 async function writeJson(file: string, data: Record<string, unknown>) {
@@ -316,18 +185,15 @@ interface Category {
   entries: () => (Entry & { available: boolean })[]
   /** PokéAPI's table, its names table and the names table's key column. */
   pokeapi: [table: string, names: string, key: string]
-  /** Bulbapedia page titles that may be an entry's, in order of preference. */
-  pages: (name: string) => string[]
 }
 
 async function main() {
   const saved = readFileSync(SOURCES_FILE, 'utf8')
   const parsed = JSON.parse(saved) as Partial<Sources>
-  const sources: Sources = { showdown: parsed.showdown!, pokeapi: parsed.pokeapi!, bulbapedia: parsed.bulbapedia ?? {} }
+  const sources: Sources = { showdown: parsed.showdown!, pokeapi: parsed.pokeapi! }
   if (process.argv.includes('--update')) {
     sources.showdown = latestCommit(SHOWDOWN_REPO)
     sources.pokeapi = latestCommit('https://github.com/PokeAPI/pokeapi.git')
-    sources.bulbapedia = {} // Every page gets pinned to its latest revision again
     console.log(`Pinned Showdown ${sources.showdown.slice(0, 7)}, PokéAPI ${sources.pokeapi.slice(0, 7)}`)
   }
 
@@ -368,7 +234,6 @@ async function main() {
             available: abilitiesHeld.has(a.id) && !a.isNonstandard && !rules.isBanned(`ability:${a.id}`),
           })),
       pokeapi: ['abilities', 'ability_names', 'ability_id'],
-      pages: (name) => [`${name} (Ability)`],
     },
     {
       // Available when a legal Pokémon learns it, and the game has it: the Champions mod drops some moves Pokémon
@@ -383,7 +248,6 @@ async function main() {
             available: movesLearned.has(m.id) && !m.isNonstandard && !rules.isBanned(`move:${m.id}`),
           })),
       pokeapi: ['moves', 'move_names', 'move_id'],
-      pages: (name) => [`${name} (move)`],
     },
     {
       // Available when the game has it.
@@ -394,12 +258,9 @@ async function main() {
           .filter((i) => i.num > 0)
           .map((i) => ({ ...i, available: !i.isNonstandard && !rules.isBanned(`item:${i.id}`) })),
       pokeapi: ['items', 'item_names', 'item_id'],
-      // "Metronome (item)" when the name is ambiguous, else just the name ("Leek").
-      pages: (name) => [`${name} (item)`, name],
     },
   ]
 
-  const pins: Record<string, number> = {}
   const availableIds: Record<string, string[]> = {}
   for (const c of categories) {
     const entries = c.entries().sort((a, b) => a.id.localeCompare(b.id))
@@ -416,28 +277,11 @@ async function main() {
       for (const [id, name] of Object.entries(overrides)) names[locale].set(id, name)
     }
 
-    // Names PokéAPI doesn't have yet (for entries the regulation has) come from Bulbapedia, each page read once for
-    // every locale that needs it.
-    const lacking = available.filter((e) => languages.some(([locale]) => !names[locale].has(e.id)))
-    // An entry whose page is already pinned needs no other: "Leek" is, so "Leek (item)" isn't looked up again.
-    const candidates = (e: Entry) => {
-      const pinned = c.pages(e.name).find((t) => sources.bulbapedia[t])
-      return pinned ? [pinned] : c.pages(e.name)
-    }
-    const wiki = await bulbapedia(lacking.flatMap(candidates), sources.bulbapedia)
-    for (const e of lacking) {
-      const page = c.pages(e.name).find((t) => wiki.text.has(t))
-      for (const [locale, language] of languages) {
-        if (names[locale].has(e.id)) continue
-        const name = page && bulbapediaName(wiki.text.get(page)!, language.bulbapedia)
-        if (!name) {
-          throw new Error(`No ${locale} name for ${e.name}: add it to NAMES.${locale}.${c.key} in scripts/overrides.ts`)
-        }
-        names[locale].set(e.id, name)
-        pins[page] = wiki.found[page]!
-        console.log(`Bulbapedia: ${e.name} is "${name}" in ${locale} (${page}, revision ${pins[page]})`)
-      }
-    }
+    // Every entry the regulation has needs a name in every locale: when PokéAPI has none yet, the override does.
+    const missing = languages.flatMap(([locale]) =>
+      available.filter((e) => !names[locale].has(e.id)).map((e) => `NAMES.${locale}.${c.key}.${e.id} (${e.name})`),
+    )
+    if (missing.length) throw new Error(`Names missing; add them to scripts/overrides.ts:\n  ${missing.join('\n  ')}`)
 
     // Every entry by Showdown ID, and whether the regulation has it. Names only for those it has, the only ones
     // the app shows.
@@ -454,7 +298,6 @@ async function main() {
   // The IDs the regulation has, per category: all the app needs to know at run time to hide the rest (the files
   // above give it the types, and the category pages their data).
   await writeJson('available.json', availableIds)
-  sources.bulbapedia = Object.fromEntries(Object.entries(pins).sort(([a], [b]) => a.localeCompare(b)))
 
   // Where all of the above came from.
   await writeJson('source.json', {
@@ -463,7 +306,6 @@ async function main() {
     format: format.name,
     showdown: sources.showdown,
     pokeapi: sources.pokeapi,
-    bulbapedia: sources.bulbapedia,
   })
   const pinned = JSON.stringify(sources, null, 2) + '\n'
   if (pinned !== saved) {
