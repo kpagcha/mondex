@@ -7,7 +7,7 @@ defineProps<{ compact?: boolean }>()
 
 const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey }[] = [
   { to: '/types/chart', label: 'nav.chart', desc: 'quick.chart', long: 'quick.chartLong' },
-  { to: '/types/calc', label: 'nav.calc', desc: 'quick.calc', long: 'quick.calcLong' },
+  { to: '/types/matchups', label: 'nav.matchups', desc: 'quick.matchups', long: 'quick.matchupsLong' },
   { to: '/types/quiz', label: 'nav.quiz', desc: 'quick.quiz', long: 'quick.quizLong' },
 ]
 </script>
@@ -27,7 +27,7 @@ const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
-/* Phones: titles only, in one row. Columns are sized to their titles, so a long one ("Calculadora") gets more room
+/* Phones: titles only, in one row. Columns are sized to their titles, so a long one ("Enfrentamientos") gets more room
    than a short one. */
 @media (max-width: 560px) {
   .quick-links {

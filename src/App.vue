@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue'
-import { useRoute, type RouteLocationNormalizedLoaded } from 'vue-router'
+import { useRoute, type RouteLocationNormalizedLoaded, type RouteLocationRaw } from 'vue-router'
 import { AnimatePresence, MotionConfig, motion } from 'motion-v'
 import { FADE, PAGE, SPRING } from '@/lib/motion'
-import { t, typeName } from '@/i18n'
+import { t, typeName, type MessageKey } from '@/i18n'
 import { isType } from '@/data/types'
 import { GAME_NAME, REGULATION } from '@/data/format'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -31,18 +31,21 @@ watchEffect(() => {
   setMeta('meta[property="og:description"]', desc)
 })
 
-// Pages under Types that get a back link to it.
-const isTool = (name: unknown) => name === 'chart' || name === 'calc' || name === 'calcSide' || name === 'quiz'
-// One side of the calculator leads back to the whole calculator, keeping the picks (and, with tabs, that side's tab).
-function backTo(r: RouteLocationNormalizedLoaded) {
-  if (r.name !== 'calcSide') return '/types'
-  return { path: '/types/calc', query: { ...r.query, mode: r.params.side === 'atk' ? 'atk' : undefined } }
+// Pages under Types get a back link to it, named after it. One side of the matchups page leads back to the whole
+// page instead, keeping the picks (and, with tabs, that side's tab).
+function backLink(r: RouteLocationNormalizedLoaded): { to: RouteLocationRaw; label: MessageKey } | null {
+  if (r.name === 'matchupsSide') {
+    const query = { ...r.query, mode: r.params.side === 'atk' ? 'atk' : undefined }
+    return { to: { path: '/types/matchups', query }, label: 'nav.matchups' }
+  }
+  const tool = r.name === 'chart' || r.name === 'matchups' || r.name === 'quiz'
+  return tool ? { to: '/types', label: 'nav.types' } : null
 }
 
 // The header link to highlight: the dex section the current page belongs to.
 const section = computed(() => {
   const name = route.name
-  if (name === 'types' || name === 'chart' || name === 'calc' || name === 'calcSide') return 'types'
+  if (name === 'types' || name === 'chart' || name === 'matchups' || name === 'matchupsSide') return 'types'
   if (name === 'quiz' || name === 'settings') return name
   return null
 })
@@ -82,7 +85,7 @@ const fadeVariants = {
         <span class="format muted">{{ t('format.label', { game: GAME_NAME, reg: REGULATION }) }}</span>
         <nav class="nav font-display">
           <!-- The active highlight is one element that slides between links. -->
-          <!-- Types covers its tools too (chart, calculator); the quiz has its own link. -->
+          <!-- Types covers its tools too (chart, matchups); the quiz has its own link. -->
           <RouterLink to="/types" :class="{ active: section === 'types' }">
             <motion.span v-if="section === 'types'" layout-id="nav-pill" class="pill" :transition="SPRING" />
             <span class="label">{{ t('nav.types') }}</span>
@@ -100,7 +103,7 @@ const fadeVariants = {
     </header>
     <main class="wrap">
       <RouterView v-slot="{ Component, route: r }">
-        <!-- Keyed by route rather than URL so query and param changes (calculator picks, the selected type) don't replay it.
+        <!-- Keyed by route rather than URL so query and param changes (matchup picks, the selected type) don't replay it.
              On phones, popLayout lifts the leaving page out of the flow so both pages slide side by side. -->
         <AnimatePresence :mode="isPhone ? 'popLayout' : 'wait'" :initial="false" :custom="direction">
           <motion.div
@@ -112,9 +115,8 @@ const fadeVariants = {
             exit="exit"
             :transition="isPhone ? PAGE : FADE"
           >
-            <!-- The type tools lead back to the Types page. -->
-            <RouterLink v-if="isTool(r.name)" :to="backTo(r)" class="back font-display">
-              <span class="chevron" aria-hidden="true">‹</span> {{ t('nav.back') }}
+            <RouterLink v-if="backLink(r)" :to="backLink(r)!.to" class="back font-display">
+              <span class="chevron" aria-hidden="true">‹</span> {{ t(backLink(r)!.label) }}
             </RouterLink>
             <component :is="Component" />
           </motion.div>

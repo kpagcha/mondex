@@ -30,7 +30,7 @@ const resistedGroups = computed(() => groupByRoot(resisted.value))
 const COUNT_ORDER: Multiplier[] = [4, 2, 1, 0.5, 0.25, 0]
 function countTip(m: Multiplier) {
   const n = counts.value[m]!
-  return `${formatMult(m)}: ${t(n === 1 ? 'calc.typeCountOne' : 'calc.typeCount', { n })}`
+  return `${formatMult(m)}: ${t(n === 1 ? 'matchups.typeCountOne' : 'matchups.typeCount', { n })}`
 }
 // Resisted combos are split by multiplier, so a chip's background never has to compete with a red type badge.
 const RESIST_TIERS: Multiplier[] = [0.5, 0.25]
@@ -41,7 +41,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
 
 <template>
   <div v-if="singles.length" class="panel">
-    <p class="muted">{{ t('calc.againstEach') }}</p>
+    <p class="muted">{{ t('matchups.againstEach') }}</p>
     <div class="single-grid">
       <div v-for="e in singles" :key="e.def[0]" class="single" :class="multClass(e.best)">
         <TypeIcon :type="e.def[0]!" />
@@ -51,7 +51,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
   </div>
 
   <div v-if="immuneShown" class="panel">
-    <h2>{{ t('calc.immuneTitle', { n: immuneShown }) }}</h2>
+    <h2>{{ t('matchups.immuneTitle', { n: immuneShown }) }}</h2>
     <div v-if="immuneGroups.groups.length" class="root-row">
       <span class="combos">
         <span v-for="g in immuneGroups.groups" :key="g.root.def[0]" class="chip" :class="multClass(0)">
@@ -60,7 +60,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
       </span>
     </div>
     <div v-if="immuneGroups.pairOnly.length" class="root-row">
-      <span class="muted pair-lbl">{{ t('calc.combosOnly') }}</span>
+      <span class="muted pair-lbl">{{ t('matchups.combosOnly') }}</span>
       <span class="combos">
         <span
           v-for="e in immuneGroups.pairOnly"
@@ -76,14 +76,14 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
   </div>
 
   <div v-if="hasInfo(info)" class="panel">
-    <h2>{{ t('calc.effects') }}</h2>
+    <h2>{{ t('matchups.effects') }}</h2>
     <SideInteractions :info="info" />
   </div>
 
   <!-- How the whole moveset fares across every defending type, as one bar. -->
   <div class="panel">
-    <h2>{{ t('calc.coverageTitle') }}</h2>
-    <p class="muted counts-title">{{ t('calc.acrossAll', { n: coverage.length }) }}</p>
+    <h2>{{ t('matchups.coverageTitle') }}</h2>
+    <p class="muted counts-title">{{ t('matchups.acrossAll', { n: coverage.length }) }}</p>
     <div class="count-bar">
       <div
         v-for="m in COUNT_ORDER.filter((m) => counts[m])"
@@ -100,7 +100,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
 
   <details v-if="resisted.length" class="panel">
     <summary>
-      <h2>{{ t('calc.resistedTitle', { n: resisted.length }) }}</h2>
+      <h2>{{ t('matchups.resistedTitle', { n: resisted.length }) }}</h2>
     </summary>
     <div v-for="g in resistedGroups.groups" :key="g.root.def[0]" class="resist-row">
       <span v-tip:chips="`${typesLabel(g.root.def)}: ${formatMult(g.root.best)}`">
@@ -121,7 +121,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
       </template>
     </div>
     <div v-if="resistedGroups.pairOnly.length" class="resist-row">
-      <span class="muted pair-lbl">{{ t('calc.combosOnly') }}</span>
+      <span class="muted pair-lbl">{{ t('matchups.combosOnly') }}</span>
       <fieldset v-for="tier in tiers(resistedGroups.pairOnly, (e) => e.best)" :key="tier.m" class="resist-tier pairs">
         <legend>{{ formatMult(tier.m) }}</legend>
         <span
@@ -134,7 +134,7 @@ function tiers<T>(items: readonly T[], mult: (x: T) => Multiplier) {
         </span>
       </fieldset>
     </div>
-    <p class="muted small note">{{ t('calc.partnersNote') }}</p>
+    <p class="muted small note">{{ t('matchups.partnersNote') }}</p>
   </details>
 </template>
 

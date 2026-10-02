@@ -18,7 +18,7 @@ function parseTypes(v: unknown, max: number): TypeId[] {
   return [...new Set(s.split(',').filter(isType))].slice(0, max)
 }
 
-// `/types/calc/def` and `/types/calc/atk` show just that side, with no tabs or columns.
+// `/types/matchups/def` and `/types/matchups/atk` show just that side, with no tabs or columns.
 const single = computed(() => {
   const s = route.params.side
   return s === 'def' || s === 'atk' ? s : null
@@ -36,7 +36,7 @@ wideQuery.addEventListener('change', onWide)
 onScopeDispose(() => wideQuery.removeEventListener('change', onWide))
 const cols = computed(() => wide.value && !single.value)
 // The column headings open their side on its own, keeping the picks.
-const sideLink = (s: 'def' | 'atk') => ({ path: `/types/calc/${s}`, query: { ...route.query, mode: undefined } })
+const sideLink = (s: 'def' | 'atk') => ({ path: `/types/matchups/${s}`, query: { ...route.query, mode: undefined } })
 
 function setQuery(patch: Record<string, string | undefined>) {
   const q: Record<string, string> = {}
@@ -92,43 +92,43 @@ const toResults = () => reveal(results.value)
 
 <template>
   <div class="panel">
-    <h1>{{ t('title.calc') }}</h1>
+    <!-- One side on its own is titled by that side: the back link already names the matchups page. -->
+    <h1>{{ t(single ? (single === 'def' ? 'matchups.tabDef' : 'matchups.tabAtk') : 'title.matchups') }}</h1>
     <div v-if="cols" class="cols">
       <section>
         <h2>
           <RouterLink :to="sideLink('def')" class="side-link">
-            {{ t('calc.tabDef') }} <span class="arrow" aria-hidden="true">›</span>
+            {{ t('matchups.tabDef') }} <span class="arrow" aria-hidden="true">›</span>
           </RouterLink>
         </h2>
-        <p class="muted">{{ t('calc.pickDef') }}</p>
+        <p class="muted">{{ t('matchups.pickDef') }}</p>
         <TypePicker :model-value="def" :max="2" compact @update:model-value="setDef" />
       </section>
       <section>
         <h2>
           <RouterLink :to="sideLink('atk')" class="side-link">
-            {{ t('calc.tabAtk') }} <span class="arrow" aria-hidden="true">›</span>
+            {{ t('matchups.tabAtk') }} <span class="arrow" aria-hidden="true">›</span>
           </RouterLink>
         </h2>
-        <p class="muted">{{ t('calc.pickAtk') }}</p>
+        <p class="muted">{{ t('matchups.pickAtk') }}</p>
         <TypePicker :model-value="atk" :max="4" compact @update:model-value="setAtk" />
       </section>
     </div>
     <template v-else>
-      <h2 v-if="single">{{ t(single === 'def' ? 'calc.tabDef' : 'calc.tabAtk') }}</h2>
-      <nav v-else class="tabs">
+      <nav v-if="!single" class="tabs">
         <RouterLink :to="{ query: { ...route.query, mode: undefined } }" :class="{ active: mode === 'def' }">
-          {{ t('calc.tabDef') }}
+          {{ t('matchups.tabDef') }}
         </RouterLink>
         <RouterLink :to="{ query: { ...route.query, mode: 'atk' } }" :class="{ active: mode === 'atk' }">
-          {{ t('calc.tabAtk') }}
+          {{ t('matchups.tabAtk') }}
         </RouterLink>
       </nav>
       <template v-if="mode === 'def'">
-        <p class="muted">{{ t('calc.pickDef') }}</p>
+        <p class="muted">{{ t('matchups.pickDef') }}</p>
         <TypePicker :model-value="def" :max="2" @update:model-value="setDef" />
       </template>
       <template v-else>
-        <p class="muted">{{ t('calc.pickAtk') }}</p>
+        <p class="muted">{{ t('matchups.pickAtk') }}</p>
         <TypePicker :model-value="atk" :max="4" @update:model-value="setAtk" />
       </template>
     </template>
@@ -137,17 +137,17 @@ const toResults = () => reveal(results.value)
   <div v-if="cols" class="cols">
     <div>
       <div v-if="def.length" ref="defResults"><DefenseResults :types="def" /></div>
-      <p v-else class="muted hint">{{ t('calc.selectHint') }}</p>
+      <p v-else class="muted hint">{{ t('matchups.selectHint') }}</p>
     </div>
     <div>
       <div v-if="atk.length" ref="atkResults"><OffenseResults :types="atk" /></div>
-      <p v-else class="muted hint">{{ t('calc.selectHint') }}</p>
+      <p v-else class="muted hint">{{ t('matchups.selectHint') }}</p>
     </div>
   </div>
   <template v-else>
     <div v-if="mode === 'def' && def.length" ref="defResults"><DefenseResults :types="def" /></div>
     <div v-else-if="mode === 'atk' && atk.length" ref="atkResults"><OffenseResults :types="atk" /></div>
-    <p v-else class="muted hint">{{ t('calc.selectHint') }}</p>
+    <p v-else class="muted hint">{{ t('matchups.selectHint') }}</p>
   </template>
 
   <!-- Outside the page so the page transition's transform can't move it. -->
@@ -164,7 +164,7 @@ const toResults = () => reveal(results.value)
         :while-press="PRESS"
         @click="toResults"
       >
-        {{ t('calc.toResults') }} ↓
+        {{ t('matchups.toResults') }} ↓
       </motion.button>
     </AnimatePresence>
   </Teleport>

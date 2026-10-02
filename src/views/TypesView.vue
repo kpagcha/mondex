@@ -262,7 +262,7 @@ function writeFlag(key: string, on: boolean) {
   display: grid;
   gap: 20px;
 }
-/* Side by side where there's room, at the same width as the calculator's two columns. */
+/* Side by side where there's room, at the same width as the matchups page's two columns. */
 @media (min-width: 860px) {
   .sides {
     grid-template-columns: 1fr 1fr;

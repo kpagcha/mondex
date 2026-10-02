@@ -90,7 +90,7 @@ onMounted(loadAll)
 
     <div class="panel">
       <h2>Preview</h2>
-      <h1>mondex · Type calculator</h1>
+      <h1>mondex · Type matchups</h1>
       <nav class="tabs">
         <a class="active">Defense</a>
         <a>Offense / coverage</a>
