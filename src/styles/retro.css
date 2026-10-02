@@ -222,6 +222,8 @@
   user-select: none;
 }
 :root[data-style='retro'] .type-badge .glyph {
+  /* The glyph image, set inline per type by TypeIcon. */
+  --glyph: none;
   flex: none;
   background: currentColor;
   mask: var(--glyph) center / contain no-repeat;
