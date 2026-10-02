@@ -24,7 +24,7 @@
 
   /* Large type badges: their font, and their width, which the type grids size their columns from. */
   --badge-font: calc(12px * var(--text-scale));
-  --badge-w: calc(var(--badge-font) * 7);
+  --badge-w: calc(var(--badge-font) * 8);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -257,7 +257,6 @@
    with little padding left so the longest names (ELÉCTRICO, SINIESTRO) still fit beside the glyph. */
 :root[data-style='retro'] .type-badge.s2 .label {
   font-size: 1.1em;
-  letter-spacing: -0.06em;
 }
 :root[data-style='retro'] .type-badge .label {
   /* The glyph sits at the left; the name is centered in the rest of the badge. */
@@ -271,6 +270,25 @@
 :root[data-style='retro'] :is(.picker, .list) {
   grid-template-columns: repeat(auto-fill, calc(var(--badge-w) + 10px));
   gap: 6px;
+}
+@media (max-width: 720px) {
+  /* Three badges per row on phones: a smaller text bump for badges than the rest of the page, and badges that fill
+     equal columns, with no cell padding (the cell is invisible here) and a gap wide enough to keep the selected ring
+     clear of its neighbours. */
+  :root[data-style='retro'] {
+    --badge-font: 13px;
+  }
+  :root[data-style='retro'] :is(.picker, .list) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  :root[data-style='retro'] :is(.picker, .list) .opt {
+    padding: 0;
+  }
+  :root[data-style='retro'] :is(.picker, .list) .type-badge.s2 {
+    width: 100%;
+    height: 2em;
+  }
 }
 
 /* Type grids (the types list and the type picker): no cell around each type, the badge is the button. A selected
