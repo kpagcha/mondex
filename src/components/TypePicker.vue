@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useId } from 'vue'
 import { TYPES, type TypeId } from '@/data/types'
 import { typeName } from '@/i18n'
 import TypeIcon from '@/components/TypeIcon.vue'
@@ -18,6 +19,9 @@ const props = withDefaults(
   }>(),
   { max: 18, disabled: false, marks: undefined, compact: false },
 )
+
+// Each picker's tooltips glide among its own badges only, not over to another picker on the page.
+const tipGroup = `picker-${useId()}`
 
 const emit = defineEmits<{ 'update:modelValue': [TypeId[]] }>()
 
@@ -47,7 +51,7 @@ function toggle(t: TypeId) {
       :aria-pressed="modelValue.includes(t)"
       :disabled="disabled"
       :while-press="disabled ? undefined : PRESS"
-      v-tip:picker="compact && typeName(t)"
+      v-tip:[tipGroup]="compact && typeName(t)"
       @click="toggle(t)"
     >
       <TypeIcon :type="t" :scale="compact ? 1 : 2" />
