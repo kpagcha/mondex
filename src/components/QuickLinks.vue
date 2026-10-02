@@ -27,9 +27,24 @@ const LINKS: { to: string; label: MessageKey; desc: MessageKey; long: MessageKey
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
+/* Phones: titles only, in one row. Columns are sized to their titles, so a long one ("Calculadora") gets more room
+   than a short one. */
 @media (max-width: 560px) {
   .quick-links {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(3, auto);
+    gap: 6px;
+  }
+  .quick-title {
+    white-space: nowrap;
+  }
+  .quick {
+    padding: 8px 6px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .quick-desc {
+    display: none;
   }
 }
 .quick {

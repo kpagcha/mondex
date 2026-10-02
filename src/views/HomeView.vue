@@ -95,5 +95,14 @@ import QuickLinks from '@/components/QuickLinks.vue'
   .title {
     font-size: calc(40px * var(--display-scale, 1) * var(--text-scale));
   }
+  /* Icons on their own row above the title; the description goes. */
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .section-text .muted {
+    display: none;
+  }
 }
 </style>

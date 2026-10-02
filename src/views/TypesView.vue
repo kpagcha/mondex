@@ -62,12 +62,13 @@ const sections = computed(() => {
 
 const more = computed(() => infoRows(MORE_ROWS))
 
-// Picking a type brings its matchups into view (on phones they start below the list).
+// Picking a type brings its panel into view (on phones it starts below the list); a panel taller than the screen
+// is scrolled to its top.
 const detail = useTemplateRef<HTMLElement>('detail')
 watch(
   type,
   (ty) => {
-    if (ty) reveal(detail.value, detail.value?.querySelector('.groups'))
+    if (ty) reveal(detail.value)
   },
   { flush: 'post' },
 )
@@ -115,8 +116,8 @@ function onToggle(e: Event) {
 <template>
   <QuickLinks compact class="tools" />
   <div class="panel">
-    <h1>{{ t('title.types') }}</h1>
-    <p class="muted">{{ t('types.intro') }}</p>
+    <h1 class="intro">{{ t('title.types') }}</h1>
+    <p class="intro muted">{{ t('types.intro') }}</p>
     <nav class="list">
       <!-- Picking the selected type again closes it. -->
       <RouterLink
@@ -205,6 +206,20 @@ function onToggle(e: Event) {
 <style scoped>
 .tools {
   margin-bottom: 12px;
+}
+/* Phones go straight to the type list. The title stays for screen readers. */
+@media (max-width: 560px) {
+  h1.intro {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  p.intro {
+    display: none;
+  }
 }
 .list {
   display: grid;
