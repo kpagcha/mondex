@@ -7,6 +7,8 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig(({ command }) => ({
   // Production is served from GitHub Pages at https://kpagcha.github.io/mondex/.
   base: command === 'build' ? '/mondex/' : '/',
+  // Listen on the network too, so the dev server can be opened from a phone on the same Wi-Fi.
+  server: { host: true },
   plugins: [vue()],
   resolve: {
     alias: {

@@ -7,7 +7,7 @@ mondex is a competitive Pokémon dex (in the spirit of the Smogon and Showdown d
 ## Commands
 
 ```sh
-npm run dev         # dev server (base path `/`)
+npm run dev         # dev server (base path `/`), also on the LAN for testing on a phone
 npm run build       # vue-tsc type-check + production build, in parallel (base path `/mondex/`)
 npm run lint        # ESLint (lint:fix to autofix)
 npm run format      # Prettier (no semicolons, single quotes, 120 columns)
