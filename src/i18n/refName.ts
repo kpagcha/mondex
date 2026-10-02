@@ -8,35 +8,26 @@ import { locale, termName, typeName, type GeneratedKind, type Locale } from '@/i
 
 type Names = Record<GeneratedKind, Record<string, string>>
 
-// Only for the entries the regulation has, the only ones shown (`gen-data` fails if one lacks a name). A locale
-// missing here is a compile error.
-const LOADERS: Record<Locale, () => Promise<Names>> = {
-  en: async () => {
-    const [ability, move, item] = await Promise.all([
-      import('@/data/generated/abilities.names.en.json'),
-      import('@/data/generated/moves.names.en.json'),
-      import('@/data/generated/items.names.en.json'),
-    ])
-    return { ability: ability.default, move: move.default, item: item.default }
-  },
-  es: async () => {
-    const [ability, move, item] = await Promise.all([
-      import('@/data/generated/abilities.names.es.json'),
-      import('@/data/generated/moves.names.es.json'),
-      import('@/data/generated/items.names.es.json'),
-    ])
-    return { ability: ability.default, move: move.default, item: item.default }
-  },
-}
+// Every `<category>.names.<locale>.json` gen-data writes, each a chunk of its own. Only for the entries the regulation
+// has, the only ones shown (gen-data fails if one lacks a name).
+const FILES = import.meta.glob<Record<string, string>>('../data/generated/*.names.*.json', { import: 'default' })
+const KINDS: Record<string, GeneratedKind> = { abilities: 'ability', moves: 'move', items: 'item' }
 
 const loaded = shallowReactive<Partial<Record<Locale, Names>>>({})
 const loading: Partial<Record<Locale, Promise<void>>> = {}
 
 /** Loads the names of `l` (the current locale by default), once. */
 export function loadDexNames(l: Locale = locale.value): Promise<void> {
-  return (loading[l] ??= LOADERS[l]().then((names) => {
+  return (loading[l] ??= (async () => {
+    const names = { ability: {}, move: {}, item: {} } as Names
+    const files = Object.entries(FILES).flatMap(([path, load]) => {
+      const [, category, fileLocale] = path.match(/\/(\w+)\.names\.([\w-]+)\.json$/)!
+      return fileLocale === l ? [{ kind: KINDS[category!]!, load }] : []
+    })
+    if (!files.length) throw new Error(`No generated names for locale "${l}": run \`npm run gen-data\``)
+    await Promise.all(files.map(async ({ kind, load }) => (names[kind] = await load())))
     loaded[l] = names
-  }))
+  })())
 }
 
 /** Official name of a type, condition, move, ability or item. Empty until its locale's names load. */

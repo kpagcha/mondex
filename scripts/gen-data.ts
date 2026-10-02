@@ -1,6 +1,6 @@
 // Generates `src/data/generated/` from Pokémon Showdown's Champions mod, at the commit pinned in `sources.json`, and
-// Spanish names from PokéAPI's data, falling back to Bulbapedia for what PokéAPI doesn't have yet. The regulation is
-// `VITE_REGULATION` in `.env`. Run with `npm run gen-data`; `npm run gen-data -- --update` first moves every pin to
+// names in every locale from PokéAPI's data (`languages.ts` says where), falling back to Bulbapedia for what PokéAPI
+// doesn't have yet. The regulation is `VITE_REGULATION` in `.env`. Run with `npm run gen-data`; `npm run gen-data -- --update` first moves every pin to
 // the latest version.
 //
 // Showdown's own code loads the data (through jiti, which runs its TypeScript), so the Champions mod is merged over
@@ -14,7 +14,9 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createJiti } from 'jiti'
 import * as prettier from 'prettier'
-import { ES_NAMES } from './overrides.ts'
+import { LOCALES, type Locale } from '../src/i18n/locales.ts'
+import { LANGUAGES, type Language } from './languages.ts'
+import { NAMES, type CategoryKey } from './overrides.ts'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const CACHE = join(ROOT, 'node_modules/.cache')
@@ -165,20 +167,21 @@ function regulation(): string {
   return m[1]!.trim()
 }
 
-/** Spanish names by Showdown ID, from a PokéAPI table (`abilities`) and its names table (`ability_names`, keyed by
- * `ability_id`). */
-async function spanishNames(
+/** Names in `language` (PokéAPI's identifier) by Showdown ID, from a PokéAPI table (`abilities`) and its names table
+ * (`ability_names`, keyed by `ability_id`). */
+async function pokeapiNames(
   commit: string,
+  language: string,
   table: string,
   namesTable: string,
   key: string,
 ): Promise<Map<string, string>> {
-  const languages = await pokeapiCsv(commit, 'languages.csv')
-  const es = languages.find((l) => l.identifier === 'es')!.id
+  const languageId = (await pokeapiCsv(commit, 'languages.csv')).find((l) => l.identifier === language)?.id
+  if (!languageId) throw new Error(`PokéAPI has no language "${language}"`)
   const ids = new Map((await pokeapiCsv(commit, `${table}.csv`)).map((r) => [r.id, toId(r.identifier!)]))
   const names = new Map<string, string>()
   for (const r of await pokeapiCsv(commit, `${namesTable}.csv`)) {
-    if (r.local_language_id === es) names.set(ids.get(r[key]!)!, r.name!)
+    if (r.local_language_id === languageId) names.set(ids.get(r[key]!)!, r.name!)
   }
   return names
 }
@@ -268,17 +271,17 @@ async function bulbapedia(titles: string[], pins: Record<string, number>) {
 }
 
 /**
- * The official Spanish (Spain) name in a Bulbapedia page's "In other languages" table: its `es_eu` field, or `es` on
- * pages where Spain and Latin America share it. When the name changed, the current one comes first, before a `<br>`,
- * and notes like `<sup>{{gen|VI}}+</sup>` or "(games)" follow it. `{{tt|Elec.|Electricidad}}` is a word the games
- * abbreviate to fit, with its full form as a tooltip: we use the full form ("Absorbe Electricidad", as PokéAPI has
- * it). `{{tt|*|...}}` is a footnote marker, not part of the name.
+ * The name in a Bulbapedia page's "In other languages" table: the first of `fields` it has (`es_eu`, else `es` on
+ * pages where Spain and Latin America share it). When the name changed, the current one comes first, before a
+ * `<br>`, and notes like `<sup>{{gen|VI}}+</sup>` or "(games)" follow it. `{{tt|Elec.|Electricidad}}` is a word the
+ * games abbreviate to fit, with its full form as a tooltip: we use the full form ("Absorbe Electricidad", as PokéAPI
+ * has it). `{{tt|*|...}}` is a footnote marker, not part of the name.
  */
-function bulbapediaSpanish(wikitext: string): string | undefined {
+function bulbapediaName(wikitext: string, fields: string[]): string | undefined {
   const start = wikitext.search(/\{\{langtable/i)
   if (start < 0) return undefined
   const table = wikitext.slice(start)
-  const field = table.match(/^\s*\|\s*es_eu\s*=(.*)$/m) ?? table.match(/^\s*\|\s*es\s*=(.*)$/m)
+  const field = fields.map((f) => table.match(new RegExp(`^\\s*\\|\\s*${f}\\s*=(.*)$`, 'm'))).find(Boolean)
   if (!field) return undefined
   const name = field[1]!
     .replace(/<!--.*?-->/g, '')
@@ -308,7 +311,7 @@ async function writeJson(file: string, data: Record<string, unknown>) {
 /** A dex category the script generates. */
 interface Category {
   /** Output files (`<key>.json`, `<key>.names.<locale>.json`) and the `overrides.ts` key. */
-  key: keyof typeof ES_NAMES
+  key: CategoryKey
   /** Every entry, with whether the regulation has it. */
   entries: () => (Entry & { available: boolean })[]
   /** PokéAPI's table, its names table and the names table's key column. */
@@ -329,6 +332,7 @@ async function main() {
   }
 
   const reg = regulation()
+  const languages = Object.entries(LANGUAGES) as [Exclude<Locale, 'en'>, Language][]
   const dir = showdownCheckout(sources.showdown)
   const jiti = createJiti(import.meta.url, { moduleCache: true })
   const { Dex } = (await jiti.import(join(dir, 'sim/dex.ts'))) as { Dex: ModdedDex }
@@ -354,7 +358,7 @@ async function main() {
       // Available when a legal Pokémon can have it.
       key: 'abilities',
       // Showdown's split ones stay split, like "Embody Aspect (Teal)", one per Ogerpon mask, though the games show
-      // one name: their Spanish names are in `overrides.ts`.
+      // one name: their names in other languages are in `overrides.ts`.
       entries: () =>
         dex.abilities
           .all()
@@ -398,13 +402,23 @@ async function main() {
   const pins: Record<string, number> = {}
   const availableIds: Record<string, string[]> = {}
   for (const c of categories) {
-    const es = await spanishNames(sources.pokeapi, ...c.pokeapi)
     const entries = c.entries().sort((a, b) => a.id.localeCompare(b.id))
     const available = entries.filter((e) => e.available)
-    const overrides: Record<string, string> = ES_NAMES[c.key]
 
-    // Spanish names PokéAPI doesn't have yet (for entries the regulation has) come from Bulbapedia.
-    const lacking = available.filter((e) => !overrides[e.id] && !es.has(e.id))
+    // Each locale's names: English is Showdown's; the others come from PokéAPI, then the overrides.
+    const names = { en: new Map(entries.map((e) => [e.id, e.name])) } as Record<Locale, Map<string, string>>
+    for (const [locale, language] of languages) {
+      names[locale] = await pokeapiNames(sources.pokeapi, language.pokeapi, ...c.pokeapi)
+      const overrides = NAMES[locale]?.[c.key] ?? {}
+      const redundant = Object.keys(overrides).filter((id) => overrides[id] === names[locale].get(id))
+      if (redundant.length)
+        console.warn(`The sources agree with the ${locale} ${c.key} overrides for ${redundant.join(', ')}`)
+      for (const [id, name] of Object.entries(overrides)) names[locale].set(id, name)
+    }
+
+    // Names PokéAPI doesn't have yet (for entries the regulation has) come from Bulbapedia, each page read once for
+    // every locale that needs it.
+    const lacking = available.filter((e) => languages.some(([locale]) => !names[locale].has(e.id)))
     // An entry whose page is already pinned needs no other: "Leek" is, so "Leek (item)" isn't looked up again.
     const candidates = (e: Entry) => {
       const pinned = c.pages(e.name).find((t) => sources.bulbapedia[t])
@@ -413,25 +427,27 @@ async function main() {
     const wiki = await bulbapedia(lacking.flatMap(candidates), sources.bulbapedia)
     for (const e of lacking) {
       const page = c.pages(e.name).find((t) => wiki.text.has(t))
-      const name = page && bulbapediaSpanish(wiki.text.get(page)!)
-      if (!name) {
-        throw new Error(`No Spanish name for ${e.name}: add it to ES_NAMES.${c.key} in scripts/overrides.ts`)
+      for (const [locale, language] of languages) {
+        if (names[locale].has(e.id)) continue
+        const name = page && bulbapediaName(wiki.text.get(page)!, language.bulbapedia)
+        if (!name) {
+          throw new Error(`No ${locale} name for ${e.name}: add it to NAMES.${locale}.${c.key} in scripts/overrides.ts`)
+        }
+        names[locale].set(e.id, name)
+        pins[page] = wiki.found[page]!
+        console.log(`Bulbapedia: ${e.name} is "${name}" in ${locale} (${page}, revision ${pins[page]})`)
       }
-      es.set(e.id, name)
-      pins[page] = wiki.found[page]!
-      console.log(`Bulbapedia: ${e.name} is "${name}" (${page}, revision ${pins[page]})`)
     }
-    const redundant = Object.keys(overrides).filter((id) => overrides[id] === es.get(id))
-    if (redundant.length) console.warn(`The sources now agree with the ${c.key} overrides for ${redundant.join(', ')}`)
 
     // Every entry by Showdown ID, and whether the regulation has it. Names only for those it has, the only ones
     // the app shows.
     await writeJson(`${c.key}.json`, Object.fromEntries(entries.map((e) => [e.id, { available: e.available }])))
-    await writeJson(`${c.key}.names.en.json`, Object.fromEntries(available.map((e) => [e.id, e.name])))
-    await writeJson(
-      `${c.key}.names.es.json`,
-      Object.fromEntries(available.map((e) => [e.id, overrides[e.id] ?? es.get(e.id)!])),
-    )
+    for (const locale of Object.keys(LOCALES) as Locale[]) {
+      await writeJson(
+        `${c.key}.names.${locale}.json`,
+        Object.fromEntries(available.map((e) => [e.id, names[locale].get(e.id)!])),
+      )
+    }
     availableIds[c.key] = available.map((e) => e.id)
     console.log(`${available.length} of ${entries.length} ${c.key} available`)
   }

@@ -3,10 +3,9 @@ import type { TypeId } from '@/data/types'
 import type { Ids, NamedKind, Ref } from '@/data/dex'
 import * as en from './en'
 import * as es from './es'
+import { LOCALES, type Locale } from './locales'
 
-/** Supported languages, labelled in their own language. */
-export const LOCALES = { en: 'English', es: 'Español' } as const
-export type Locale = keyof typeof LOCALES
+export { LOCALES, type Locale }
 export type MessageKey = keyof typeof en.messages
 
 /** Categories whose names are generated from the games' data (`npm run gen-data`), for every locale. */
