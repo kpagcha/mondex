@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TYPES, type TypeId } from '@/data/types'
+import { typeName } from '@/i18n'
 import TypeIcon from '@/components/TypeIcon.vue'
 import { motion } from 'motion-v'
 import { PRESS } from '@/lib/motion'
@@ -12,8 +13,10 @@ const props = withDefaults(
     disabled?: boolean
     /** Per-type marks shown after answering (quiz feedback). */
     marks?: Partial<Record<TypeId, 'ok' | 'missed' | 'wrong'>>
+    /** Small glyph-only badges (as in the type chart), in two rows of nine, with the names in tooltips. */
+    compact?: boolean
   }>(),
-  { max: 18, disabled: false, marks: undefined },
+  { max: 18, disabled: false, marks: undefined, compact: false },
 )
 
 const emit = defineEmits<{ 'update:modelValue': [TypeId[]] }>()
@@ -34,7 +37,7 @@ function toggle(t: TypeId) {
 </script>
 
 <template>
-  <div class="picker" role="group">
+  <div class="picker" :class="{ compact }" role="group">
     <motion.button
       v-for="t in TYPES"
       :key="t"
@@ -44,9 +47,10 @@ function toggle(t: TypeId) {
       :aria-pressed="modelValue.includes(t)"
       :disabled="disabled"
       :while-press="disabled ? undefined : PRESS"
+      v-tip:picker="compact && typeName(t)"
       @click="toggle(t)"
     >
-      <TypeIcon :type="t" :scale="2" />
+      <TypeIcon :type="t" :scale="compact ? 1 : 2" />
     </motion.button>
   </div>
 </template>
@@ -56,6 +60,11 @@ function toggle(t: TypeId) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
   gap: 4px;
+}
+
+.picker.compact {
+  grid-template-columns: repeat(9, auto);
+  justify-content: start;
 }
 
 .opt {

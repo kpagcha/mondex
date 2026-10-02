@@ -271,6 +271,19 @@
   grid-template-columns: repeat(auto-fill, calc(var(--badge-w) + 10px));
   gap: 6px;
 }
+/* The compact picker's glyph badges: a bit larger than the chart's, nine to a row and packed closer, with the selected
+   ring pulled in to match. */
+:root[data-style='retro'] .picker.compact {
+  --icon-scale: 1.3;
+  grid-template-columns: repeat(9, auto);
+  gap: 2px;
+}
+:root[data-style='retro'] .picker.compact .opt {
+  padding: 3px;
+}
+:root[data-style='retro'] .picker.compact .opt.on:not(.ok, .missed, .wrong) .type-badge {
+  outline-offset: 2px;
+}
 @media (max-width: 720px) {
   /* Three badges per row on phones: a smaller text bump for badges than the rest of the page, and badges that fill
      equal columns, with no cell padding (the cell is invisible here) and a gap wide enough to keep the selected ring
