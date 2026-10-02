@@ -6,7 +6,7 @@ import QuickLinks from '@/components/QuickLinks.vue'
 </script>
 
 <template>
-  <!-- One card per dex section; only Types exists so far. -->
+  <!-- One card per dex section. -->
   <div class="home">
     <div class="intro">
       <h1 class="title">mon<span>dex</span></h1>
@@ -27,6 +27,14 @@ import QuickLinks from '@/components/QuickLinks.vue'
         </span>
       </RouterLink>
       <QuickLinks />
+    </section>
+    <section class="panel section">
+      <RouterLink to="/abilities" class="section-head">
+        <span class="section-text">
+          <span class="section-title font-display">{{ t('title.abilities') }} <span class="arrow">›</span></span>
+          <span class="muted">{{ t('home.abilitiesDesc') }}</span>
+        </span>
+      </RouterLink>
     </section>
   </div>
 </template>

@@ -63,13 +63,14 @@ export const router = createRouter({
       path: '/abilities',
       name: 'abilities',
       component: () => import('@/views/AbilitiesView.vue'),
-      meta: { titleKey: 'title.abilities', dexNames: true },
+      meta: { titleKey: 'title.abilities', descKey: 'desc.abilities', dexNames: true },
     },
     {
       path: '/abilities/:id',
       name: 'ability',
       component: () => import('@/views/AbilityView.vue'),
-      meta: { titleKey: 'title.abilities', dexNames: true },
+      // The layout describes an ability's own page; the list's description is for an ID the regulation lacks.
+      meta: { titleKey: 'title.abilities', descKey: 'desc.abilities', dexNames: true },
     },
     {
       path: '/settings',

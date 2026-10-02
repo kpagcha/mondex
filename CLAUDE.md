@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-mondex is a competitive Pokémon dex (in the spirit of the Smogon and Showdown dexes): a Vue 3 + TypeScript + Vite SPA, deployed to GitHub Pages at `https://kpagcha.github.io/mondex/`. It currently has the type chart (`/types`), the type matchups page (`/types/matchups`: a Pokémon's types defending and a moveset attacking, side by side on wide screens, with `/types/matchups/def` and `/types/matchups/atk` for one side; `/types/calc` redirects there), a spaced-repetition type quiz (`/types/quiz`) a settings page (`/settings`: theme, language) and a credits page (`/credits`, linked from the footer), in English and Spanish.
+mondex is a competitive Pokémon dex (in the spirit of the Smogon and Showdown dexes): a Vue 3 + TypeScript + Vite SPA, deployed to GitHub Pages at `https://kpagcha.github.io/mondex/`. It currently has the type chart (`/types`), the type matchups page (`/types/matchups`: a Pokémon's types defending and a moveset attacking, side by side on wide screens, with `/types/matchups/def` and `/types/matchups/atk` for one side; `/types/calc` redirects there), a spaced-repetition type quiz (`/types/quiz`), the abilities (`/abilities`: every ability the regulation has, with its description; `/abilities/:id`: one ability, its type interactions and the legal Pokémon that can have it), a settings page (`/settings`: theme, language) and a credits page (`/credits`, linked from the footer), in English and Spanish.
 
 ## Commands
 

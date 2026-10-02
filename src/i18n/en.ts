@@ -55,6 +55,7 @@ export const messages = {
   'nav.chart': 'Chart',
   'nav.matchups': 'Matchups',
   'nav.quiz': 'Quiz',
+  'nav.abilities': 'Abilities',
   'title.types': 'Types',
   'title.chart': 'Type chart',
   'title.matchups': 'Type matchups',
@@ -71,7 +72,7 @@ export const messages = {
   'format.label': '{game} · Regulation {reg}',
 
   'desc.home':
-    'A competitive dex for {game}, up to date with Regulation {reg}: type chart, type matchups, every type in detail and a type quiz.',
+    'A competitive dex for {game}, up to date with Regulation {reg}: type chart, type matchups, every type in detail, a type quiz and every ability.',
   'desc.types':
     'Every {game} type with its weaknesses, resistances and immunities, and the interactions beyond the type chart.',
   'desc.type':
@@ -82,8 +83,9 @@ export const messages = {
   'desc.quiz': 'Learn the {game} type chart with spaced repetition. Matchups you miss come back until you know them.',
 
   'home.intro':
-    'A competitive dex for {game}, up to date with Regulation {reg}. The Pokémon, moves and formats dex is on the way; the type tools are ready now.',
+    'A competitive dex for {game}, up to date with Regulation {reg}. The Pokémon, moves and formats dex is on the way; the type tools and abilities are ready now.',
   'home.typesDesc': 'Every type with its weaknesses, resistances and immunities.',
+  'home.abilitiesDesc': 'What every ability does, and which Pokémon can have it.',
 
   'types.intro': 'Pick a type.',
   'quick.chart': 'Every type against every type.',
@@ -364,6 +366,8 @@ export const messages = {
   'desc.credits': 'Credits for mondex, a competitive dex for {game}.',
 
   'title.abilities': 'Abilities',
+  'desc.abilities': 'Every ability Pokémon can have in {game}, Regulation {reg}, and what it does.',
+  'desc.ability': '{ability} in {game}: what it does, its type interactions and the Pokémon that can have it.',
   'abilities.intro': 'Every ability Pokémon can have in Regulation {reg}.',
   'abilities.search': 'Search abilities',
   'abilities.none': 'No ability matches.',

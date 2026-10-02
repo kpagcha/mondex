@@ -30,6 +30,15 @@ export function loadDexNames(l: Locale = locale.value): Promise<void> {
   })())
 }
 
+/**
+ * The name of a generated entry (ability, move, item, Pokémon) the regulation has, or `undefined` for one it doesn't
+ * (names exist only for those), and until the locale's names load. Needs nothing from `dex.ts`, so the layout can
+ * title an entry's page without loading the dex's data.
+ */
+export function generatedName(kind: GeneratedKind, id: string): string | undefined {
+  return (loaded[locale.value]?.[kind] as Record<string, string> | undefined)?.[id]
+}
+
 /** Official name of a type, condition, move, ability, item or Pokémon. Empty until its locale's names load. */
 export function refName(ref: Ref): string {
   if (ref.kind === 'type') return typeName(ref.id)

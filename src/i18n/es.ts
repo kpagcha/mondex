@@ -57,6 +57,7 @@ export const messages: Record<keyof typeof en, string> = {
   'nav.chart': 'Tabla',
   'nav.matchups': 'Enfrentamientos',
   'nav.quiz': 'Test',
+  'nav.abilities': 'Habilidades',
   'title.types': 'Tipos',
   'title.chart': 'Tabla de tipos',
   'title.matchups': 'Enfrentamientos de tipos',
@@ -73,7 +74,7 @@ export const messages: Record<keyof typeof en, string> = {
   'format.label': '{game} · Reglamento {reg}',
 
   'desc.home':
-    'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}: tabla de tipos, enfrentamientos de tipos, cada tipo en detalle y un test de tipos.',
+    'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}: tabla de tipos, enfrentamientos de tipos, cada tipo en detalle, un test de tipos y todas las habilidades.',
   'desc.types':
     'Cada tipo de {game} con sus debilidades, resistencias e inmunidades, y las interacciones que van más allá de la tabla de tipos.',
   'desc.type':
@@ -85,8 +86,9 @@ export const messages: Record<keyof typeof en, string> = {
     'Aprende la tabla de tipos de {game} con repetición espaciada. Los enfrentamientos que falles vuelven hasta que te los sepas.',
 
   'home.intro':
-    'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos ya están listas.',
+    'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos y las habilidades ya están listas.',
   'home.typesDesc': 'Cada tipo con sus debilidades, resistencias e inmunidades.',
+  'home.abilitiesDesc': 'Qué hace cada habilidad y qué Pokémon pueden tenerla.',
 
   'types.intro': 'Elige un tipo.',
   'quick.chart': 'Cada tipo contra cada tipo.',
@@ -370,6 +372,8 @@ export const messages: Record<keyof typeof en, string> = {
   'desc.credits': 'Créditos de mondex, una Pokédex competitiva para {game}.',
 
   'title.abilities': 'Habilidades',
+  'desc.abilities': 'Todas las habilidades que pueden tener los Pokémon en {game}, Reglamento {reg}, y qué hacen.',
+  'desc.ability': '{ability} en {game}: qué hace, sus interacciones con tipos y los Pokémon que pueden tenerla.',
   'abilities.intro': 'Todas las habilidades que pueden tener los Pokémon en el Reglamento {reg}.',
   'abilities.search': 'Buscar habilidades',
   'abilities.none': 'Ninguna habilidad coincide.',

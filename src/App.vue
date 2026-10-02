@@ -5,6 +5,7 @@ import { AnimatePresence, MotionConfig, motion } from 'motion-v'
 import { FADE, PAGE, SPRING } from '@/lib/motion'
 import { t, typeName, type MessageKey } from '@/i18n'
 import { isType } from '@/data/types'
+import { generatedName } from '@/i18n/refName'
 import { GAME_NAME, REGULATION } from '@/data/format'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
@@ -15,16 +16,20 @@ function setMeta(selector: string, content: string) {
 }
 
 watchEffect(() => {
-  // A type's own page (/types/fire) is titled and described as that type; pages without a description use the home
-  // page's.
+  // A type's own page (/types/fire) and an ability's (/abilities/levitate) are titled and described as that type or
+  // ability; pages without a description use the home page's.
   const type = typeof route.params.type === 'string' && isType(route.params.type) ? route.params.type : null
+  const entry = route.name === 'ability' ? generatedName('ability', String(route.params.id)) : undefined
   const key = route.meta.titleKey
   const name = key ? t(key) : null
-  const title = name
-    ? `${type ? `${typeName(type)} · ` : ''}${name} · ${GAME_NAME} · mondex`
-    : `mondex · ${GAME_NAME} dex`
+  const lead = type ? typeName(type) : entry
+  const title = name ? `${lead ? `${lead} · ` : ''}${name} · ${GAME_NAME} · mondex` : `mondex · ${GAME_NAME} dex`
   const params = { game: GAME_NAME, reg: REGULATION }
-  const desc = type ? t('desc.type', { ...params, type: typeName(type) }) : t(route.meta.descKey ?? 'desc.home', params)
+  const desc = type
+    ? t('desc.type', { ...params, type: typeName(type) })
+    : entry
+      ? t('desc.ability', { ...params, ability: entry })
+      : t(route.meta.descKey ?? 'desc.home', params)
   document.title = title
   setMeta('meta[name="description"]', desc)
   setMeta('meta[property="og:title"]', title)
@@ -48,6 +53,7 @@ const section = computed(() => {
   const name = route.name
   if (name === 'types' || name === 'chart' || name === 'matchups' || name === 'matchupsSide') return 'types'
   if (name === 'quiz' || name === 'settings') return name
+  if (name === 'abilities' || name === 'ability') return 'abilities'
   return null
 })
 
@@ -86,10 +92,14 @@ const fadeVariants = {
         <span class="format muted">{{ t('format.label', { game: GAME_NAME, reg: REGULATION }) }}</span>
         <nav class="nav font-display">
           <!-- The active highlight is one element that slides between links. -->
-          <!-- Types covers its tools too (chart, matchups); the quiz has its own link. -->
+          <!-- Types covers its tools too (chart, matchups); abilities and the quiz have their own links. -->
           <RouterLink to="/types" :class="{ active: section === 'types' }">
             <motion.span v-if="section === 'types'" layout-id="nav-pill" class="pill" :transition="SPRING" />
             <span class="label">{{ t('nav.types') }}</span>
+          </RouterLink>
+          <RouterLink to="/abilities" :class="{ active: section === 'abilities' }">
+            <motion.span v-if="section === 'abilities'" layout-id="nav-pill" class="pill" :transition="SPRING" />
+            <span class="label">{{ t('nav.abilities') }}</span>
           </RouterLink>
           <RouterLink to="/types/quiz" :class="{ active: section === 'quiz' }">
             <motion.span v-if="section === 'quiz'" layout-id="nav-pill" class="pill" :transition="SPRING" />
