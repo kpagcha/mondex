@@ -14,13 +14,15 @@ import QuickLinks from '@/components/QuickLinks.vue'
     </div>
     <section class="panel section">
       <RouterLink to="/types" class="section-head">
-        <span class="icons" aria-hidden="true">
-          <TypeIcon type="fire" />
-          <TypeIcon type="water" />
-          <TypeIcon type="grass" />
-        </span>
         <span class="section-text">
-          <span class="section-title font-display">{{ t('title.types') }} <span class="arrow">›</span></span>
+          <span class="section-title-row">
+            <span class="section-title font-display">{{ t('title.types') }} <span class="arrow">›</span></span>
+            <span class="icons" aria-hidden="true">
+              <TypeIcon type="fire" />
+              <TypeIcon type="water" />
+              <TypeIcon type="grass" />
+            </span>
+          </span>
           <span class="muted">{{ t('home.typesDesc') }}</span>
         </span>
       </RouterLink>
@@ -67,9 +69,16 @@ import QuickLinks from '@/components/QuickLinks.vue'
 .section-head:hover {
   text-decoration: none;
 }
-.icons {
+.section-title-row {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 16px;
+}
+/* Badges decorate the title rather than lead the card: a bit smaller than elsewhere, and on one row with it. */
+.icons {
+  --icon-scale: 1;
+  display: flex;
+  gap: 3px;
   flex: none;
 }
 .section-text {
@@ -80,6 +89,7 @@ import QuickLinks from '@/components/QuickLinks.vue'
 .section-title {
   font-weight: bold;
   font-size: calc(20px * var(--display-scale, 1) * var(--text-scale));
+  white-space: nowrap;
 }
 .section-head:hover .section-title {
   text-decoration: underline;
@@ -95,12 +105,10 @@ import QuickLinks from '@/components/QuickLinks.vue'
   .title {
     font-size: calc(40px * var(--display-scale, 1) * var(--text-scale));
   }
-  /* Icons on their own row above the title; the description goes. */
-  .section-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .icons {
+    --icon-scale: 1.2;
   }
+  /* Just the title and its icons; the description goes. */
   .section-text .muted {
     display: none;
   }
