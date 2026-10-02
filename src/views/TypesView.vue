@@ -292,6 +292,16 @@ function onToggle(e: Event) {
   display: grid;
   gap: 20px;
 }
+/* Side by side where there's room, at the same width as the calculator's two columns. */
+@media (min-width: 860px) {
+  .sides {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+  .sides > * {
+    min-width: 0;
+  }
+}
 
 .groups {
   border-collapse: collapse;
