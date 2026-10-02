@@ -388,7 +388,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     field: [x('sun', 1.5), x('rain', 0.5), x('primordialsea', 0)],
     user: [x('blaze', 1.5), x('firemane', 1.5), x('megasol', 1.5)],
     target: [
-      x('flashfire', 0),
+      { ...x('flashfire', 0), fx: 'info.fx.flashFire' },
       up('wellbakedbody', 'def', 2, 0),
       x('thickfat', 0.5),
       x('heatproof', 0.5),
@@ -412,8 +412,8 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
       { term: 'liquidvoice', fx: 'info.fx.liquidVoice' },
     ],
     target: [
-      x('waterabsorb', 0),
-      { ...x('dryskin', 0), major: true },
+      { ...x('waterabsorb', 0), fx: 'info.fx.heals' },
+      { ...x('dryskin', 0), fx: 'info.fx.heals', major: true },
       up('stormdrain', 'spa', 1, 0),
       up('watercompaction', 'def', 2),
       up('steamengine', 'spe', 6),
@@ -427,7 +427,11 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
     immune: is('par'),
     field: [x('electricterrain', 1.3), x('deltastream', 1, 'flying')],
     user: [up('charge', 'spd', 1, 2), x('transistor', 1.3), x('galvanize', 1.2)],
-    target: [x('voltabsorb', 0), up('lightningrod', 'spa', 1, 0), up('motordrive', 'spe', 1, 0)],
+    target: [
+      { ...x('voltabsorb', 0), fx: 'info.fx.heals' },
+      { ...up('lightningrod', 'spa', 1, 0), fx: 'info.fx.redirects' },
+      up('motordrive', 'spe', 1, 0),
+    ],
     items: items('magnet', 'wacanberry', up('cellbattery', 'atk', 1)),
   },
   grass: {
@@ -466,7 +470,7 @@ const TYPE_INFO: Record<TypeId, TypeInfo> = {
   ground: {
     immune: is('sandstorm', 'thunderwave'),
     user: [x('sandforce', 1.3)],
-    target: [x('levitate', 0), x('eartheater', 0), x('eelevate', 0), x('magnetrise', 0)],
+    target: [x('levitate', 0), { ...x('eartheater', 0), fx: 'info.fx.heals' }, x('eelevate', 0), x('magnetrise', 0)],
     items: items('softsand', 'shucaberry', x('airballoon', 0)),
   },
   flying: {
