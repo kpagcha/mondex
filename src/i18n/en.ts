@@ -477,7 +477,7 @@ export const messages = {
   'quiz.reset': 'Reset progress',
   'quiz.resetConfirm': 'Reset all quiz progress?',
 
-  'footer.copyright': 'Pokémon © Nintendo, Game Freak, The Pokémon Company.',
+  'footer.copyright': 'Pokémon © Nintendo',
 
   'title.credits': 'Credits',
   'desc.credits': 'Credits for mondex, a competitive dex for {game}.',
