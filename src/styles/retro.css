@@ -21,6 +21,10 @@
   --hover: #fff1b8;
   --sel: #ffdf6e;
   --shadow: none;
+
+  /* Large type badges: their font, and their width, which the type grids size their columns from. */
+  --badge-font: calc(12px * var(--text-scale));
+  --badge-w: calc(var(--badge-font) * 7);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -228,14 +232,14 @@
   height: calc(14px * var(--icon-scale, 1));
 }
 :root[data-style='retro'] .type-badge.s2 {
-  width: 8.6em;
-  height: 2.3em;
-  padding: 0 0.25em;
-  gap: 0.2em;
+  width: var(--badge-w);
+  height: 1.8em;
+  padding: 0 0.2em;
+  gap: 0.15em;
   border-width: 2px;
   box-shadow: 2px 2px 0 var(--ink);
   font:
-    bold calc(12px * var(--text-scale)) / 1 ui-monospace,
+    bold var(--badge-font) / 1 ui-monospace,
     'Cascadia Mono',
     'SF Mono',
     Menlo,
@@ -246,13 +250,14 @@
   white-space: nowrap;
 }
 :root[data-style='retro'] .type-badge.s2 .glyph {
-  width: 1.3em;
-  height: 1.3em;
+  width: 1.15em;
+  height: 1.15em;
 }
-/* The box is sized off the 12px badge font; the name is set larger, filling the badge with little padding left so
-   the longest names (ELÉCTRICO, SINIESTRO) still fit beside the glyph. */
+/* The box is sized off the 12px badge font; the name is set a touch larger and slightly condensed, filling the badge
+   with little padding left so the longest names (ELÉCTRICO, SINIESTRO) still fit beside the glyph. */
 :root[data-style='retro'] .type-badge.s2 .label {
-  font-size: 1.15em;
+  font-size: 1.1em;
+  letter-spacing: -0.06em;
 }
 :root[data-style='retro'] .type-badge .label {
   /* The glyph sits at the left; the name is centered in the rest of the badge. */
@@ -261,9 +266,11 @@
   text-shadow: 1px 1px 0 rgb(0 0 0 / 0.35);
 }
 
-/* Grids of large badges need wider columns to fit them. */
+/* Grids of large badges: fixed columns just wide enough for a badge in its cell (4px padding and a 1px border on each
+   side), so the badges sit `gap` apart instead of spreading out to fill the row. */
 :root[data-style='retro'] :is(.picker, .list) {
-  grid-template-columns: repeat(auto-fill, minmax(calc(12px * var(--text-scale) * 8.6 + 16px), 1fr));
+  grid-template-columns: repeat(auto-fill, calc(var(--badge-w) + 10px));
+  gap: 6px;
 }
 
 /* Type grids (the types list and the type picker): no cell around each type, the badge is the button. A selected
