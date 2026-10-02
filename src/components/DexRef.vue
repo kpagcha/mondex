@@ -5,10 +5,13 @@ import { refName } from '@/i18n/refName'
 
 // A dex entry by name: a link to its page once its category has one (see `PAGES`), plain text until then.
 const props = defineProps<{ to: Ref }>()
-const page = computed(() => PAGES[props.to.kind])
+const link = computed(() => {
+  const page = PAGES[props.to.kind]
+  return page && { name: page.route, params: { [page.param ?? 'id']: props.to.id } }
+})
 </script>
 
 <template>
-  <RouterLink v-if="page" :to="{ name: page, params: { id: to.id } }">{{ refName(to) }}</RouterLink>
+  <RouterLink v-if="link" :to="link">{{ refName(to) }}</RouterLink>
   <template v-else>{{ refName(to) }}</template>
 </template>

@@ -75,11 +75,16 @@ export const item = (id: ItemId): Ref<'item'> => ({ kind: 'item', id })
 export const refKey = (ref: Ref): string => `${ref.kind}:${ref.id}`
 export const sameRef = (a: Ref, b: Ref): boolean => a.kind === b.kind && a.id === b.id
 
-/**
- * The route name of each category's entry page, which takes the entry's ID as `:id`. Mentions of a category without
- * one are plain text; registering its page turns them all into links.
- */
-export const PAGES: Partial<Record<Kind, string>> = {}
+/** A category's entry page: its route's name, and the route parameter that takes the entry's ID (`id` by default). */
+export interface Page {
+  route: string
+  param?: string
+}
+
+/** Each category's entry page. Mentions of a category without one are plain text; registering it links them all. */
+export const PAGES: Partial<Record<Kind, Page>> = {
+  type: { route: 'types', param: 'type' },
+}
 
 /** Whether the current regulation has `ref` (or there's no ref to check), so its interactions are shown. */
 export function available(ref: Ref | undefined): boolean {
