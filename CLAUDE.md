@@ -13,7 +13,7 @@ npm run lint        # ESLint (lint:fix to autofix)
 npm run format      # Prettier (no semicolons, single quotes, 120 columns)
 ```
 
-The `justfile` wraps these for the user (`just dev`, `just build`, `just preview`, which builds and then serves the production site at `http://localhost:4173/mondex/`); keep it in sync when scripts change.
+The `justfile` wraps these for the user (`just dev`, `just dev-profile`, `just build`, `just preview`, which builds and then serves the production site at `http://localhost:4173/mondex/`); keep it in sync when scripts change.
 
 There is no test suite, and none should be added. Verify changes with `npm run build` plus checking the app in the browser. The pre-commit hook (simple-git-hooks + lint-staged) runs `eslint --max-warnings=0` and Prettier on staged files, so any lint warning blocks a commit. CI (`.github/workflows/deploy.yml`) runs lint + build on every push to `main` and deploys, copying `index.html` to `404.html` so deep links work.
 
@@ -26,6 +26,7 @@ There is no test suite, and none should be added. Verify changes with `npm run b
 - **Theming**: CSS custom properties in `src/styles/main.css`. Light is the default; dark comes from `prefers-color-scheme` unless overridden by `:root[data-theme]` (set by `useTheme`). On top of light/dark there are two styles, set as `:root[data-style]` by `useStyle` and picked only in the dev settings (production always uses `retro`): `retro` (the default; `src/styles/retro.css`, square ink-outlined surfaces, hard shadows, and `TypeIcon` renders flat badges with the glyphs in `src/assets/type-icons/`) and `pixel` (the plain `main.css` look with Showdown sprites). `index.html` applies the saved theme and style before first paint. Multiplier colors are the `--m*-bg/fg` tokens, applied through `multClass()`. Components use `<style scoped>` plus the global tokens and utility classes.
 - **Animation**: motion-v (`motion.*`, `AnimatePresence`, `layout-id`). Reuse the settings from `src/lib/motion.ts` so all animations feel consistent. `App.vue` wraps everything in `MotionConfig reduced-motion="user"`.
 - **Tooltips**: the global `v-tip` directive (`src/directives/tip.ts`, tippy.js) replaces native `title`. `v-tip:group="..."` makes elements share one singleton tooltip that glides between them (used for table cells).
+- **Profiling**: `VITE_PROFILE=true` (`just dev-profile`) turns on `app.config.performance` in dev, for Vue's per-component timings in the Performance panel. They inflate durations, so measure speed on `just preview` instead.
 - **Dev-only**: the settings page's dev section (`src/dev/DevSettings.vue`: the style picker and font lab) and `src/dev/fonts.ts` (a lab for trying fonts through `--font-display`/`--font-body`/`--font-num`) are loaded only when `import.meta.env.DEV` is true and are left out of production builds.
 
 ## Conventions

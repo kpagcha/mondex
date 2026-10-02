@@ -10,6 +10,10 @@ default:
 dev:
     npm run dev
 
+# Dev server with Vue's per-component timings in the Performance panel (which components re-render; durations inflated)
+dev-profile $VITE_PROFILE="true":
+    npm run dev
+
 # Type-check and build the production site into dist/
 build:
     npm run build

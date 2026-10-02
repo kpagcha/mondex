@@ -10,6 +10,6 @@ import { vTip } from './directives/tip'
 if (import.meta.env.DEV) void import('./dev/fonts')
 
 const app = createApp(App)
-// Dev-only: per-component init/render/patch timings in the browser's Performance panel.
-app.config.performance = import.meta.env.DEV
+// Dev-only profiler, switched on with VITE_PROFILE (see .env).
+app.config.performance = import.meta.env.DEV && import.meta.env.VITE_PROFILE === 'true'
 app.use(router).directive('tip', vTip).mount('#app')
