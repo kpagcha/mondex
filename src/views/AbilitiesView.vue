@@ -15,12 +15,38 @@ const abilities = computed(() =>
     .sort((a, b) => a.name.localeCompare(b.name, locale.value)),
 )
 
-/** Matches names ignoring case and accents: "levitacion" finds "Levitación". */
+/** Folds a name for matching, ignoring case and accents: "levitacion" finds "Levitación". */
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+
+/**
+ * `name` split around the first match of the folded query `q`: [before, match, after], or null. The match is found in
+ * the folded name, then mapped back character by character, so it's highlighted in the name as written.
+ */
+function split(name: string, q: string): [string, string, string] | null {
+  const chars = [...name]
+  let folded = ''
+  const starts: number[] = [] // Where each character of the name starts in `folded`
+  for (const c of chars) {
+    starts.push(folded.length)
+    folded += fold(c)
+  }
+  const at = folded.indexOf(q)
+  if (at < 0) return null
+  let from = 0
+  while (from + 1 < starts.length && starts[from + 1]! <= at) from++
+  const to = starts.findIndex((i) => i >= at + q.length)
+  const end = to < 0 ? chars.length : to
+  return [chars.slice(0, from).join(''), chars.slice(from, end).join(''), chars.slice(end).join('')]
+}
+
 const query = ref('')
 const shown = computed(() => {
   const q = fold(query.value.trim())
-  return q ? abilities.value.filter((a) => fold(a.name).includes(q)) : abilities.value
+  if (!q) return abilities.value.map((a) => ({ ...a, parts: null }))
+  return abilities.value.flatMap((a) => {
+    const parts = split(a.name, q)
+    return parts ? [{ ...a, parts }] : []
+  })
 })
 </script>
 
@@ -38,7 +64,13 @@ const shown = computed(() => {
     <dl v-if="shown.length" class="entries">
       <template v-for="a in shown" :key="a.id">
         <dt>
-          <RouterLink :to="{ name: 'ability', params: { id: a.id } }">{{ a.name }}</RouterLink>
+          <RouterLink :to="{ name: 'ability', params: { id: a.id } }">
+            <template v-if="a.parts"
+              >{{ a.parts[0] }}<mark>{{ a.parts[1] }}</mark
+              >{{ a.parts[2] }}</template
+            >
+            <template v-else>{{ a.name }}</template>
+          </RouterLink>
         </dt>
         <dd class="muted"><DexText :text="a.text" /></dd>
       </template>
@@ -67,6 +99,12 @@ const shown = computed(() => {
 }
 .entries dt {
   font-weight: bold;
+}
+/* The part of a name matching the search. */
+mark {
+  color: inherit;
+  background: var(--sel);
+  border-radius: 2px;
 }
 .entries dd {
   margin: 0;
