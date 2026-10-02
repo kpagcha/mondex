@@ -1,11 +1,15 @@
 // The dex's categories, and references to their entries. Every mention of a status, move, ability or item is a `Ref`,
 // so it renders through `DexRef` and becomes a link once its category has a page (see `PAGES`). Names come from the
-// locale `names` tables.
+// generated data (`src/data/generated/`, by `npm run gen-data`) or, for the rest, the locale `names` tables.
 
+import ABILITIES from '@/data/generated/abilities.json'
+import ITEMS from '@/data/generated/items.json'
+import MOVES from '@/data/generated/moves.json'
 import type { TypeId } from '@/data/types'
 
-// Each category lists the entries referenced so far. An ID is only unique within its category: Electric Terrain is
-// both a move and the terrain it sets, and Psychic both a type and a move.
+// Abilities, moves and items are generated: every one in the games, and whether the current regulation has it.
+// Conditions and groups list the entries referenced so far. An ID is only unique within its category: Electric
+// Terrain is both a move and the terrain it sets, and Psychic both a type and a move.
 
 /** Statuses, weather, terrains, and field and side effects. */
 export const CONDITIONS = [
@@ -36,147 +40,11 @@ export const CONDITIONS = [
 /** Groups of moves, abilities or effects, with no entry of their own. */
 export const GROUPS = ['powder', 'trapping', 'terrains'] as const
 
-export const MOVES = [
-  'leechseed',
-  'sheercold',
-  'thunderwave',
-  'thousandarrows',
-  'smackdown',
-  'ingrain',
-  'roost',
-  'foresight',
-  'odorsleuth',
-  'miracleeye',
-  'freezedry',
-  'saltcure',
-  'magnetrise',
-  'charge',
-  'dragoncheer',
-  'weatherball',
-  'terrainpulse',
-  'risingvoltage',
-  'expandingforce',
-  'soak',
-  'magicpowder',
-  'forestscurse',
-  'trickortreat',
-  'reflecttype',
-  'burnup',
-  'doubleshock',
-] as const
-
-export const ABILITIES = [
-  'effectspore',
-  'corrosion',
-  'arenatrap',
-  'scrappy',
-  'mindseye',
-  'prankster',
-  'primordialsea',
-  'desolateland',
-  'deltastream',
-  'flashfire',
-  'wellbakedbody',
-  'waterabsorb',
-  'stormdrain',
-  'dryskin',
-  'voltabsorb',
-  'lightningrod',
-  'motordrive',
-  'sapsipper',
-  'levitate',
-  'eartheater',
-  'thickfat',
-  'heatproof',
-  'waterbubble',
-  'purifyingsalt',
-  'fluffy',
-  'justified',
-  'rattled',
-  'steamengine',
-  'watercompaction',
-  'thermalexchange',
-  'blaze',
-  'torrent',
-  'overgrow',
-  'swarm',
-  'transistor',
-  'dragonsmaw',
-  'rockypayload',
-  'steelworker',
-  'steelyspirit',
-  'sandforce',
-  'darkaura',
-  'fairyaura',
-  'aerilate',
-  'pixilate',
-  'refrigerate',
-  'galvanize',
-  'galewings',
-  'normalize',
-  'firemane',
-  'megasol',
-  'dragonize',
-  'eelevate',
-  'liquidvoice',
-  'flowerveil',
-  'mimicry',
-  'forecast',
-  'magnetpull',
-] as const
-
-export const ITEMS = [
-  'ironball',
-  'silkscarf',
-  'charcoal',
-  'mysticwater',
-  'magnet',
-  'miracleseed',
-  'nevermeltice',
-  'blackbelt',
-  'poisonbarb',
-  'softsand',
-  'sharpbeak',
-  'twistedspoon',
-  'silverpowder',
-  'hardstone',
-  'spelltag',
-  'dragonfang',
-  'blackglasses',
-  'metalcoat',
-  'fairyfeather',
-  'chilanberry',
-  'occaberry',
-  'passhoberry',
-  'wacanberry',
-  'rindoberry',
-  'yacheberry',
-  'chopleberry',
-  'kebiaberry',
-  'shucaberry',
-  'cobaberry',
-  'payapaberry',
-  'tangaberry',
-  'chartiberry',
-  'kasibberry',
-  'habanberry',
-  'colburberry',
-  'babiriberry',
-  'roseliberry',
-  'cellbattery',
-  'snowball',
-  'absorbbulb',
-  'luminousmoss',
-  'airballoon',
-  'normalgem',
-  'blacksludge',
-] as const
-
 export type ConditionId = (typeof CONDITIONS)[number]
 export type GroupId = (typeof GROUPS)[number]
-export type MoveId = (typeof MOVES)[number]
-export type AbilityId = (typeof ABILITIES)[number]
-export type ItemId = (typeof ITEMS)[number]
+export type MoveId = keyof typeof MOVES
+export type AbilityId = keyof typeof ABILITIES
+export type ItemId = keyof typeof ITEMS
 
 /** Each category's IDs. */
 export interface Ids {
@@ -210,48 +78,11 @@ export const sameRef = (a: Ref, b: Ref): boolean => a.kind === b.kind && a.id ==
  */
 export const PAGES: Partial<Record<Kind, string>> = {}
 
-export const GAMES = ['champions'] as const
-export type Game = (typeof GAMES)[number]
-
-/** The game whose content the dex shows. */
-export const GAME: Game = 'champions'
-
-/** Entries a game doesn't have, so their interactions are hidden there. Delete one when a patch adds it. */
-const MISSING: Record<Game, Ref[]> = {
-  // Checked against Smogon's Champions dex on 2026-10-01.
-  champions: [
-    ability('normalize'),
-    ability('mindseye'),
-    move('foresight'),
-    move('odorsleuth'),
-    move('miracleeye'),
-    move('thousandarrows'),
-    ability('arenatrap'),
-    ability('magnetpull'),
-    ability('primordialsea'),
-    ability('desolateland'),
-    ability('deltastream'),
-    ability('wellbakedbody'),
-    ability('stormdrain'),
-    ability('steamengine'),
-    ability('watercompaction'),
-    ability('transistor'),
-    ability('galvanize'),
-    ability('rockypayload'),
-    ability('dragonsmaw'),
-    ability('darkaura'),
-    ability('steelworker'),
-    item('cellbattery'),
-    item('snowball'),
-    item('absorbbulb'),
-    item('luminousmoss'),
-    item('blacksludge'),
-  ],
-}
-
-const missing = Object.fromEntries(GAMES.map((g) => [g, new Set(MISSING[g].map(refKey))])) as Record<Game, Set<string>>
-
-/** Whether `game` has `ref` (or there's no ref to check). */
-export function available(ref: Ref | undefined, game: Game = GAME): boolean {
-  return !ref || !missing[game].has(refKey(ref))
+/** Whether the current regulation has `ref` (or there's no ref to check), so its interactions are shown. */
+export function available(ref: Ref | undefined): boolean {
+  if (!ref) return true
+  if (ref.kind === 'ability') return ABILITIES[ref.id].available
+  if (ref.kind === 'move') return MOVES[ref.id].available
+  if (ref.kind === 'item') return ITEMS[ref.id].available
+  return true // Types, conditions and groups are all in the game
 }

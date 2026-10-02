@@ -4,13 +4,11 @@ import {
   ability,
   available,
   condition,
-  GAME,
   group,
   item,
   move,
   refKey,
   type ConditionId,
-  type Game,
   type ItemId,
   type Ref,
 } from '@/data/dex'
@@ -167,13 +165,13 @@ export const isMajor = (e: Entry): boolean => e.major ?? MAJOR.has(refKey(e.ref)
 
 /** `type`'s interactions, without the ones whose entry `game` doesn't have. Stealth Rock is left to the caller, as
  * a dual type's damage comes from both types together. */
-export function typeInfo(type: TypeId, game: Game = GAME): TypeInfo {
+export function typeInfo(type: TypeId): TypeInfo {
   const info = TYPE_INFO[type]
-  const out: TypeInfo = { notes: info.notes?.filter((n) => available(n.ref, game)) }
+  const out: TypeInfo = { notes: info.notes?.filter((n) => available(n.ref)) }
   const gives = [...(info.gives ?? []), { ref: move('reflecttype'), fx: 'info.fx.reflectType' } as Entry]
   for (const k of [...DEF_ROWS, ...ATK_ROWS, ...MORE_ROWS] as EntryKey[]) {
     const entries = k === 'gives' ? gives : info[k]
-    out[k] = entries?.filter((e) => available(e.ref, game))
+    out[k] = entries?.filter((e) => available(e.ref))
   }
   return out
 }

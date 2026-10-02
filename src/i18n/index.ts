@@ -9,8 +9,10 @@ export const LOCALES = { en: 'English', es: 'Español' } as const
 export type Locale = keyof typeof LOCALES
 export type MessageKey = keyof typeof en.messages
 
+/** Categories whose names are generated from the games' data (`npm run gen-data`), for every locale. */
+export type GeneratedKind = 'ability' | 'move' | 'item'
 /** A locale's names of every referenced entry, per category: one missing is a compile error. */
-export type Names = { [K in NamedKind]: Record<Ids[K], string> }
+export type Names = { [K in Exclude<NamedKind, GeneratedKind>]: Record<Ids[K], string> }
 
 const BUNDLES: Record<Locale, { messages: Record<MessageKey, string>; types: Record<TypeId, string>; names: Names }> = {
   en,
@@ -76,8 +78,8 @@ export function typeName(type: TypeId): string {
   return BUNDLES[locale.value].types[type]
 }
 
-/** Official name of a type, status, move, ability or item. */
-export function refName(ref: Ref): string {
-  if (ref.kind === 'type') return typeName(ref.id)
+/** Official name of a condition or group, the categories the locales list. `refName` (`@/i18n/refName`) names any
+ * entry. */
+export function termName(ref: Ref<Exclude<NamedKind, GeneratedKind>>): string {
   return (BUNDLES[locale.value].names[ref.kind] as Record<string, string>)[ref.id]!
 }
