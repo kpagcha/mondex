@@ -5,7 +5,7 @@ import { ability, available, pokemon, type AbilityId, type PokemonId } from '@/d
 import HOLDERS from '@/data/generated/abilities.holders.json'
 import { REGULATION } from '@/data/format'
 import { t, tSplit, type MessageKey } from '@/i18n'
-import { descriptions } from '@/i18n/en/abilities'
+import { abilityDescription } from '@/i18n/descriptions'
 import { refName } from '@/i18n/refName'
 import { effectText, interactionsOf } from '@/lib/interactions'
 import { formatMult, multClass } from '@/lib/typecalc'
@@ -13,14 +13,14 @@ import DexRef from '@/components/DexRef.vue'
 import DexText from '@/components/DexText.vue'
 import TypeIcon from '@/components/TypeIcon.vue'
 
-// One ability: its description (English for now), the legal Pokémon that can have it, and what it does to types
+// One ability: its description, the legal Pokémon that can have it, and what it does to types
 // beyond the chart, read from the type data rather than written twice.
 const route = useRoute()
 const id = computed(() => String(route.params.id))
 const ref = computed(() => ability(id.value as AbilityId))
 const exists = computed(() => available(ref.value))
 
-const text = computed(() => descriptions[id.value])
+const text = computed(() => abilityDescription(id.value))
 const holders = computed(() => ((HOLDERS as Record<string, PokemonId[]>)[id.value] ?? []).map(pokemon))
 const interactions = computed(() => interactionsOf(ref.value))
 

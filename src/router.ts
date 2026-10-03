@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { TYPES } from '@/data/types'
 import type { MessageKey } from '@/i18n'
 import { loadDexNames } from '@/i18n/refName'
+import { loadDescriptions } from '@/i18n/descriptions'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -10,6 +11,8 @@ declare module 'vue-router' {
     descKey?: MessageKey
     /** The page shows dex entries (`DexRef`): navigation waits for the current locale's names. */
     dexNames?: boolean
+    /** The page shows ability descriptions: navigation waits for the current locale's. */
+    descriptions?: boolean
   }
 }
 
@@ -63,14 +66,14 @@ export const router = createRouter({
       path: '/abilities',
       name: 'abilities',
       component: () => import('@/views/AbilitiesView.vue'),
-      meta: { titleKey: 'title.abilities', descKey: 'desc.abilities', dexNames: true },
+      meta: { titleKey: 'title.abilities', descKey: 'desc.abilities', dexNames: true, descriptions: true },
     },
     {
       path: '/abilities/:id',
       name: 'ability',
       component: () => import('@/views/AbilityView.vue'),
       // The layout describes an ability's own page; the list's description is for an ID the regulation lacks.
-      meta: { titleKey: 'title.abilities', descKey: 'desc.abilities', dexNames: true },
+      meta: { titleKey: 'title.abilities', descKey: 'desc.abilities', dexNames: true, descriptions: true },
     },
     {
       path: '/settings',
@@ -88,7 +91,8 @@ export const router = createRouter({
   ],
 })
 
-// Pages showing dex entries render with their names in place, rather than filling them in once they load.
+// Pages showing dex entries render with their names (and descriptions) in place, rather than filling them in once
+// they load.
 router.beforeResolve(async (to) => {
-  if (to.meta.dexNames) await loadDexNames()
+  await Promise.all([to.meta.dexNames && loadDexNames(), to.meta.descriptions && loadDescriptions()])
 })

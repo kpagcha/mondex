@@ -5,8 +5,9 @@ import { locale, t, typeName } from '@/i18n'
 import { GAME_NAME, REGULATION } from '@/data/format'
 import { ability, availableIds } from '@/data/dex'
 import { TYPES } from '@/data/types'
-import { descriptions } from '@/i18n/en/abilities'
+import { abilityDescription } from '@/i18n/descriptions'
 import { loadDexNames, refName } from '@/i18n/refName'
+import { loadDescriptions } from '@/i18n/descriptions'
 import { fold, split } from '@/lib/search'
 import TypeIcon from '@/components/TypeIcon.vue'
 import QuickLinks from '@/components/QuickLinks.vue'
@@ -20,9 +21,12 @@ const query = computed({
   set: (q: string) => void router.replace({ query: { ...route.query, q: q || undefined } }),
 })
 
-// The page itself shows no dex entries, so it doesn't wait for their names; they load in the background, ready to
-// search by the time anyone types.
-onMounted(() => void loadDexNames())
+// The page itself shows no dex entries, so it doesn't wait for their names (or descriptions); they load in the
+// background, ready to search by the time anyone types.
+onMounted(() => {
+  void loadDexNames()
+  void loadDescriptions()
+})
 
 /** Each category's entries matching the search, by name in the reader's language; categories without any left out. */
 const results = computed(() => {
@@ -38,7 +42,7 @@ const results = computed(() => {
     .flatMap((id) => {
       const name = refName(ability(id))
       const parts = split(name, q)
-      return parts ? [{ id, name, parts, text: descriptions[id]?.short ?? '' }] : []
+      return parts ? [{ id, name, parts, text: abilityDescription(id)?.short ?? '' }] : []
     })
     .sort((a, b) => +!!a.parts[0] - +!!b.parts[0] || a.name.localeCompare(b.name, locale.value))
   return { types, abilities }

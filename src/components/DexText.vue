@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { Ref } from '@/data/dex'
 import DexRef from '@/components/DexRef.vue'
-import { descriptions } from '@/i18n/en/abilities'
+import { abilityDescription } from '@/i18n/descriptions'
 import { refName } from '@/i18n/refName'
 
 // Curated text with references to dex entries embedded as markers (`{type:flying}`, `{move:taunt}`): the markers
@@ -15,7 +15,7 @@ const MARKER = /\{(\w+):(\w+)\}/g
 const canHover = window.matchMedia('(hover: hover)').matches
 
 function tip(ref: Ref): string | undefined {
-  const short = canHover && ref.kind === 'ability' ? descriptions[ref.id]?.short : undefined
+  const short = canHover && ref.kind === 'ability' ? abilityDescription(ref.id)?.short : undefined
   return short?.replace(MARKER, (_, kind: string, id: string) => refName({ kind, id } as Ref))
 }
 

@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createJiti } from 'jiti'
 import * as prettier from 'prettier'
 import { descriptions as ABILITY_DESCRIPTIONS } from '../src/i18n/en/abilities.ts'
@@ -201,25 +201,39 @@ ${long}`,
     .slice(0, 8)
 }
 
+/** A curated description: our own English, or its translation. */
+interface Curated {
+  short: string
+  long?: string
+  /** The text it was written from: Showdown's for English, ours in English for a translation (`hashText` of both). */
+  source: string
+}
+
 /**
  * Compares curated descriptions with the source they were written from: entries whose source changed since (to
- * revise), entries the regulation has with no curated text yet, and curated entries it no longer has.
+ * revise), entries the regulation has with no curated text yet, and curated entries it no longer has. `source` names
+ * the text they're written from, `hash` fingerprints it for an entry (`undefined` for one with nothing to write from).
  */
 function reportDrift(
   key: string,
+  locale: Locale,
   available: Entry[],
-  curated: Record<string, { source: string }>,
-  hash: (e: Entry) => string,
+  curated: Record<string, Curated>,
+  source: string,
+  hash: (e: Entry) => string | undefined,
 ) {
-  const changed = available.filter((e) => curated[e.id] && curated[e.id]!.source !== hash(e))
-  const unwritten = available.filter((e) => !curated[e.id])
-  const gone = Object.keys(curated).filter((id) => !available.some((e) => e.id === id))
+  const file = `src/i18n/${locale}/${key}.ts`
+  const changed = available.filter((e) => curated[e.id] && hash(e) && curated[e.id]!.source !== hash(e))
+  const writable = available.filter((e) => hash(e))
+  const unwritten = writable.filter((e) => !curated[e.id])
+  const gone = Object.keys(curated).filter((id) => !writable.some((e) => e.id === id))
   if (changed.length) {
-    console.warn(`Showdown's text changed for these ${key}; revise their descriptions in src/i18n/en/${key}.ts:`)
+    console.warn(`${source} changed for these ${key}; revise their descriptions in ${file}:`)
     for (const e of changed) console.warn(`  ${e.id}: source ${curated[e.id]!.source} -> ${hash(e)}`)
   }
-  if (gone.length) console.warn(`Described ${key} the regulation no longer has: ${gone.join(', ')}`)
-  console.log(`${key} descriptions: ${available.length - unwritten.length} of ${available.length} written`)
+  if (gone.length) console.warn(`${file} describes ${key} with nothing to write from: ${gone.join(', ')}`)
+  console.log(`${key} descriptions (${locale}): ${writable.length - unwritten.length} of ${writable.length} written`)
+  if (unwritten.length && locale !== 'en') console.log(`  missing: ${unwritten.map((e) => e.id).join(', ')}`)
 }
 
 /** A dex category the script generates. */
@@ -233,7 +247,7 @@ interface Category {
   /** Showdown's text table, for categories whose descriptions go in `<key>.json`. */
   text?: TextTable
   /** Our curated descriptions written from Showdown's, checked for drift (`src/i18n/en/<key>.ts`). */
-  curated?: Record<string, { source: string }>
+  curated?: Record<string, Curated>
   /** The legal Pokémon with each entry the regulation has, for categories whose pages list them (`<key>.holders.json`). */
   holders?: (id: string) => string[]
   /**
@@ -383,7 +397,19 @@ async function main() {
         : { available: e.available }
     await writeJson(`${c.key}.json`, Object.fromEntries(entries.map((e) => [e.id, data(e)])))
     if (text && c.curated) {
-      reportDrift(c.key, available, c.curated, (e) => hashText(text[e.id]!.shortDesc, text[e.id]!.desc))
+      const en = c.curated
+      reportDrift(c.key, 'en', available, en, "Showdown's text", (e) =>
+        hashText(text[e.id]!.shortDesc, text[e.id]!.desc),
+      )
+      // Every other locale's, translated from ours, when it has a file of them.
+      for (const locale of Object.keys(LOCALES) as Locale[]) {
+        const file = join(ROOT, `src/i18n/${locale}/${c.key}.ts`)
+        if (locale === 'en' || !existsSync(file)) continue
+        const { descriptions } = (await import(pathToFileURL(file).href)) as { descriptions: Record<string, Curated> }
+        reportDrift(c.key, locale, available, descriptions, 'Our English', (e) =>
+          en[e.id] ? hashText(en[e.id]!.short, en[e.id]!.long ?? '') : undefined,
+        )
+      }
     }
     for (const locale of Object.keys(LOCALES) as Locale[]) {
       await writeJson(

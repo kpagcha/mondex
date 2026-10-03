@@ -5,9 +5,11 @@
 // It loads the app's own `src/data/dex.ts` (through jiti, with the `@/` alias), so "exists" and "available" mean
 // exactly what they mean in the app.
 
+import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createJiti } from 'jiti'
+import { LOCALES } from '../src/i18n/locales.ts'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const jiti = createJiti(import.meta.url, { alias: { '@': join(ROOT, 'src') } })
@@ -33,12 +35,18 @@ const KNOWN: Record<Kind, (id: string) => boolean> = {
   pokemon: () => true,
 }
 
-/** The curated text, by file: each entry's strings. */
-const TEXT: Record<string, () => Promise<Record<string, Record<string, unknown>>>> = {
-  'src/i18n/en/abilities.ts': async () =>
-    ((await jiti.import('@/i18n/en/abilities.ts')) as { descriptions: Record<string, Record<string, unknown>> })
-      .descriptions,
-}
+/** The curated text, by file: each entry's strings. Ability descriptions in every language that has them. */
+const TEXT: Record<string, () => Promise<Record<string, Record<string, unknown>>>> = Object.fromEntries(
+  Object.keys(LOCALES)
+    .map((locale) => `src/i18n/${locale}/abilities.ts`)
+    .filter((file) => existsSync(join(ROOT, file)))
+    .map((file) => [
+      file,
+      async () =>
+        ((await jiti.import(join(ROOT, file))) as { descriptions: Record<string, Record<string, unknown>> })
+          .descriptions,
+    ]),
+)
 
 const problems: string[] = []
 let markers = 0
