@@ -14,7 +14,7 @@ dev:
 dev-profile $VITE_PROFILE="true":
     npm run dev
 
-# Type-check and build the production site into dist/
+# Check the curated text's markers, type-check and build the production site into dist/
 build:
     npm run build
 
@@ -25,3 +25,7 @@ preview: build
 # Regenerate src/data/generated/ from Pokémon Showdown and PokéAPI at the pinned commits (`just gen-data --update` repins to the latest)
 gen-data *args:
     npm run gen-data -- {{args}}
+
+# Check the markers in the curated text ({type:flying}, {move:taunt}...) in every language: quicker than a build
+check-text:
+    npm run check-text
