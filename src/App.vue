@@ -204,8 +204,13 @@ const fadeVariants = {
   color: var(--text);
 }
 .nav a:hover {
-  background: var(--hover);
   text-decoration: none;
+}
+/* Touch screens fire :hover on tap (and keep it), which would flash under the pill as it slides over. */
+@media (hover: hover) {
+  .nav a:hover {
+    background: var(--hover);
+  }
 }
 .nav .pill {
   position: absolute;
