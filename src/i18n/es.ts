@@ -89,6 +89,8 @@ export const messages: Record<keyof typeof en, string> = {
     'Una Pokédex competitiva para {game}, al día con el Reglamento {reg}. La parte de Pokémon, movimientos y formatos está en camino; las herramientas de tipos y las habilidades ya están listas.',
   'home.typesDesc': 'Cada tipo con sus debilidades, resistencias e inmunidades.',
   'home.abilitiesDesc': 'Qué hace cada habilidad y qué Pokémon pueden tenerla.',
+  'home.search': 'Buscar en la dex',
+  'home.none': 'No hay resultados.',
 
   'types.intro': 'Elige un tipo.',
   'types.defending': 'Al defender',

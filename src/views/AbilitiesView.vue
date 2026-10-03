@@ -5,6 +5,7 @@ import { REGULATION } from '@/data/format'
 import { locale, t } from '@/i18n'
 import { descriptions } from '@/i18n/en/abilities'
 import { refName } from '@/i18n/refName'
+import { fold, split } from '@/lib/search'
 import DexText from '@/components/DexText.vue'
 
 // Every ability the regulation has, by name in the reader's language, with its short description. The descriptions
@@ -14,30 +15,6 @@ const abilities = computed(() =>
     .map((id) => ({ id, name: refName(ability(id)), text: descriptions[id]?.short ?? '' }))
     .sort((a, b) => a.name.localeCompare(b.name, locale.value)),
 )
-
-/** Folds a name for matching, ignoring case and accents: "levitacion" finds "Levitación". */
-const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
-
-/**
- * `name` split around the first match of the folded query `q`: [before, match, after], or null. The match is found in
- * the folded name, then mapped back character by character, so it's highlighted in the name as written.
- */
-function split(name: string, q: string): [string, string, string] | null {
-  const chars = [...name]
-  let folded = ''
-  const starts: number[] = [] // Where each character of the name starts in `folded`
-  for (const c of chars) {
-    starts.push(folded.length)
-    folded += fold(c)
-  }
-  const at = folded.indexOf(q)
-  if (at < 0) return null
-  let from = 0
-  while (from + 1 < starts.length && starts[from + 1]! <= at) from++
-  const to = starts.findIndex((i) => i >= at + q.length)
-  const end = to < 0 ? chars.length : to
-  return [chars.slice(0, from).join(''), chars.slice(from, end).join(''), chars.slice(end).join('')]
-}
 
 const query = ref('')
 const shown = computed(() => {
@@ -80,17 +57,6 @@ const shown = computed(() => {
 </template>
 
 <style scoped>
-.search {
-  width: 100%;
-  max-width: 320px;
-  margin-bottom: 12px;
-  padding: 6px 8px;
-  font: inherit;
-  color: inherit;
-  background: var(--panel-alt);
-  border: 1px solid var(--border-strong);
-  border-radius: 3px;
-}
 .entries {
   display: grid;
   grid-template-columns: max-content 1fr;
@@ -99,12 +65,6 @@ const shown = computed(() => {
 }
 .entries dt {
   font-weight: bold;
-}
-/* The part of a name matching the search. */
-mark {
-  color: inherit;
-  background: var(--sel);
-  border-radius: 2px;
 }
 .entries dd {
   margin: 0;

@@ -233,6 +233,24 @@ img.pixel {
   filter: brightness(1.08);
 }
 
+/* A search box, and the part of each result's name that matches it. */
+.search {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 12px;
+  padding: 6px 8px;
+  font: inherit;
+  color: inherit;
+  background: var(--panel-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+}
+mark {
+  color: inherit;
+  background: var(--sel);
+  border-radius: 2px;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;

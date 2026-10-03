@@ -86,6 +86,8 @@ export const messages = {
     'A competitive dex for {game}, up to date with Regulation {reg}. The Pokémon, moves and formats dex is on the way; the type tools and abilities are ready now.',
   'home.typesDesc': 'Every type with its weaknesses, resistances and immunities.',
   'home.abilitiesDesc': 'What every ability does, and which Pokémon can have it.',
+  'home.search': 'Search the dex',
+  'home.none': 'Nothing matches.',
 
   'types.intro': 'Pick a type.',
   'types.defending': 'Defending',
